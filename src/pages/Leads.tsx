@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { LeadKanban } from "@/components/leads/LeadKanban";
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { LeadFilters } from "@/components/leads/LeadFilters";
+import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,8 @@ type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
 export default function Leads() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [quoteBuilderOpen, setQuoteBuilderOpen] = useState(false);
+  const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -82,6 +85,11 @@ export default function Leads() {
     updateMutation.mutate({ id: leadId, status: newStatus });
   };
 
+  const handleCreateQuote = (lead: Lead) => {
+    setQuoteLead(lead);
+    setQuoteBuilderOpen(true);
+  };
+
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
       const searchLower = search.toLowerCase();
@@ -126,6 +134,7 @@ export default function Leads() {
           isLoading={isLoading}
           onEdit={handleEdit}
           onStatusChange={handleStatusChange}
+          onCreateQuote={handleCreateQuote}
         />
 
         <LeadDialog
@@ -134,6 +143,12 @@ export default function Leads() {
           lead={editingLead}
           onSave={handleSave}
           isLoading={createMutation.isPending || updateMutation.isPending}
+        />
+
+        <QuoteBuilder 
+          open={quoteBuilderOpen} 
+          onOpenChange={setQuoteBuilderOpen} 
+          lead={quoteLead}
         />
       </div>
     </DashboardLayout>

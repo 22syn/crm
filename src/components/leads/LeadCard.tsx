@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MessageSquare, GripVertical } from "lucide-react";
+import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -19,9 +19,10 @@ const sourceLabels: Record<string, string> = {
 interface LeadCardProps {
   lead: Lead;
   onEdit: (lead: Lead) => void;
+  onCreateQuote?: (lead: Lead) => void;
 }
 
-export function LeadCard({ lead, onEdit }: LeadCardProps) {
+export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
   const {
     attributes,
     listeners,
@@ -88,6 +89,20 @@ export function LeadCard({ lead, onEdit }: LeadCardProps) {
             <MessageSquare className="h-3 w-3 mt-0.5" />
             <span className="line-clamp-2">{lead.notes}</span>
           </div>
+        )}
+        {onCreateQuote && lead.status !== "won" && lead.status !== "lost" && lead.status !== "quoted" && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCreateQuote(lead);
+            }}
+          >
+            <FileText className="h-3 w-3 mr-1" />
+            צור הצעת מחיר
+          </Button>
         )}
       </CardContent>
     </Card>

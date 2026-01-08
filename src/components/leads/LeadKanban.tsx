@@ -22,6 +22,7 @@ interface LeadKanbanProps {
   isLoading: boolean;
   onEdit: (lead: Lead) => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
+  onCreateQuote?: (lead: Lead) => void;
 }
 
 const statusColumns: { status: LeadStatus; label: string; color: string }[] = [
@@ -33,7 +34,7 @@ const statusColumns: { status: LeadStatus; label: string; color: string }[] = [
   { status: "lost", label: "Lost", color: "bg-red-500" },
 ];
 
-export function LeadKanban({ leads, isLoading, onEdit, onStatusChange }: LeadKanbanProps) {
+export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQuote }: LeadKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -112,6 +113,7 @@ export function LeadKanban({ leads, isLoading, onEdit, onStatusChange }: LeadKan
             color={column.color}
             leads={getLeadsByStatus(column.status)}
             onEdit={onEdit}
+            onCreateQuote={onCreateQuote}
           />
         ))}
       </div>

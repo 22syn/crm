@@ -333,6 +333,121 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          quantity: number
+          quote_id: string
+          shopify_product_id: string | null
+          shopify_variant_id: string | null
+          title: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          quantity?: number
+          quote_id: string
+          shopify_product_id?: string | null
+          shopify_variant_id?: string | null
+          title: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          quantity?: number
+          quote_id?: string
+          shopify_product_id?: string | null
+          shopify_variant_id?: string | null
+          title?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          discount: number | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          quote_number: string
+          status: string
+          subtotal: number
+          tax: number | null
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          discount?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          quote_number: string
+          status?: string
+          subtotal?: number
+          tax?: number | null
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          discount?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          quote_number?: string
+          status?: string
+          subtotal?: number
+          tax?: number | null
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
