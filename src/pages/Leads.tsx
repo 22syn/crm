@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { LeadKanban } from "@/components/leads/LeadKanban";
 import { LeadDialog } from "@/components/leads/LeadDialog";
+import { LeadFilters } from "@/components/leads/LeadFilters";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +16,9 @@ type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
 export default function Leads() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const queryClient = useQueryClient();
 
   const { data: leads = [], isLoading } = useQuery({
@@ -78,10 +82,26 @@ export default function Leads() {
     updateMutation.mutate({ id: leadId, status: newStatus });
   };
 
+  const filteredLeads = useMemo(() => {
+    return leads.filter((lead) => {
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        !search ||
+        lead.customer_name.toLowerCase().includes(searchLower) ||
+        lead.customer_email?.toLowerCase().includes(searchLower) ||
+        lead.customer_phone?.toLowerCase().includes(searchLower);
+
+      const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+      const matchesSource = sourceFilter === "all" || lead.source === sourceFilter;
+
+      return matchesSearch && matchesStatus && matchesSource;
+    });
+  }, [leads, search, statusFilter, sourceFilter]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Leads</h1>
             <p className="text-muted-foreground">Manage your sales pipeline</p>
@@ -92,8 +112,17 @@ export default function Leads() {
           </Button>
         </div>
 
+        <LeadFilters
+          search={search}
+          onSearchChange={setSearch}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={setSourceFilter}
+        />
+
         <LeadKanban
-          leads={leads}
+          leads={filteredLeads}
           isLoading={isLoading}
           onEdit={handleEdit}
           onStatusChange={handleStatusChange}
