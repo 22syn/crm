@@ -4,4 +4,4 @@ project_id = "ngmbijlwmnsnncpfnyjg"
 verify_jwt = false
 
 [functions.send-quote]
-verify_jwt = true
+verify_jwt = false
