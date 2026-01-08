@@ -25,8 +25,10 @@ import {
   Send, 
   MessageCircle,
   Mail,
-  Save
+  Save,
+  Eye
 } from "lucide-react";
+import { QuotePreview } from "./QuotePreview";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -59,6 +61,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const [customerEmail, setCustomerEmail] = useState(lead?.customer_email || "");
   const [customerPhone, setCustomerPhone] = useState(lead?.customer_phone || "");
   const [isSending, setIsSending] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: products, isLoading: productsLoading } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products-quote"],
@@ -78,6 +81,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
   const tax = (subtotal - discount) * 0.17; // 17% VAT
   const total = subtotal - discount + tax;
+
+  const getValidUntilDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + validDays);
+    return date;
+  };
 
   const addProduct = (product: ShopifyProduct) => {
     const variant = product.node.variants.edges[0]?.node;
@@ -410,6 +419,15 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
 
         <div className="flex flex-wrap gap-2 pt-4 border-t">
           <Button
+            variant="ghost"
+            onClick={() => setPreviewOpen(true)}
+            disabled={items.length === 0}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            תצוגה מקדימה
+          </Button>
+
+          <Button
             variant="outline"
             onClick={() => saveMutation.mutate(false)}
             disabled={items.length === 0 || saveMutation.isPending}
@@ -441,6 +459,24 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             </Button>
           )}
         </div>
+
+        <QuotePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          customerName={customerName}
+          items={items.map(i => ({
+            title: i.title,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+            total_price: i.total_price,
+          }))}
+          subtotal={subtotal}
+          discount={discount}
+          tax={tax}
+          total={total}
+          validUntil={getValidUntilDate()}
+          notes={notes}
+        />
       </DialogContent>
     </Dialog>
   );
