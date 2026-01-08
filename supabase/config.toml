@@ -1,1 +1,4 @@
 project_id = "ngmbijlwmnsnncpfnyjg"
+
+[functions.website-lead]
+verify_jwt = false
