@@ -32,15 +32,15 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Leads", url: "/leads", icon: Users },
-  { title: "Quotes", url: "/quotes", icon: FileText },
-  { title: "Orders", url: "/orders", icon: ShoppingCart },
-  { title: "Products", url: "/products", icon: Package },
+  { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
+  { title: "לידים", url: "/leads", icon: Users },
+  { title: "הצעות מחיר", url: "/quotes", icon: FileText },
+  { title: "הזמנות", url: "/orders", icon: ShoppingCart },
+  { title: "מוצרים", url: "/products", icon: Package },
 ];
 
 const adminItems = [
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "הגדרות", url: "/settings", icon: Settings },
 ];
 
 export function DashboardSidebar() {
@@ -49,18 +49,18 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b p-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <Package className="h-4 w-4 text-primary-foreground" />
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <Link to="/dashboard" className="flex items-center gap-3">
+          <div className="flex flex-col items-center">
+            <span className="text-2xl font-light tracking-widest text-sidebar-foreground">הדריה</span>
+            <span className="text-[10px] tracking-[0.3em] text-sidebar-foreground/60 uppercase">By Elle</span>
           </div>
-          <span className="font-semibold text-lg">Furniture CRM</span>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>תפריט</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -79,7 +79,7 @@ export function DashboardSidebar() {
 
         {role === "admin" && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>ניהול</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
@@ -117,7 +117,7 @@ export function DashboardSidebar() {
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              התנתק
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
