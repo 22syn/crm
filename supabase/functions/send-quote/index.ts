@@ -40,10 +40,10 @@ const handler = async (req: Request): Promise<Response> => {
     
     const itemsHtml = data.items.map(item => `
       <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">${item.title}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">₪${item.unit_price.toFixed(2)}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">₪${item.total_price.toFixed(2)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; color: #5a5347;">${item.title}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: center; color: #5a5347;">${item.quantity}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: right; color: #5a5347;">₪${item.unit_price.toFixed(2)}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: right; color: #5a5347;">₪${item.total_price.toFixed(2)}</td>
       </tr>
     `).join('');
 
@@ -53,23 +53,31 @@ const handler = async (req: Request): Promise<Response> => {
       <head>
         <meta charset="UTF-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #1a1a2e; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-          .content { background: #f9fafb; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; background: white; margin: 20px 0; }
-          th { background: #f3f4f6; padding: 12px; text-align: right; }
-          .totals { background: white; padding: 15px; border-radius: 8px; }
-          .total-row { display: flex; justify-content: space-between; padding: 8px 0; }
-          .grand-total { font-size: 1.25rem; font-weight: bold; border-top: 2px solid #e5e7eb; padding-top: 10px; margin-top: 10px; }
-          .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 0.875rem; }
+          @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600&display=swap');
+          body { font-family: 'Heebo', Arial, sans-serif; line-height: 1.6; color: #5a5347; background: #f8f6f3; }
+          .container { max-width: 600px; margin: 0 auto; background: #f8f6f3; }
+          .header { background: #3d3830; color: #f8f6f3; padding: 40px 20px; text-align: center; }
+          .logo { font-size: 32px; font-weight: 300; letter-spacing: 8px; margin-bottom: 8px; }
+          .logo-sub { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; opacity: 0.7; }
+          .divider { width: 60px; height: 1px; background: #c4b8a8; margin: 20px auto; }
+          .content { padding: 40px 30px; }
+          table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+          th { border-bottom: 2px solid #c4b8a8; padding: 12px; text-align: right; font-weight: 500; color: #3d3830; }
+          .totals { background: rgba(255,255,255,0.5); padding: 20px; border-radius: 4px; border: 1px solid #e8e4de; margin-top: 20px; }
+          .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: #5a5347; }
+          .grand-total { font-size: 1.15rem; font-weight: 500; color: #3d3830; border-top: 2px solid #c4b8a8; padding-top: 12px; margin-top: 12px; }
+          .footer { text-align: center; padding: 30px; border-top: 1px solid #e8e4de; color: #8a8279; font-size: 0.875rem; }
+          .notes { background: #f0ebe3; padding: 15px; border-radius: 4px; border: 1px solid #e0d9ce; margin-top: 20px; }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h1 style="margin: 0;">הצעת מחיר</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9;">${data.quoteNumber}</p>
+            <div class="logo">הדריה</div>
+            <div class="logo-sub">By Elle</div>
+            <div class="divider"></div>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 300; letter-spacing: 2px;">הצעת מחיר</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 14px;">${data.quoteNumber}</p>
           </div>
           
           <div class="content">
@@ -96,14 +104,14 @@ const handler = async (req: Request): Promise<Response> => {
                 <span>₪${data.subtotal.toFixed(2)}</span>
               </div>
               ${data.discount > 0 ? `
-              <div class="total-row" style="color: #059669;">
+              <div class="total-row" style="color: #6b8e6b;">
                 <span>הנחה:</span>
                 <span>-₪${data.discount.toFixed(2)}</span>
               </div>
               ` : ''}
               ${data.tax > 0 ? `
               <div class="total-row">
-                <span>מע"מ:</span>
+                <span>מע"מ (17%):</span>
                 <span>₪${data.tax.toFixed(2)}</span>
               </div>
               ` : ''}
@@ -113,15 +121,16 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
             </div>
             
-            ${data.validUntil ? `<p style="color: #6b7280; margin-top: 20px;">הצעה זו בתוקף עד: ${new Date(data.validUntil).toLocaleDateString('he-IL')}</p>` : ''}
+            ${data.validUntil ? `<p style="color: #8a8279; margin-top: 25px; font-size: 14px;">הצעה זו בתוקף עד: ${new Date(data.validUntil).toLocaleDateString('he-IL')}</p>` : ''}
             
-            ${data.notes ? `<p style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px;"><strong>הערות:</strong><br>${data.notes}</p>` : ''}
+            ${data.notes ? `<div class="notes"><strong style="color: #3d3830;">הערות:</strong><br>${data.notes}</div>` : ''}
             
             <p style="margin-top: 30px;">לאישור ההצעה או לשאלות נוספות, אנא צרו קשר.</p>
           </div>
           
           <div class="footer">
-            <p>הצעה זו הופקה אוטומטית ממערכת ה-CRM</p>
+            <p style="font-weight: 300; font-style: italic;">Because ordinary isn't an option</p>
+            <p style="margin-top: 8px; font-size: 12px;">hadaryadesign.com</p>
           </div>
         </div>
       </body>

@@ -50,82 +50,88 @@ export function QuotePreview({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="bg-white rounded-lg border shadow-sm" dir="rtl">
-          {/* Header */}
-          <div className="bg-[#1a1a2e] text-white p-6 text-center rounded-t-lg">
-            <h1 className="text-2xl font-bold m-0">הצעת מחיר</h1>
-            <p className="mt-2 opacity-90">{quoteNumber}</p>
+        <div className="bg-[#f8f6f3] rounded-lg border border-[#e8e4de] shadow-sm" dir="rtl">
+          {/* Header - Hadarya Style */}
+          <div className="bg-[#3d3830] text-[#f8f6f3] p-8 text-center rounded-t-lg">
+            <div className="mb-4">
+              <h2 className="text-3xl font-light tracking-widest">הדריה</h2>
+              <span className="text-[10px] tracking-[0.3em] opacity-70 uppercase">By Elle</span>
+            </div>
+            <div className="w-16 h-[1px] bg-[#c4b8a8] mx-auto my-4"></div>
+            <h1 className="text-xl font-light tracking-wide">הצעת מחיר</h1>
+            <p className="mt-2 text-sm opacity-80 font-light">{quoteNumber}</p>
           </div>
 
           {/* Content */}
-          <div className="bg-gray-50 p-6">
-            <p className="mb-4">שלום {customerName},</p>
-            <p className="mb-4">תודה על פנייתך! מצורפת הצעת המחיר שלך:</p>
+          <div className="p-8">
+            <p className="mb-2 text-[#5a5347]">שלום {customerName},</p>
+            <p className="mb-6 text-[#5a5347]">תודה על פנייתך! מצורפת הצעת המחיר שלך:</p>
 
             {/* Items Table */}
-            <table className="w-full border-collapse bg-white my-5 text-sm">
+            <table className="w-full border-collapse my-6 text-sm">
               <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-3 text-right font-medium">פריט</th>
-                  <th className="p-3 text-center font-medium">כמות</th>
-                  <th className="p-3 text-right font-medium">מחיר ליחידה</th>
-                  <th className="p-3 text-right font-medium">סה"כ</th>
+                <tr className="border-b-2 border-[#c4b8a8]">
+                  <th className="p-3 text-right font-medium text-[#3d3830]">פריט</th>
+                  <th className="p-3 text-center font-medium text-[#3d3830]">כמות</th>
+                  <th className="p-3 text-right font-medium text-[#3d3830]">מחיר ליחידה</th>
+                  <th className="p-3 text-right font-medium text-[#3d3830]">סה"כ</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-200">
-                    <td className="p-3">{item.title}</td>
-                    <td className="p-3 text-center">{item.quantity}</td>
-                    <td className="p-3 text-right">₪{item.unit_price.toFixed(2)}</td>
-                    <td className="p-3 text-right">₪{item.total_price.toFixed(2)}</td>
+                  <tr key={index} className="border-b border-[#e8e4de]">
+                    <td className="p-3 text-[#5a5347]">{item.title}</td>
+                    <td className="p-3 text-center text-[#5a5347]">{item.quantity}</td>
+                    <td className="p-3 text-right text-[#5a5347]">₪{item.unit_price.toFixed(2)}</td>
+                    <td className="p-3 text-right text-[#5a5347]">₪{item.total_price.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             {/* Totals */}
-            <div className="bg-white p-4 rounded-lg">
-              <div className="flex justify-between py-2 text-sm">
+            <div className="bg-white/50 p-5 rounded border border-[#e8e4de]">
+              <div className="flex justify-between py-2 text-sm text-[#5a5347]">
                 <span>סכום ביניים:</span>
                 <span>₪{subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between py-2 text-sm text-green-600">
+                <div className="flex justify-between py-2 text-sm text-[#6b8e6b]">
                   <span>הנחה:</span>
                   <span>-₪{discount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 text-sm">
+              <div className="flex justify-between py-2 text-sm text-[#5a5347]">
                 <span>מע"מ (17%):</span>
                 <span>₪{tax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-3 text-lg font-bold border-t-2 border-gray-200 mt-2">
+              <div className="flex justify-between py-3 text-lg font-medium text-[#3d3830] border-t-2 border-[#c4b8a8] mt-2">
                 <span>סה"כ לתשלום:</span>
                 <span>₪{total.toFixed(2)}</span>
               </div>
             </div>
 
             {validUntil && (
-              <p className="text-gray-500 mt-5 text-sm">
+              <p className="text-[#8a8279] mt-6 text-sm">
                 הצעה זו בתוקף עד: {validUntil.toLocaleDateString("he-IL")}
               </p>
             )}
 
             {notes && (
-              <div className="bg-amber-50 p-4 rounded-lg mt-5 text-sm">
-                <strong>הערות:</strong>
+              <div className="bg-[#f0ebe3] p-4 rounded border border-[#e0d9ce] mt-6 text-sm text-[#5a5347]">
+                <strong className="text-[#3d3830]">הערות:</strong>
                 <br />
                 {notes}
               </div>
             )}
 
-            <p className="mt-8">לאישור ההצעה או לשאלות נוספות, אנא צרו קשר.</p>
+            <p className="mt-8 text-[#5a5347]">לאישור ההצעה או לשאלות נוספות, אנא צרו קשר.</p>
           </div>
 
           {/* Footer */}
-          <div className="text-center p-5 text-gray-500 text-sm">
-            <p>הצעה זו הופקה אוטומטית ממערכת ה-CRM</p>
+          <div className="text-center p-6 border-t border-[#e8e4de] text-[#8a8279] text-sm">
+            <p className="font-light">Because ordinary isn't an option</p>
+            <p className="mt-2 text-xs">hadaryadesign.com</p>
           </div>
         </div>
 
