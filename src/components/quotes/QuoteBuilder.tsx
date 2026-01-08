@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchShopifyProducts, type ShopifyProduct } from "@/lib/shopify";
@@ -69,14 +69,14 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     enabled: open,
   });
 
-  // Update customer info when lead changes
-  useState(() => {
-    if (lead) {
+  // Update customer info when lead changes or dialog opens
+  useEffect(() => {
+    if (open && lead) {
       setCustomerName(lead.customer_name);
       setCustomerEmail(lead.customer_email || "");
       setCustomerPhone(lead.customer_phone || "");
     }
-  });
+  }, [open, lead]);
 
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
   const tax = (subtotal - discount) * 0.17; // 17% VAT
