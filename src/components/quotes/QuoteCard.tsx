@@ -7,7 +7,7 @@ import {
   MessageCircle, 
   CheckCircle, 
   Clock,
-  ShoppingCart
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
@@ -28,6 +28,7 @@ interface QuoteCardProps {
   quote: Quote;
   onConvertToOrder?: (quote: Quote) => void;
   onResend?: (quote: Quote) => void;
+  onView?: (quote: Quote) => void;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -38,7 +39,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   expired: { label: "פג תוקף", variant: "outline" },
 };
 
-export function QuoteCard({ quote, onConvertToOrder, onResend }: QuoteCardProps) {
+export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCardProps) {
   const status = statusConfig[quote.status] || statusConfig.draft;
   
   const getWhatsAppLink = () => {
@@ -79,7 +80,16 @@ export function QuoteCard({ quote, onConvertToOrder, onResend }: QuoteCardProps)
             )}
           </div>
 
-          <div className="flex gap-2 pt-3">
+          <div className="flex gap-2 pt-3 flex-wrap">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onView?.(quote)}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              צפייה
+            </Button>
+
             {quote.status === "sent" && (
               <Button
                 size="sm"

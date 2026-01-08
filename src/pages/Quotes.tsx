@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { QuoteCard } from "@/components/quotes/QuoteCard";
+import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FileText, Loader2 } from "lucide-react";
@@ -11,6 +12,9 @@ import { toast } from "sonner";
 
 export default function Quotes() {
   const [builderOpen, setBuilderOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<any>(null);
+  const [quoteItems, setQuoteItems] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   const { data: quotes = [], isLoading } = useQuery({
@@ -98,6 +102,19 @@ export default function Quotes() {
   const sentQuotes = quotes.filter(q => q.status === "sent");
   const approvedQuotes = quotes.filter(q => q.status === "approved");
 
+  const handleViewQuote = async (quote: any) => {
+    setSelectedQuote(quote);
+    
+    // Fetch quote items
+    const { data: items } = await supabase
+      .from("quote_items")
+      .select("*")
+      .eq("quote_id", quote.id);
+    
+    setQuoteItems(items || []);
+    setPreviewOpen(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -141,6 +158,7 @@ export default function Quotes() {
                   <QuoteCard 
                     key={quote.id} 
                     quote={quote}
+                    onView={handleViewQuote}
                     onConvertToOrder={() => convertToOrderMutation.mutate(quote)}
                   />
                 ))}
@@ -150,7 +168,7 @@ export default function Quotes() {
             <TabsContent value="draft" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {draftQuotes.map((quote) => (
-                  <QuoteCard key={quote.id} quote={quote} />
+                  <QuoteCard key={quote.id} quote={quote} onView={handleViewQuote} />
                 ))}
               </div>
             </TabsContent>
@@ -161,6 +179,7 @@ export default function Quotes() {
                   <QuoteCard 
                     key={quote.id} 
                     quote={quote}
+                    onView={handleViewQuote}
                     onConvertToOrder={() => convertToOrderMutation.mutate(quote)}
                   />
                 ))}
@@ -170,7 +189,7 @@ export default function Quotes() {
             <TabsContent value="approved" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {approvedQuotes.map((quote) => (
-                  <QuoteCard key={quote.id} quote={quote} />
+                  <QuoteCard key={quote.id} quote={quote} onView={handleViewQuote} />
                 ))}
               </div>
             </TabsContent>
@@ -178,6 +197,22 @@ export default function Quotes() {
         )}
 
         <QuoteBuilder open={builderOpen} onOpenChange={setBuilderOpen} />
+
+        {selectedQuote && (
+          <QuotePreview
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            customerName={selectedQuote.customer_name}
+            quoteNumber={selectedQuote.quote_number}
+            items={quoteItems}
+            subtotal={selectedQuote.subtotal}
+            discount={selectedQuote.discount || 0}
+            tax={selectedQuote.tax || 0}
+            total={selectedQuote.total}
+            validUntil={selectedQuote.valid_until ? new Date(selectedQuote.valid_until) : undefined}
+            notes={selectedQuote.notes}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
