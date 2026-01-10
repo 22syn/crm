@@ -23,10 +23,17 @@ import {
 import { SupplierDialog } from "@/components/suppliers/SupplierDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, Mail } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, Mail, MessageCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
+
+const CATEGORY_LABELS: Record<string, string> = {
+  sofas: "ספות",
+  cabinets: "מזנונים",
+  chairs: "כסאות",
+  tables: "שולחנות",
+};
 
 export default function Suppliers() {
   const { role } = useAuth();
@@ -174,6 +181,7 @@ export default function Suppliers() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-right">שם</TableHead>
+                    <TableHead className="text-right">תחום</TableHead>
                     <TableHead className="text-right">איש קשר</TableHead>
                     <TableHead className="text-right">פרטי התקשרות</TableHead>
                     <TableHead className="text-right">סטטוס</TableHead>
@@ -184,6 +192,13 @@ export default function Suppliers() {
                   {filteredSuppliers.map((supplier) => (
                     <TableRow key={supplier.id}>
                       <TableCell className="font-medium">{supplier.name}</TableCell>
+                      <TableCell>
+                        {(supplier as any).category ? (
+                          <Badge variant="outline">
+                            {CATEGORY_LABELS[(supplier as any).category] || (supplier as any).category}
+                          </Badge>
+                        ) : "-"}
+                      </TableCell>
                       <TableCell>{supplier.contact_name || "-"}</TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1">

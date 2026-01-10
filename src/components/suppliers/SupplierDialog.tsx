@@ -5,9 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
+
+const CATEGORY_OPTIONS = [
+  { value: "sofas", label: "ספות" },
+  { value: "cabinets", label: "מזנונים" },
+  { value: "chairs", label: "כסאות" },
+  { value: "tables", label: "שולחנות" },
+];
 
 interface SupplierDialogProps {
   open: boolean;
@@ -25,6 +39,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
     address: "",
     notes: "",
     is_active: true,
+    category: "" as string,
   });
 
   useEffect(() => {
@@ -37,6 +52,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: supplier.address || "",
         notes: supplier.notes || "",
         is_active: supplier.is_active ?? true,
+        category: (supplier as any).category || "",
       });
     } else {
       setFormData({
@@ -47,13 +63,18 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: "",
         notes: "",
         is_active: true,
+        category: "",
       });
     }
   }, [supplier, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const dataToSave = {
+      ...formData,
+      category: formData.category || null,
+    };
+    onSave(dataToSave as any);
   };
 
   return (
@@ -71,6 +92,25 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">תחום *</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="בחר תחום" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
