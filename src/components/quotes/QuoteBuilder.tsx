@@ -34,8 +34,10 @@ import {
   Mail,
   Save,
   Eye,
-  Ruler
+  Ruler,
+  Palette
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { QuotePreview } from "./QuotePreview";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -53,6 +55,8 @@ interface QuoteItem {
   total_price: number;
   dimensions?: string;
   product_type?: string;
+  requires_custom_design?: boolean;
+  custom_design_notes?: string;
 }
 
 interface ProductSegment {
@@ -185,7 +189,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
 
       if (quoteError) throw quoteError;
 
-      // Create quote items with dimensions and product_type
+      // Create quote items with dimensions, product_type, and custom design info
       const quoteItems = items.map(item => ({
         quote_id: quote.id,
         shopify_product_id: item.shopify_product_id,
@@ -198,6 +202,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
         total_price: item.total_price,
         dimensions: item.dimensions,
         product_type: item.product_type,
+        requires_custom_design: item.requires_custom_design || false,
+        custom_design_notes: item.custom_design_notes,
       }));
 
       const { error: itemsError } = await (supabase
@@ -281,6 +287,18 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const updateItemProductType = (index: number, productType: string) => {
     const updated = [...items];
     updated[index].product_type = productType;
+    setItems(updated);
+  };
+
+  const updateItemCustomDesign = (index: number, requiresCustomDesign: boolean) => {
+    const updated = [...items];
+    updated[index].requires_custom_design = requiresCustomDesign;
+    setItems(updated);
+  };
+
+  const updateItemCustomDesignNotes = (index: number, notes: string) => {
+    const updated = [...items];
+    updated[index].custom_design_notes = notes;
     setItems(updated);
   };
 
@@ -469,6 +487,28 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                           />
                         </div>
                       </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Checkbox
+                          id={`custom-design-${item.id}`}
+                          checked={item.requires_custom_design || false}
+                          onCheckedChange={(checked) => updateItemCustomDesign(index, !!checked)}
+                        />
+                        <Label htmlFor={`custom-design-${item.id}`} className="text-xs flex items-center gap-1 cursor-pointer">
+                          <Palette className="h-3 w-3" />
+                          דורש עיצוב מותאם אישית
+                        </Label>
+                      </div>
+                      {item.requires_custom_design && (
+                        <div className="mt-2">
+                          <Label className="text-xs">הערות למעצבת</Label>
+                          <Input
+                            value={item.custom_design_notes || ""}
+                            onChange={(e) => updateItemCustomDesignNotes(index, e.target.value)}
+                            placeholder="פרטים על העיצוב הנדרש..."
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

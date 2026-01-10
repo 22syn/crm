@@ -123,6 +123,63 @@ export type Database = {
           },
         ]
       }
+      design_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          customer_notes: string | null
+          design_file_url: string | null
+          design_notes: string | null
+          designer_id: string | null
+          id: string
+          quote_id: string
+          quote_item_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          design_file_url?: string | null
+          design_notes?: string | null
+          designer_id?: string | null
+          id?: string
+          quote_id: string
+          quote_item_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          design_file_url?: string | null
+          design_notes?: string | null
+          designer_id?: string | null
+          id?: string
+          quote_id?: string
+          quote_item_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_requests_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "design_requests_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: false
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -257,6 +314,7 @@ export type Database = {
       quote_items: {
         Row: {
           created_at: string
+          custom_design_notes: string | null
           description: string | null
           dimensions: string | null
           id: string
@@ -264,6 +322,7 @@ export type Database = {
           product_type: string | null
           quantity: number
           quote_id: string
+          requires_custom_design: boolean | null
           shopify_product_id: string | null
           shopify_variant_id: string | null
           title: string
@@ -272,6 +331,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_design_notes?: string | null
           description?: string | null
           dimensions?: string | null
           id?: string
@@ -279,6 +339,7 @@ export type Database = {
           product_type?: string | null
           quantity?: number
           quote_id: string
+          requires_custom_design?: boolean | null
           shopify_product_id?: string | null
           shopify_variant_id?: string | null
           title: string
@@ -287,6 +348,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_design_notes?: string | null
           description?: string | null
           dimensions?: string | null
           id?: string
@@ -294,6 +356,7 @@ export type Database = {
           product_type?: string | null
           quantity?: number
           quote_id?: string
+          requires_custom_design?: boolean | null
           shopify_product_id?: string | null
           shopify_variant_id?: string | null
           title?: string
