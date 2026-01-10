@@ -252,6 +252,24 @@ export default function Settings() {
               </div>
               <Badge variant="outline">בקרוב</Badge>
             </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <h3 className="font-medium">Resend (אימייל)</h3>
+                <p className="text-sm text-muted-foreground">
+                  שליחת הצעות מחיר ועדכונים במייל
+                </p>
+              </div>
+              <Badge>מחובר</Badge>
+            </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <h3 className="font-medium">WhatsApp</h3>
+                <p className="text-sm text-muted-foreground">
+                  שליחת הודעות ללקוחות דרך וואטסאפ
+                </p>
+              </div>
+              <Badge>פעיל (קישורים ידניים)</Badge>
+            </div>
           </CardContent>
         </Card>
       </div>
