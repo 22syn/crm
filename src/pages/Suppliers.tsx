@@ -29,10 +29,10 @@ import { Tables } from "@/integrations/supabase/types";
 type Supplier = Tables<"suppliers">;
 
 const CATEGORY_LABELS: Record<string, string> = {
-  sofas: "ספות",
-  cabinets: "מזנונים",
-  chairs: "כסאות",
-  tables: "שולחנות",
+  sofas: "Sofas",
+  cabinets: "Cabinets",
+  chairs: "Chairs",
+  tables: "Tables",
 };
 
 export default function Suppliers() {
@@ -131,16 +131,16 @@ export default function Suppliers() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6" dir="rtl">
+      <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">ספקים</h1>
-            <p className="text-muted-foreground">ניהול ספקים ושותפים עסקיים</p>
+            <h1 className="text-2xl font-bold">Suppliers</h1>
+            <p className="text-muted-foreground">Manage suppliers and business partners</p>
           </div>
           {isAdmin && (
             <Button onClick={() => { setSelectedSupplier(null); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4 ml-2" />
-              ספק חדש
+              <Plus className="h-4 w-4 mr-2" />
+              New Supplier
             </Button>
           )}
         </div>
@@ -148,15 +148,15 @@ export default function Suppliers() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>רשימת ספקים</CardTitle>
+              <CardTitle>Supplier List</CardTitle>
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="חיפוש ספקים..."
+                    placeholder="Search suppliers..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pr-9 w-64"
+                    className="pl-9 w-64"
                   />
                 </div>
                 <Button
@@ -164,28 +164,28 @@ export default function Suppliers() {
                   size="sm"
                   onClick={() => setShowActiveOnly(!showActiveOnly)}
                 >
-                  {showActiveOnly ? "פעילים בלבד" : "הצג הכל"}
+                  {showActiveOnly ? "Active Only" : "Show All"}
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">טוען...</div>
+              <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : filteredSuppliers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                לא נמצאו ספקים
+                No suppliers found
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">שם</TableHead>
-                    <TableHead className="text-right">תחום</TableHead>
-                    <TableHead className="text-right">איש קשר</TableHead>
-                    <TableHead className="text-right">פרטי התקשרות</TableHead>
-                    <TableHead className="text-right">סטטוס</TableHead>
-                    {isAdmin && <TableHead className="text-right w-12"></TableHead>}
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Contact Details</TableHead>
+                    <TableHead>Status</TableHead>
+                    {isAdmin && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -222,7 +222,7 @@ export default function Suppliers() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={supplier.is_active ? "default" : "secondary"}>
-                          {supplier.is_active ? "פעיל" : "לא פעיל"}
+                          {supplier.is_active ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
                       {isAdmin && (
@@ -235,15 +235,15 @@ export default function Suppliers() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleEdit(supplier)}>
-                                <Pencil className="h-4 w-4 ml-2" />
-                                עריכה
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDelete(supplier)}
                                 className="text-destructive"
                               >
-                                <Trash2 className="h-4 w-4 ml-2" />
-                                מחיקה
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

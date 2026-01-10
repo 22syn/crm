@@ -12,14 +12,14 @@ type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
 const sourceLabels: Record<string, { label: string; icon: string }> = {
   whatsapp: { label: "WhatsApp", icon: "💬" },
-  manual: { label: "ידני", icon: "✏️" },
-  walkin: { label: "נכנס לחנות", icon: "🚶" },
-  website: { label: "אתר", icon: "🌐" },
-  referral: { label: "הפניה", icon: "👥" },
-  instagram: { label: "אינסטגרם", icon: "📷" },
-  facebook: { label: "פייסבוק", icon: "📘" },
-  campaign: { label: "קמפיין", icon: "📣" },
-  architects: { label: "אדריכלים", icon: "🏛️" },
+  manual: { label: "Manual", icon: "✏️" },
+  walkin: { label: "Walk-in", icon: "🚶" },
+  website: { label: "Website", icon: "🌐" },
+  referral: { label: "Referral", icon: "👥" },
+  instagram: { label: "Instagram", icon: "📷" },
+  facebook: { label: "Facebook", icon: "📘" },
+  campaign: { label: "Campaign", icon: "📣" },
+  architects: { label: "Architects", icon: "🏛️" },
 };
 
 interface LeadCardProps {
@@ -84,7 +84,7 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
         {lead.meeting_date && (
           <div className="flex items-center gap-2 text-xs text-primary font-medium">
             <Calendar className="h-3 w-3" />
-            <span>פגישה: {format(new Date(lead.meeting_date), "dd/MM/yyyy", { locale: he })}</span>
+            <span>Meeting: {format(new Date(lead.meeting_date), "dd/MM/yyyy")}</span>
           </div>
         )}
         {lead.customer_phone && (
@@ -125,8 +125,8 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
               onCreateQuote(lead);
             }}
           >
-            <FileText className="h-3 w-3 ml-1" />
-            צור הצעת מחיר
+            <FileText className="h-3 w-3 mr-1" />
+            Create Quote
           </Button>
         )}
       </CardContent>
