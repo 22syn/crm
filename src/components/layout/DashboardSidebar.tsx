@@ -33,14 +33,14 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
   { title: "לידים", url: "/leads", icon: Users },
-  { title: "עסקאות", url: "/deals", icon: Handshake },
   { title: "הצעות מחיר", url: "/quotes", icon: FileText },
-  { title: "מוצרים", url: "/products", icon: Package },
+  { title: "עסקאות", url: "/deals", icon: Handshake },
 ];
 
 const adminItems = [
+  { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
+  { title: "מוצרים", url: "/products", icon: Package },
   { title: "ספקים", url: "/suppliers", icon: Truck },
   { title: "הגדרות", url: "/settings", icon: Settings },
 ];
