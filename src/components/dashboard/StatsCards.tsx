@@ -48,18 +48,18 @@ export function StatsCards() {
       const deals = dealsResult.data || [];
       const quotes = quotesResult.data || [];
       
-      const activeLeads = leads.filter(l => !["won", "lost"].includes(l.status)).length;
+      const activeLeads = leads.filter(l => !["done", "not_done"].includes(l.status)).length;
       const leadsWithoutMeeting = leads.filter(l => 
-        !["won", "lost"].includes(l.status) && !l.meeting_date
+        !["done", "not_done"].includes(l.status) && !l.meeting_date
       ).length;
       const openQuotes = quotes.filter(q => ["draft", "sent"].includes(q.status)).length;
       const totalRevenue = deals
         .filter(d => d.stage === "closed_won")
         .reduce((sum, d) => sum + Number(d.amount), 0);
       
-      const wonLeads = leads.filter(l => l.status === "won").length;
-      const closedLeads = leads.filter(l => ["won", "lost"].includes(l.status)).length;
-      const conversionRate = closedLeads > 0 ? Math.round((wonLeads / closedLeads) * 100) : 0;
+      const doneLeads = leads.filter(l => l.status === "done").length;
+      const closedLeads = leads.filter(l => ["done", "not_done"].includes(l.status)).length;
+      const conversionRate = closedLeads > 0 ? Math.round((doneLeads / closedLeads) * 100) : 0;
 
       const activeDeals = deals.filter(d => !["closed_won", "closed_lost"].includes(d.stage)).length;
 
@@ -79,39 +79,39 @@ export function StatsCards() {
 
   const statCards = [
     {
-      title: "לידים פעילים",
+      title: "Active Leads",
       value: stats?.activeLeads ?? 0,
-      description: `${stats?.totalLeads ?? 0} לידים בסה״כ`,
+      description: `${stats?.totalLeads ?? 0} total leads`,
       icon: Users,
     },
     {
-      title: "ללא פגישה",
+      title: "Without Meeting",
       value: stats?.leadsWithoutMeeting ?? 0,
-      description: "לידים שדורשים טיפול",
+      description: "Leads requiring attention",
       icon: Calendar,
     },
     {
-      title: "הצעות פתוחות",
+      title: "Open Quotes",
       value: stats?.openQuotes ?? 0,
-      description: "ממתינות לאישור",
+      description: "Awaiting approval",
       icon: FileText,
     },
     {
-      title: "עסקאות פעילות",
+      title: "Active Deals",
       value: stats?.activeDeals ?? 0,
-      description: `${stats?.totalDeals ?? 0} עסקאות בסה״כ`,
+      description: `${stats?.totalDeals ?? 0} total deals`,
       icon: Handshake,
     },
     {
-      title: "הכנסות",
+      title: "Revenue",
       value: `₪${(stats?.totalRevenue ?? 0).toLocaleString()}`,
-      description: "סה״כ עסקאות שנסגרו",
+      description: "Total closed deals",
       icon: TrendingUp,
     },
     {
-      title: "אחוז המרה",
+      title: "Conversion Rate",
       value: `${stats?.conversionRate ?? 0}%`,
-      description: "לידים שהפכו ללקוחות",
+      description: "Leads converted to customers",
       icon: Percent,
     },
   ];

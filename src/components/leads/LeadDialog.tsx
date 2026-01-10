@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -48,25 +47,22 @@ interface LeadDialogProps {
 }
 
 const sources = [
-  { value: "whatsapp", label: "WhatsApp", icon: "💬" },
-  { value: "manual", label: "Manual", icon: "✏️" },
-  { value: "walkin", label: "Walk-in", icon: "🚶" },
-  { value: "website", label: "Website", icon: "🌐" },
-  { value: "referral", label: "Referral", icon: "👥" },
   { value: "instagram", label: "Instagram", icon: "📷" },
-  { value: "facebook", label: "Facebook", icon: "📘" },
-  { value: "campaign", label: "Campaign", icon: "📣" },
+  { value: "website", label: "Website", icon: "🌐" },
   { value: "architects", label: "Architects/Designers", icon: "🏛️" },
-];
+  { value: "organic", label: "Organic", icon: "🌱" },
+  { value: "facebook", label: "Facebook", icon: "📘" },
+] as const;
 
 const statuses = [
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "qualified", label: "Qualified" },
-  { value: "quoted", label: "Quoted" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-];
+  { value: "new", label: "0 - New" },
+  { value: "in_process", label: "1 - In Process" },
+  { value: "meeting_scheduled", label: "2 - Meeting Scheduled" },
+  { value: "meeting_done", label: "2.5 - Meeting Done" },
+  { value: "waiting_for_approval", label: "3 - Waiting for Approval" },
+  { value: "done", label: "4 - Done" },
+  { value: "not_done", label: "Not Done" },
+] as const;
 
 export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: LeadDialogProps) {
   const form = useForm<LeadInsert & { customer_address?: string }>({
@@ -74,11 +70,12 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
       customer_name: "",
       customer_email: "",
       customer_phone: "",
-      source: "manual",
+      source: "organic",
       status: "new",
       notes: "",
       meeting_date: null,
       customer_address: "",
+      created_at: undefined,
     },
   });
 
@@ -92,18 +89,20 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
         status: lead.status,
         notes: lead.notes || "",
         meeting_date: lead.meeting_date || null,
-        customer_address: (lead as any).customer_address || "",
+        customer_address: lead.customer_address || "",
+        created_at: lead.created_at,
       });
     } else {
       form.reset({
         customer_name: "",
         customer_email: "",
         customer_phone: "",
-        source: "manual",
+        source: "organic",
         status: "new",
         notes: "",
         meeting_date: null,
         customer_address: "",
+        created_at: undefined,
       });
     }
   }, [lead, form]);
@@ -235,45 +234,87 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="meeting_date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Meeting Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? (
-                            format(new Date(field.value), "PPP")
-                          ) : (
-                            <span>Select meeting date</span>
-                          )}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date?.toISOString() || null)}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="meeting_date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Meeting Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Select date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date?.toISOString() || null)}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="created_at"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Create Date (Optional)</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? (
+                              format(new Date(field.value), "PPP")
+                            ) : (
+                              <span>Select date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date?.toISOString() || undefined)}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

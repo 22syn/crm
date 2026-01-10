@@ -20,25 +20,22 @@ interface LeadFiltersProps {
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "qualified", label: "Qualified" },
-  { value: "quoted", label: "Quoted" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
+  { value: "new", label: "0 - New" },
+  { value: "in_process", label: "1 - In Process" },
+  { value: "meeting_scheduled", label: "2 - Meeting Scheduled" },
+  { value: "meeting_done", label: "2.5 - Meeting Done" },
+  { value: "waiting_for_approval", label: "3 - Waiting for Approval" },
+  { value: "done", label: "4 - Done" },
+  { value: "not_done", label: "Not Done" },
 ];
 
 const sourceOptions = [
   { value: "all", label: "All Sources" },
-  { value: "whatsapp", label: "💬 WhatsApp" },
-  { value: "manual", label: "✏️ Manual" },
-  { value: "walkin", label: "🚶 Walk-in" },
-  { value: "website", label: "🌐 Website" },
-  { value: "referral", label: "👥 Referral" },
   { value: "instagram", label: "📷 Instagram" },
+  { value: "website", label: "🌐 Website" },
+  { value: "architects", label: "🏛️ Architects/Designers" },
+  { value: "organic", label: "🌱 Organic" },
   { value: "facebook", label: "📘 Facebook" },
-  { value: "campaign", label: "📣 Campaign" },
-  { value: "architects", label: "🏛️ Architects" },
 ];
 
 export function LeadFilters({
@@ -70,7 +67,7 @@ export function LeadFilters({
       </div>
 
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>

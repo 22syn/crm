@@ -26,12 +26,13 @@ interface LeadKanbanProps {
 }
 
 const statusColumns: { status: LeadStatus; label: string; color: string }[] = [
-  { status: "new", label: "New", color: "bg-blue-500" },
-  { status: "contacted", label: "Contacted", color: "bg-yellow-500" },
-  { status: "qualified", label: "Qualified", color: "bg-purple-500" },
-  { status: "quoted", label: "Quoted", color: "bg-orange-500" },
-  { status: "won", label: "Won", color: "bg-green-500" },
-  { status: "lost", label: "Lost", color: "bg-red-500" },
+  { status: "new", label: "0 - New", color: "bg-blue-500" },
+  { status: "in_process", label: "1 - In Process", color: "bg-yellow-500" },
+  { status: "meeting_scheduled", label: "2 - Meeting Scheduled", color: "bg-purple-500" },
+  { status: "meeting_done", label: "2.5 - Meeting Done", color: "bg-indigo-500" },
+  { status: "waiting_for_approval", label: "3 - Waiting for Approval", color: "bg-orange-500" },
+  { status: "done", label: "4 - Done", color: "bg-green-500" },
+  { status: "not_done", label: "Not Done", color: "bg-red-500" },
 ];
 
 export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQuote }: LeadKanbanProps) {
@@ -82,7 +83,7 @@ export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQ
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
         {statusColumns.map((col) => (
           <div key={col.status} className="space-y-2">
             <Skeleton className="h-8 w-full" />
@@ -104,7 +105,7 @@ export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQ
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 overflow-x-auto">
         {statusColumns.map((column) => (
           <KanbanColumn
             key={column.status}
