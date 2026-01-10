@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
 import {
   Dialog,
   DialogContent,
@@ -21,10 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -39,20 +48,24 @@ interface LeadDialogProps {
 }
 
 const sources = [
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "manual", label: "Manual" },
-  { value: "walkin", label: "Walk-in" },
-  { value: "website", label: "Website" },
-  { value: "referral", label: "Referral" },
+  { value: "whatsapp", label: "WhatsApp", icon: "💬" },
+  { value: "manual", label: "ידני", icon: "✏️" },
+  { value: "walkin", label: "נכנס לחנות", icon: "🚶" },
+  { value: "website", label: "אתר", icon: "🌐" },
+  { value: "referral", label: "הפניה", icon: "👥" },
+  { value: "instagram", label: "אינסטגרם", icon: "📷" },
+  { value: "facebook", label: "פייסבוק", icon: "📘" },
+  { value: "campaign", label: "קמפיין", icon: "📣" },
+  { value: "architects", label: "אדריכלים/מעצבים", icon: "🏛️" },
 ];
 
 const statuses = [
-  { value: "new", label: "New" },
-  { value: "contacted", label: "Contacted" },
-  { value: "qualified", label: "Qualified" },
-  { value: "quoted", label: "Quoted" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
+  { value: "new", label: "חדש" },
+  { value: "contacted", label: "נוצר קשר" },
+  { value: "qualified", label: "מתאים" },
+  { value: "quoted", label: "נשלחה הצעה" },
+  { value: "won", label: "נסגר" },
+  { value: "lost", label: "אבוד" },
 ];
 
 export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: LeadDialogProps) {
@@ -64,6 +77,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
       source: "manual",
       status: "new",
       notes: "",
+      meeting_date: null,
     },
   });
 
@@ -76,6 +90,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
         source: lead.source,
         status: lead.status,
         notes: lead.notes || "",
+        meeting_date: lead.meeting_date || null,
       });
     } else {
       form.reset({
@@ -85,6 +100,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
         source: "manual",
         status: "new",
         notes: "",
+        meeting_date: null,
       });
     }
   }, [lead, form]);
@@ -95,9 +111,9 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" dir="rtl">
         <DialogHeader>
-          <DialogTitle>{lead ? "Edit Lead" : "Create New Lead"}</DialogTitle>
+          <DialogTitle>{lead ? "עריכת ליד" : "יצירת ליד חדש"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -105,12 +121,12 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
             <FormField
               control={form.control}
               name="customer_name"
-              rules={{ required: "Customer name is required" }}
+              rules={{ required: "שם הלקוח הוא שדה חובה" }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Name *</FormLabel>
+                  <FormLabel>שם הלקוח *</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="ישראל ישראלי" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,9 +139,9 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
                 name="customer_email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>אימייל</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
+                      <Input type="email" placeholder="email@example.com" {...field} dir="ltr" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -137,9 +153,9 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
                 name="customer_phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>טלפון</FormLabel>
                     <FormControl>
-                      <Input placeholder="+972..." {...field} />
+                      <Input placeholder="050-0000000" {...field} dir="ltr" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,17 +169,20 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
                 name="source"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Source</FormLabel>
+                    <FormLabel>מקור</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select source" />
+                          <SelectValue placeholder="בחר מקור" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {sources.map((source) => (
                           <SelectItem key={source.value} value={source.value}>
-                            {source.label}
+                            <span className="flex items-center gap-2">
+                              <span>{source.icon}</span>
+                              <span>{source.label}</span>
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -178,11 +197,11 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>סטטוס</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="בחר סטטוס" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -201,13 +220,53 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
 
             <FormField
               control={form.control}
+              name="meeting_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>תאריך פגישה</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-right font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="ml-2 h-4 w-4" />
+                          {field.value ? (
+                            format(new Date(field.value), "PPP", { locale: he })
+                          ) : (
+                            <span>בחר תאריך פגישה</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString() || null)}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>הערות</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Add any relevant notes about this lead..."
+                      placeholder="הוסף הערות רלוונטיות על הליד..."
                       className="min-h-[100px]"
                       {...field}
                     />
@@ -217,13 +276,13 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
               )}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
+            <div className="flex justify-start gap-2 pt-4">
               <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                {lead ? "Update Lead" : "Create Lead"}
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
+                {lead ? "עדכן ליד" : "צור ליד"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                ביטול
               </Button>
             </div>
           </form>
