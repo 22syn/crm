@@ -198,8 +198,8 @@ export function DealDialog({ open, onOpenChange, deal, onSubmit, isLoading }: De
                 <FormItem>
                   <FormLabel>ליד מקושר</FormLabel>
                   <Select 
-                    value={field.value || ""} 
-                    onValueChange={(val) => field.onChange(val || null)}
+                    value={field.value || "__none__"} 
+                    onValueChange={(val) => field.onChange(val === "__none__" ? null : val)}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -207,7 +207,7 @@ export function DealDialog({ open, onOpenChange, deal, onSubmit, isLoading }: De
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">ללא</SelectItem>
+                      <SelectItem value="__none__">ללא</SelectItem>
                       {leads?.map((lead) => (
                         <SelectItem key={lead.id} value={lead.id}>
                           {lead.customer_name}
