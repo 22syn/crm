@@ -12,6 +12,7 @@ import Quotes from "./pages/Quotes";
 import Orders from "./pages/Orders";
 import Products from "./pages/Products";
 import Settings from "./pages/Settings";
+import Suppliers from "./pages/Suppliers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/orders" element={<Orders />} />
             <Route path="/products" element={<Products />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/suppliers" element={<Suppliers />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

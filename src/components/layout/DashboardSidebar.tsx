@@ -30,6 +30,7 @@ import {
   ChevronUp,
   User,
   Handshake,
+  Truck,
 } from "lucide-react";
 
 const menuItems = [
@@ -42,6 +43,7 @@ const menuItems = [
 ];
 
 const adminItems = [
+  { title: "ספקים", url: "/suppliers", icon: Truck },
   { title: "הגדרות", url: "/settings", icon: Settings },
 ];
 
