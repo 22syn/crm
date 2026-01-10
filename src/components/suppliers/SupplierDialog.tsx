@@ -1,23 +1,13 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
-type ProductSegment = Tables<"product_segments">;
 
 interface SupplierDialogProps {
   open: boolean;
@@ -35,20 +25,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
     address: "",
     notes: "",
     is_active: true,
-    segment_id: null as string | null,
-  });
-
-  const { data: segments = [] } = useQuery({
-    queryKey: ["product-segments-active"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("product_segments")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data as ProductSegment[];
-    },
   });
 
   useEffect(() => {
@@ -61,7 +37,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: supplier.address || "",
         notes: supplier.notes || "",
         is_active: supplier.is_active ?? true,
-        segment_id: supplier.segment_id || null,
       });
     } else {
       setFormData({
@@ -72,7 +47,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: "",
         notes: "",
         is_active: true,
-        segment_id: null,
       });
     }
   }, [supplier, open]);
@@ -97,26 +71,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               required
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="segment">סגמנט</Label>
-            <Select
-              value={formData.segment_id || "__none__"}
-              onValueChange={(val) => setFormData(prev => ({ ...prev, segment_id: val === "__none__" ? null : val }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="בחר סגמנט..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">ללא</SelectItem>
-                {segments.map((segment) => (
-                  <SelectItem key={segment.id} value={segment.id}>
-                    {segment.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-2">

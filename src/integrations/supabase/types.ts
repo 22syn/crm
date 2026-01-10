@@ -182,33 +182,6 @@ export type Database = {
           },
         ]
       }
-      product_segments: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       products: {
         Row: {
           created_at: string
@@ -416,7 +389,6 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
-          segment_id: string | null
           updated_at: string
         }
         Insert: {
@@ -429,7 +401,6 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
-          segment_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -442,18 +413,9 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
-          segment_id?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "suppliers_segment_id_fkey"
-            columns: ["segment_id"]
-            isOneToOne: false
-            referencedRelation: "product_segments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {

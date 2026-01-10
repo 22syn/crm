@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -25,21 +24,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Trash2, Plus, Pencil, X, Check } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
-
-type ProductSegment = Tables<"product_segments">;
+import { Loader2, UserPlus, Trash2 } from "lucide-react";
 
 export default function Settings() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"admin" | "sales">("sales");
-  
-  // Segment state
-  const [newSegmentName, setNewSegmentName] = useState("");
-  const [editingSegment, setEditingSegment] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["team-users"],
@@ -65,19 +56,6 @@ export default function Settings() {
         ...r,
         profile: profiles?.find(p => p.user_id === r.user_id),
       }));
-    },
-    enabled: role === "admin",
-  });
-
-  const { data: segments = [], isLoading: segmentsLoading } = useQuery({
-    queryKey: ["product-segments"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("product_segments")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data as ProductSegment[];
     },
     enabled: role === "admin",
   });
@@ -113,61 +91,6 @@ export default function Settings() {
       toast.error("שגיאה בהסרת הרשאה: " + error.message);
     },
   });
-
-  const createSegmentMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const { error } = await supabase.from("product_segments").insert([{ name }]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
-      toast.success("סגמנט נוצר בהצלחה");
-      setNewSegmentName("");
-    },
-    onError: () => {
-      toast.error("שגיאה ביצירת סגמנט");
-    },
-  });
-
-  const updateSegmentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ProductSegment> }) => {
-      const { error } = await supabase.from("product_segments").update(data).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
-      toast.success("סגמנט עודכן בהצלחה");
-      setEditingSegment(null);
-    },
-    onError: () => {
-      toast.error("שגיאה בעדכון סגמנט");
-    },
-  });
-
-  const deleteSegmentMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_segments").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
-      toast.success("סגמנט נמחק בהצלחה");
-    },
-    onError: () => {
-      toast.error("שגיאה במחיקת סגמנט");
-    },
-  });
-
-  const startEditing = (segment: ProductSegment) => {
-    setEditingSegment(segment.id);
-    setEditingName(segment.name);
-  };
-
-  const saveEdit = () => {
-    if (editingSegment && editingName.trim()) {
-      updateSegmentMutation.mutate({ id: editingSegment, data: { name: editingName.trim() } });
-    }
-  };
 
   if (role !== "admin") {
     return (
@@ -305,97 +228,6 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>סגמנטים</CardTitle>
-            <CardDescription>
-              ניהול סגמנטים לקטגוריזציה של מוצרים והצעות מחיר.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="שם סגמנט חדש..."
-                value={newSegmentName}
-                onChange={(e) => setNewSegmentName(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && newSegmentName.trim() && createSegmentMutation.mutate(newSegmentName.trim())}
-              />
-              <Button
-                onClick={() => newSegmentName.trim() && createSegmentMutation.mutate(newSegmentName.trim())}
-                disabled={!newSegmentName.trim() || createSegmentMutation.isPending}
-              >
-                <Plus className="h-4 w-4 ml-2" />
-                הוסף
-              </Button>
-            </div>
-
-            {segmentsLoading ? (
-              <div className="text-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-              </div>
-            ) : segments.length === 0 ? (
-              <p className="text-center py-4 text-muted-foreground">אין סגמנטים עדיין</p>
-            ) : (
-              <div className="space-y-2">
-                {segments.map((segment) => (
-                  <div
-                    key={segment.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    {editingSegment === segment.id ? (
-                      <div className="flex items-center gap-2 flex-1">
-                        <Input
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          className="flex-1"
-                          autoFocus
-                        />
-                        <Button size="icon" variant="ghost" onClick={saveEdit}>
-                          <Check className="h-4 w-4 text-green-600" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setEditingSegment(null)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium">{segment.name}</span>
-                          <Badge variant={segment.is_active ? "default" : "secondary"}>
-                            {segment.is_active ? "פעיל" : "לא פעיל"}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={segment.is_active ?? true}
-                            onCheckedChange={(checked) =>
-                              updateSegmentMutation.mutate({ id: segment.id, data: { is_active: checked } })
-                            }
-                          />
-                          <Button size="icon" variant="ghost" onClick={() => startEditing(segment)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => {
-                              if (confirm(`האם למחוק את הסגמנט "${segment.name}"?`)) {
-                                deleteSegmentMutation.mutate(segment.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>אינטגרציות</CardTitle>
             <CardDescription>
               חיבור שירותים חיצוניים למערכת.
@@ -409,7 +241,7 @@ export default function Settings() {
                   סנכרון מוצרים והזמנות מחנות Shopify
                 </p>
               </div>
-              <Badge variant="outline">בקרוב</Badge>
+              <Badge>מחובר</Badge>
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
