@@ -444,6 +444,7 @@ export type Database = {
       suppliers: {
         Row: {
           address: string | null
+          category: Database["public"]["Enums"]["supplier_category"] | null
           contact_name: string | null
           created_at: string
           email: string | null
@@ -456,6 +457,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          category?: Database["public"]["Enums"]["supplier_category"] | null
           contact_name?: string | null
           created_at?: string
           email?: string | null
@@ -468,6 +470,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          category?: Database["public"]["Enums"]["supplier_category"] | null
           contact_name?: string | null
           created_at?: string
           email?: string | null
@@ -544,6 +547,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
+      supplier_category: "sofas" | "cabinets" | "chairs" | "tables"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -702,6 +706,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      supplier_category: ["sofas", "cabinets", "chairs", "tables"],
     },
   },
 } as const
