@@ -100,10 +100,12 @@ export type Database = {
           customer_name: string
           customer_phone: string | null
           id: string
+          meeting_date: string | null
           notes: string | null
           source: Database["public"]["Enums"]["lead_source"]
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
+          whatsapp_link: string | null
         }
         Insert: {
           assigned_to?: string | null
@@ -113,10 +115,12 @@ export type Database = {
           customer_name: string
           customer_phone?: string | null
           id?: string
+          meeting_date?: string | null
           notes?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
+          whatsapp_link?: string | null
         }
         Update: {
           assigned_to?: string | null
@@ -126,10 +130,12 @@ export type Database = {
           customer_name?: string
           customer_phone?: string | null
           id?: string
+          meeting_date?: string | null
           notes?: string | null
           source?: Database["public"]["Enums"]["lead_source"]
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
+          whatsapp_link?: string | null
         }
         Relationships: [
           {
@@ -486,7 +492,16 @@ export type Database = {
     Enums: {
       app_role: "admin" | "sales"
       document_type: "quote" | "invoice" | "receipt"
-      lead_source: "whatsapp" | "manual" | "walkin" | "website" | "referral"
+      lead_source:
+        | "whatsapp"
+        | "manual"
+        | "walkin"
+        | "website"
+        | "referral"
+        | "instagram"
+        | "campaign"
+        | "architects"
+        | "facebook"
       lead_status: "new" | "contacted" | "qualified" | "quoted" | "won" | "lost"
       order_source: "shopify" | "crm"
       order_status:
@@ -626,7 +641,17 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "sales"],
       document_type: ["quote", "invoice", "receipt"],
-      lead_source: ["whatsapp", "manual", "walkin", "website", "referral"],
+      lead_source: [
+        "whatsapp",
+        "manual",
+        "walkin",
+        "website",
+        "referral",
+        "instagram",
+        "campaign",
+        "architects",
+        "facebook",
+      ],
       lead_status: ["new", "contacted", "qualified", "quoted", "won", "lost"],
       order_source: ["shopify", "crm"],
       order_status: [

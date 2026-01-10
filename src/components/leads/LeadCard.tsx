@@ -1,19 +1,25 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { format } from "date-fns";
+import { he } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText } from "lucide-react";
+import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
-const sourceLabels: Record<string, string> = {
-  whatsapp: "WhatsApp",
-  manual: "Manual",
-  walkin: "Walk-in",
-  website: "Website",
-  referral: "Referral",
+const sourceLabels: Record<string, { label: string; icon: string }> = {
+  whatsapp: { label: "WhatsApp", icon: "💬" },
+  manual: { label: "ידני", icon: "✏️" },
+  walkin: { label: "נכנס לחנות", icon: "🚶" },
+  website: { label: "אתר", icon: "🌐" },
+  referral: { label: "הפניה", icon: "👥" },
+  instagram: { label: "אינסטגרם", icon: "📷" },
+  facebook: { label: "פייסבוק", icon: "📘" },
+  campaign: { label: "קמפיין", icon: "📣" },
+  architects: { label: "אדריכלים", icon: "🏛️" },
 };
 
 interface LeadCardProps {
@@ -68,20 +74,39 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
           </Button>
         </div>
         <Badge variant="outline" className="w-fit text-xs ml-6">
-          {sourceLabels[lead.source] || lead.source}
+          <span className="flex items-center gap-1">
+            <span>{sourceLabels[lead.source]?.icon || "📌"}</span>
+            <span>{sourceLabels[lead.source]?.label || lead.source}</span>
+          </span>
         </Badge>
       </CardHeader>
       <CardContent className="pt-0 space-y-2">
+        {lead.meeting_date && (
+          <div className="flex items-center gap-2 text-xs text-primary font-medium">
+            <Calendar className="h-3 w-3" />
+            <span>פגישה: {format(new Date(lead.meeting_date), "dd/MM/yyyy", { locale: he })}</span>
+          </div>
+        )}
         {lead.customer_phone && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
-            <span>{lead.customer_phone}</span>
+            <span dir="ltr">{lead.customer_phone}</span>
+            <a
+              href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-700 mr-1"
+              onClick={(e) => e.stopPropagation()}
+              title="פתח בוואטסאפ"
+            >
+              💬
+            </a>
           </div>
         )}
         {lead.customer_email && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Mail className="h-3 w-3" />
-            <span className="truncate">{lead.customer_email}</span>
+            <span className="truncate" dir="ltr">{lead.customer_email}</span>
           </div>
         )}
         {lead.notes && (
@@ -100,7 +125,7 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
               onCreateQuote(lead);
             }}
           >
-            <FileText className="h-3 w-3 mr-1" />
+            <FileText className="h-3 w-3 ml-1" />
             צור הצעת מחיר
           </Button>
         )}
