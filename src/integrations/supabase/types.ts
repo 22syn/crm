@@ -179,6 +179,7 @@ export type Database = {
           assigned_to: string | null
           converted_customer_id: string | null
           created_at: string
+          customer_address: string | null
           customer_email: string | null
           customer_name: string
           customer_phone: string | null
@@ -194,6 +195,7 @@ export type Database = {
           assigned_to?: string | null
           converted_customer_id?: string | null
           created_at?: string
+          customer_address?: string | null
           customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
@@ -209,6 +211,7 @@ export type Database = {
           assigned_to?: string | null
           converted_customer_id?: string | null
           created_at?: string
+          customer_address?: string | null
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
@@ -350,6 +353,33 @@ export type Database = {
           },
         ]
       }
+      product_segments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string
@@ -426,8 +456,10 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          dimensions: string | null
           id: string
           image_url: string | null
+          product_type: string | null
           quantity: number
           quote_id: string
           shopify_product_id: string | null
@@ -439,8 +471,10 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          dimensions?: string | null
           id?: string
           image_url?: string | null
+          product_type?: string | null
           quantity?: number
           quote_id: string
           shopify_product_id?: string | null
@@ -452,8 +486,10 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          dimensions?: string | null
           id?: string
           image_url?: string | null
+          product_type?: string | null
           quantity?: number
           quote_id?: string
           shopify_product_id?: string | null
@@ -476,6 +512,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          customer_address: string | null
           customer_email: string | null
           customer_name: string
           customer_phone: string | null
@@ -494,6 +531,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          customer_address?: string | null
           customer_email?: string | null
           customer_name: string
           customer_phone?: string | null
@@ -512,6 +550,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          customer_address?: string | null
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string | null
@@ -536,6 +575,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          specialties: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          specialties?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          specialties?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
