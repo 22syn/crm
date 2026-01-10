@@ -40,6 +40,52 @@ export default function Quotes() {
 
       if (quoteError) throw quoteError;
 
+      // If quote has a lead, convert lead to customer
+      let customerId = null;
+      if (quote.lead_id) {
+        // Get the lead details
+        const { data: lead, error: leadError } = await supabase
+          .from("leads")
+          .select("*")
+          .eq("id", quote.lead_id)
+          .single();
+
+        if (leadError) throw leadError;
+
+        // Check if lead is already converted
+        if (!lead.converted_customer_id) {
+          // Create customer from lead info
+          const { data: customer, error: customerError } = await supabase
+            .from("customers")
+            .insert({
+              name: lead.customer_name,
+              email: lead.customer_email,
+              phone: lead.customer_phone,
+              address: lead.customer_address,
+              notes: lead.notes,
+            })
+            .select()
+            .single();
+
+          if (customerError) throw customerError;
+
+          customerId = customer.id;
+
+          // Update lead with converted customer id and status to won
+          const { error: updateLeadError } = await supabase
+            .from("leads")
+            .update({ 
+              converted_customer_id: customer.id,
+              status: "won"
+            })
+            .eq("id", quote.lead_id);
+
+          if (updateLeadError) throw updateLeadError;
+        } else {
+          customerId = lead.converted_customer_id;
+        }
+      }
+
       // Get quote items that require custom design
       const { data: items, error: itemsError } = await supabase
         .from("quote_items")
@@ -64,23 +110,28 @@ export default function Quotes() {
 
         if (designError) throw designError;
 
-        return { quote, designRequestsCreated: items.length };
+        return { quote, designRequestsCreated: items.length, customerId };
       }
 
-      return { quote, designRequestsCreated: 0 };
+      return { quote, designRequestsCreated: 0, customerId };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["design-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       
-      if (result.designRequestsCreated > 0) {
-        toast.success(`הצעה אושרה! נוצרו ${result.designRequestsCreated} בקשות עיצוב`);
-      } else {
-        toast.success("הצעה אושרה בהצלחה");
+      let message = "Quote approved successfully";
+      if (result.customerId) {
+        message += " - Customer created";
       }
+      if (result.designRequestsCreated > 0) {
+        message += ` - ${result.designRequestsCreated} design request(s) created`;
+      }
+      toast.success(message);
     },
     onError: (error) => {
-      toast.error("שגיאה באישור ההצעה: " + error.message);
+      toast.error("Error approving quote: " + error.message);
     },
   });
 
