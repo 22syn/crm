@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
@@ -8,93 +8,23 @@ import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FileText, Loader2 } from "lucide-react";
-import { toast } from "sonner";
 
 export default function Quotes() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [quoteItems, setQuoteItems] = useState<any[]>([]);
-  const queryClient = useQueryClient();
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("quotes" as any)
+        .from("quotes")
         .select("*")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data as any[];
-    },
-  });
-
-  const convertToOrderMutation = useMutation({
-    mutationFn: async (quote: any) => {
-      // Update quote status
-      await supabase
-        .from("quotes" as any)
-        .update({ status: "approved" } as any)
-        .eq("id", quote.id);
-
-      // Get quote items
-      const { data: items } = await supabase
-        .from("quote_items" as any)
-        .select("*")
-        .eq("quote_id", quote.id);
-
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          customer_id: null,
-          subtotal: quote.subtotal,
-          discount: quote.discount,
-          tax: quote.tax,
-          total: quote.total,
-          notes: quote.notes,
-          status: "pending",
-          source: "crm",
-        } as any)
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // Create order items
-      if (items && items.length > 0) {
-        const orderItems = (items as any[]).map((item: any) => ({
-          order_id: order.id,
-          product_id: null,
-          custom_title: item.title,
-          custom_notes: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total_price: item.total_price,
-        }));
-
-        await supabase.from("order_items").insert(orderItems);
-      }
-
-      // Update lead status if linked
-      if (quote.lead_id) {
-        await supabase
-          .from("leads")
-          .update({ status: "won" })
-          .eq("id", quote.lead_id);
-      }
-
-      return order;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-      toast.success("ההצעה אושרה והוזמנה נוצרה!");
-    },
-    onError: (error) => {
-      toast.error("שגיאה ביצירת ההזמנה: " + error.message);
+      return data;
     },
   });
 
@@ -159,7 +89,6 @@ export default function Quotes() {
                     key={quote.id} 
                     quote={quote}
                     onView={handleViewQuote}
-                    onConvertToOrder={() => convertToOrderMutation.mutate(quote)}
                   />
                 ))}
               </div>
@@ -180,7 +109,6 @@ export default function Quotes() {
                     key={quote.id} 
                     quote={quote}
                     onView={handleViewQuote}
-                    onConvertToOrder={() => convertToOrderMutation.mutate(quote)}
                   />
                 ))}
               </div>

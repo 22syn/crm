@@ -2,21 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
-import { subMonths, format, startOfMonth, endOfMonth } from "date-fns";
+import { subMonths, format, startOfMonth } from "date-fns";
 import { he } from "date-fns/locale";
 
 export function OrdersChart() {
   const { data: chartData } = useQuery({
-    queryKey: ["orders-by-month"],
+    queryKey: ["deals-by-month"],
     queryFn: async () => {
       const now = new Date();
       const sixMonthsAgo = subMonths(startOfMonth(now), 5);
 
       const { data } = await supabase
-        .from("orders")
-        .select("created_at, total")
-        .gte("created_at", sixMonthsAgo.toISOString())
-        .neq("status", "cancelled");
+        .from("deals")
+        .select("created_at, amount, stage")
+        .gte("created_at", sixMonthsAgo.toISOString());
 
       if (!data) return [];
 
@@ -29,17 +28,20 @@ export function OrdersChart() {
         monthlyData[monthKey] = { count: 0, revenue: 0 };
       }
 
-      data.forEach((order) => {
-        const monthKey = format(new Date(order.created_at), "yyyy-MM");
+      data.forEach((deal) => {
+        const monthKey = format(new Date(deal.created_at), "yyyy-MM");
         if (monthlyData[monthKey]) {
           monthlyData[monthKey].count += 1;
-          monthlyData[monthKey].revenue += Number(order.total);
+          // Only count won deals for revenue
+          if (deal.stage === "closed_won") {
+            monthlyData[monthKey].revenue += Number(deal.amount);
+          }
         }
       });
 
       return Object.entries(monthlyData).map(([month, data]) => ({
         month: format(new Date(month + "-01"), "MMM", { locale: he }),
-        הזמנות: data.count,
+        עסקאות: data.count,
         הכנסות: data.revenue,
       }));
     },
@@ -49,7 +51,7 @@ export function OrdersChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>הזמנות לפי חודש</CardTitle>
+          <CardTitle>עסקאות לפי חודש</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px]">
           <p className="text-muted-foreground">אין נתונים להצגה</p>
@@ -61,7 +63,7 @@ export function OrdersChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>הזמנות לפי חודש</CardTitle>
+        <CardTitle>עסקאות לפי חודש</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -89,7 +91,7 @@ export function OrdersChart() {
               }}
             />
             <Bar 
-              dataKey="הזמנות" 
+              dataKey="עסקאות" 
               fill="hsl(var(--primary))" 
               radius={[4, 4, 0, 0]}
             />

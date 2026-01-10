@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, ShoppingCart, TrendingUp, Calendar, Percent } from "lucide-react";
+import { Users, FileText, Handshake, TrendingUp, Calendar, Percent } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, endOfMonth } from "date-fns";
@@ -34,19 +34,18 @@ export function StatsCards() {
       const monthStart = startOfMonth(now).toISOString();
       const monthEnd = endOfMonth(now).toISOString();
 
-      const [leadsResult, ordersResult, quotesResult, monthlyOrdersResult] = await Promise.all([
+      const [leadsResult, dealsResult, quotesResult, monthlyDealsResult] = await Promise.all([
         supabase.from("leads").select("id, status, meeting_date", { count: "exact" }),
-        supabase.from("orders").select("id, total, status", { count: "exact" }),
+        supabase.from("deals").select("id, amount, stage", { count: "exact" }),
         supabase.from("quotes").select("id, status", { count: "exact" }),
-        supabase.from("orders")
+        supabase.from("deals")
           .select("id", { count: "exact" })
           .gte("created_at", monthStart)
-          .lte("created_at", monthEnd)
-          .neq("status", "cancelled"),
+          .lte("created_at", monthEnd),
       ]);
 
       const leads = leadsResult.data || [];
-      const orders = ordersResult.data || [];
+      const deals = dealsResult.data || [];
       const quotes = quotesResult.data || [];
       
       const activeLeads = leads.filter(l => !["won", "lost"].includes(l.status)).length;
@@ -54,20 +53,23 @@ export function StatsCards() {
         !["won", "lost"].includes(l.status) && !l.meeting_date
       ).length;
       const openQuotes = quotes.filter(q => ["draft", "sent"].includes(q.status)).length;
-      const totalRevenue = orders
-        .filter(o => o.status !== "cancelled")
-        .reduce((sum, o) => sum + Number(o.total), 0);
+      const totalRevenue = deals
+        .filter(d => d.stage === "closed_won")
+        .reduce((sum, d) => sum + Number(d.amount), 0);
       
       const wonLeads = leads.filter(l => l.status === "won").length;
       const closedLeads = leads.filter(l => ["won", "lost"].includes(l.status)).length;
       const conversionRate = closedLeads > 0 ? Math.round((wonLeads / closedLeads) * 100) : 0;
 
+      const activeDeals = deals.filter(d => !["closed_won", "closed_lost"].includes(d.stage)).length;
+
       return {
         totalLeads: leadsResult.count || 0,
         activeLeads,
         leadsWithoutMeeting,
-        totalOrders: ordersResult.count || 0,
-        monthlyOrders: monthlyOrdersResult.count || 0,
+        totalDeals: dealsResult.count || 0,
+        activeDeals,
+        monthlyDeals: monthlyDealsResult.count || 0,
         openQuotes,
         totalRevenue,
         conversionRate,
@@ -95,15 +97,15 @@ export function StatsCards() {
       icon: FileText,
     },
     {
-      title: "הזמנות החודש",
-      value: stats?.monthlyOrders ?? 0,
-      description: `${stats?.totalOrders ?? 0} הזמנות בסה״כ`,
-      icon: ShoppingCart,
+      title: "עסקאות פעילות",
+      value: stats?.activeDeals ?? 0,
+      description: `${stats?.totalDeals ?? 0} עסקאות בסה״כ`,
+      icon: Handshake,
     },
     {
       title: "הכנסות",
       value: `₪${(stats?.totalRevenue ?? 0).toLocaleString()}`,
-      description: "סה״כ ערך הזמנות",
+      description: "סה״כ עסקאות שנסגרו",
       icon: TrendingUp,
     },
     {

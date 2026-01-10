@@ -19,7 +19,6 @@ interface Deal {
   probability: number | null;
   lead_id: string | null;
   quote_id: string | null;
-  order_id: string | null;
   notes: string | null;
   leads?: { customer_name: string } | null;
 }
@@ -46,7 +45,7 @@ export default function Deals() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<Deal, "id" | "quote_id" | "order_id" | "leads">) => {
+    mutationFn: async (data: Omit<Deal, "id" | "quote_id" | "leads">) => {
       const { data: result, error } = await supabase
         .from("deals")
         .insert({
