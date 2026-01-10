@@ -12,12 +12,15 @@ interface QuoteItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  dimensions?: string;
+  product_type?: string;
 }
 
 interface QuotePreviewProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerName: string;
+  customerAddress?: string;
   quoteNumber?: string;
   items: QuoteItem[];
   subtotal: number;
@@ -32,6 +35,7 @@ export function QuotePreview({
   open,
   onOpenChange,
   customerName,
+  customerAddress,
   quoteNumber = "QT-XXXXXXXX-XXXX",
   items,
   subtotal,
@@ -65,6 +69,9 @@ export function QuotePreview({
           {/* Content */}
           <div className="p-8">
             <p className="mb-2 text-[#5a5347]">שלום {customerName},</p>
+            {customerAddress && (
+              <p className="mb-2 text-[#5a5347] text-sm">{customerAddress}</p>
+            )}
             <p className="mb-6 text-[#5a5347]">תודה על פנייתך! מצורפת הצעת המחיר שלך:</p>
 
             {/* Items Table */}
@@ -72,6 +79,7 @@ export function QuotePreview({
               <thead>
                 <tr className="border-b-2 border-[#c4b8a8]">
                   <th className="p-3 text-right font-medium text-[#3d3830]">פריט</th>
+                  <th className="p-3 text-right font-medium text-[#3d3830]">מידות</th>
                   <th className="p-3 text-center font-medium text-[#3d3830]">כמות</th>
                   <th className="p-3 text-right font-medium text-[#3d3830]">מחיר ליחידה</th>
                   <th className="p-3 text-right font-medium text-[#3d3830]">סה"כ</th>
@@ -80,7 +88,13 @@ export function QuotePreview({
               <tbody>
                 {items.map((item, index) => (
                   <tr key={index} className="border-b border-[#e8e4de]">
-                    <td className="p-3 text-[#5a5347]">{item.title}</td>
+                    <td className="p-3 text-[#5a5347]">
+                      <div>{item.title}</div>
+                      {item.product_type && (
+                        <div className="text-xs text-[#8a8279]">{item.product_type}</div>
+                      )}
+                    </td>
+                    <td className="p-3 text-[#5a5347] text-sm">{item.dimensions || "-"}</td>
                     <td className="p-3 text-center text-[#5a5347]">{item.quantity}</td>
                     <td className="p-3 text-right text-[#5a5347]">₪{item.unit_price.toFixed(2)}</td>
                     <td className="p-3 text-right text-[#5a5347]">₪{item.total_price.toFixed(2)}</td>

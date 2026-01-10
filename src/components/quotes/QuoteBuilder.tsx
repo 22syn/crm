@@ -15,6 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
   Loader2, 
@@ -26,7 +33,8 @@ import {
   MessageCircle,
   Mail,
   Save,
-  Eye
+  Eye,
+  Ruler
 } from "lucide-react";
 import { QuotePreview } from "./QuotePreview";
 import type { Database } from "@/integrations/supabase/types";
@@ -43,6 +51,14 @@ interface QuoteItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  dimensions?: string;
+  product_type?: string;
+}
+
+interface ProductSegment {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 interface QuoteBuilderProps {
@@ -60,6 +76,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const [customerName, setCustomerName] = useState(lead?.customer_name || "");
   const [customerEmail, setCustomerEmail] = useState(lead?.customer_email || "");
   const [customerPhone, setCustomerPhone] = useState(lead?.customer_phone || "");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [selectedSegment, setSelectedSegment] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -69,12 +87,27 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     enabled: open,
   });
 
+  const { data: segments = [] } = useQuery<ProductSegment[]>({
+    queryKey: ["product-segments"],
+    queryFn: async () => {
+      const { data, error } = await (supabase
+        .from("product_segments" as any)
+        .select("*")
+        .eq("is_active", true)
+        .order("name") as any);
+      if (error) throw error;
+      return data as ProductSegment[];
+    },
+    enabled: open,
+  });
+
   // Update customer info when lead changes or dialog opens
   useEffect(() => {
     if (open && lead) {
       setCustomerName(lead.customer_name);
       setCustomerEmail(lead.customer_email || "");
       setCustomerPhone(lead.customer_phone || "");
+      setCustomerAddress((lead as any).customer_address || "");
     }
   }, [open, lead]);
 
@@ -130,14 +163,15 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       const validUntil = new Date();
       validUntil.setDate(validUntil.getDate() + validDays);
 
-      // Create quote - using any to bypass type check since quotes table was just created
-      const { data: quote, error: quoteError } = await supabase
-        .from("quotes" as any)
+      // Create quote
+      const { data: quote, error: quoteError } = await (supabase
+        .from("quotes")
         .insert({
           lead_id: lead?.id,
           customer_name: customerName,
           customer_email: customerEmail,
           customer_phone: customerPhone,
+          customer_address: customerAddress,
           status: sendEmail ? "sent" : "draft",
           subtotal,
           discount,
@@ -147,13 +181,13 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           notes,
         } as any)
         .select()
-        .single();
+        .single() as any);
 
       if (quoteError) throw quoteError;
 
-      // Create quote items
+      // Create quote items with dimensions and product_type
       const quoteItems = items.map(item => ({
-        quote_id: (quote as any).id,
+        quote_id: quote.id,
         shopify_product_id: item.shopify_product_id,
         shopify_variant_id: item.shopify_variant_id,
         title: item.title,
@@ -162,11 +196,13 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
+        dimensions: item.dimensions,
+        product_type: item.product_type,
       }));
 
-      const { error: itemsError } = await supabase
-        .from("quote_items" as any)
-        .insert(quoteItems as any);
+      const { error: itemsError } = await (supabase
+        .from("quote_items")
+        .insert(quoteItems as any) as any);
 
       if (itemsError) throw itemsError;
 
@@ -232,6 +268,20 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     setDiscount(0);
     setNotes("");
     setValidDays(14);
+    setCustomerAddress("");
+    setSelectedSegment("");
+  };
+
+  const updateItemDimensions = (index: number, dimensions: string) => {
+    const updated = [...items];
+    updated[index].dimensions = dimensions;
+    setItems(updated);
+  };
+
+  const updateItemProductType = (index: number, productType: string) => {
+    const updated = [...items];
+    updated[index].product_type = productType;
+    setItems(updated);
   };
 
   const getWhatsAppLink = () => {
@@ -329,6 +379,29 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                   placeholder="email@example.com"
                 />
               </div>
+              <div>
+                <Label>כתובת</Label>
+                <Input
+                  value={customerAddress}
+                  onChange={(e) => setCustomerAddress(e.target.value)}
+                  placeholder="כתובת הלקוח"
+                />
+              </div>
+              <div>
+                <Label>סגמנט מוצרים</Label>
+                <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="בחר סגמנט" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {segments.map((segment) => (
+                      <SelectItem key={segment.id} value={segment.id}>
+                        {segment.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Label className="mb-2">פריטים בהצעה</Label>
@@ -338,41 +411,63 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                   <p>לחץ על מוצר להוספה להצעה</p>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={item.id} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          ₪{item.unit_price.toFixed(2)} x {item.quantity} = ₪{item.total_price.toFixed(2)}
-                        </p>
+                    <div key={item.id} className="p-3 bg-muted/50 rounded space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            ₪{item.unit_price.toFixed(2)} x {item.quantity} = ₪{item.total_price.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => updateQuantity(index, item.quantity - 1)}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-6 text-center text-sm">{item.quantity}</span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => updateQuantity(index, item.quantity + 1)}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-destructive"
+                            onClick={() => removeItem(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => updateQuantity(index, item.quantity - 1)}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="w-6 text-center text-sm">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => updateQuantity(index, item.quantity + 1)}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive"
-                          onClick={() => removeItem(index)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">מידות</Label>
+                          <Input
+                            value={item.dimensions || ""}
+                            onChange={(e) => updateItemDimensions(index, e.target.value)}
+                            placeholder="לדוגמה: 180x90 ס״מ"
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">סוג מוצר</Label>
+                          <Input
+                            value={item.product_type || ""}
+                            onChange={(e) => updateItemProductType(index, e.target.value)}
+                            placeholder="לדוגמה: שולחן אוכל"
+                            className="h-7 text-xs"
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -464,11 +559,14 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           customerName={customerName}
+          customerAddress={customerAddress}
           items={items.map(i => ({
             title: i.title,
             quantity: i.quantity,
             unit_price: i.unit_price,
             total_price: i.total_price,
+            dimensions: i.dimensions,
+            product_type: i.product_type,
           }))}
           subtotal={subtotal}
           discount={discount}
