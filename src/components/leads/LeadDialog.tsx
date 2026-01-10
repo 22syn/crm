@@ -69,7 +69,7 @@ const statuses = [
 ];
 
 export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: LeadDialogProps) {
-  const form = useForm<LeadInsert>({
+  const form = useForm<LeadInsert & { customer_address?: string }>({
     defaultValues: {
       customer_name: "",
       customer_email: "",
@@ -78,6 +78,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
       status: "new",
       notes: "",
       meeting_date: null,
+      customer_address: "",
     },
   });
 
@@ -91,6 +92,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
         status: lead.status,
         notes: lead.notes || "",
         meeting_date: lead.meeting_date || null,
+        customer_address: (lead as any).customer_address || "",
       });
     } else {
       form.reset({
@@ -101,6 +103,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
         status: "new",
         notes: "",
         meeting_date: null,
+        customer_address: "",
       });
     }
   }, [lead, form]);
@@ -162,6 +165,20 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="customer_address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>כתובת</FormLabel>
+                  <FormControl>
+                    <Input placeholder="רחוב, עיר" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
