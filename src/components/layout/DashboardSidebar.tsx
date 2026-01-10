@@ -39,11 +39,11 @@ const menuItems = [
   { title: "הצעות מחיר", url: "/quotes", icon: FileText },
   { title: "עסקאות", url: "/deals", icon: Handshake },
   { title: "עיצובים", url: "/design-requests", icon: Palette },
-  { title: "לקוחות", url: "/customers", icon: UserCheck },
 ];
 
 const adminItems = [
   { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
+  { title: "לקוחות", url: "/customers", icon: UserCheck },
   { title: "מוצרים", url: "/products", icon: Package },
   { title: "ספקים", url: "/suppliers", icon: Truck },
   { title: "הגדרות", url: "/settings", icon: Settings },
