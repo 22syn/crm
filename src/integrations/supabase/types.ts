@@ -416,7 +416,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
-          specialties: string[] | null
+          segment_id: string | null
           updated_at: string
         }
         Insert: {
@@ -429,7 +429,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
-          specialties?: string[] | null
+          segment_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -442,10 +442,18 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
-          specialties?: string[] | null
+          segment_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "product_segments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
