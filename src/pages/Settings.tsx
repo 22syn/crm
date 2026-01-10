@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -24,13 +25,21 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Trash2 } from "lucide-react";
+import { Loader2, UserPlus, Trash2, Plus, Pencil, X, Check } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+type ProductSegment = Tables<"product_segments">;
 
 export default function Settings() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"admin" | "sales">("sales");
+  
+  // Segment state
+  const [newSegmentName, setNewSegmentName] = useState("");
+  const [editingSegment, setEditingSegment] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["team-users"],
@@ -46,7 +55,6 @@ export default function Settings() {
 
       if (error) throw error;
 
-      // Get profiles for these users
       const userIds = roles.map(r => r.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
@@ -61,6 +69,19 @@ export default function Settings() {
     enabled: role === "admin",
   });
 
+  const { data: segments = [], isLoading: segmentsLoading } = useQuery({
+    queryKey: ["product-segments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_segments")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data as ProductSegment[];
+    },
+    enabled: role === "admin",
+  });
+
   const addRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: "admin" | "sales" }) => {
       const { error } = await supabase.from("user_roles").insert({
@@ -71,11 +92,11 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-users"] });
-      toast.success("Role assigned successfully");
+      toast.success("הרשאה הוקצתה בהצלחה");
       setNewUserEmail("");
     },
     onError: (error) => {
-      toast.error("Failed to assign role: " + error.message);
+      toast.error("שגיאה בהקצאת הרשאה: " + error.message);
     },
   });
 
@@ -86,20 +107,75 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-users"] });
-      toast.success("Role removed successfully");
+      toast.success("הרשאה הוסרה בהצלחה");
     },
     onError: (error) => {
-      toast.error("Failed to remove role: " + error.message);
+      toast.error("שגיאה בהסרת הרשאה: " + error.message);
     },
   });
+
+  const createSegmentMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase.from("product_segments").insert([{ name }]);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
+      toast.success("סגמנט נוצר בהצלחה");
+      setNewSegmentName("");
+    },
+    onError: () => {
+      toast.error("שגיאה ביצירת סגמנט");
+    },
+  });
+
+  const updateSegmentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ProductSegment> }) => {
+      const { error } = await supabase.from("product_segments").update(data).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
+      toast.success("סגמנט עודכן בהצלחה");
+      setEditingSegment(null);
+    },
+    onError: () => {
+      toast.error("שגיאה בעדכון סגמנט");
+    },
+  });
+
+  const deleteSegmentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("product_segments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["product-segments"] });
+      toast.success("סגמנט נמחק בהצלחה");
+    },
+    onError: () => {
+      toast.error("שגיאה במחיקת סגמנט");
+    },
+  });
+
+  const startEditing = (segment: ProductSegment) => {
+    setEditingSegment(segment.id);
+    setEditingName(segment.name);
+  };
+
+  const saveEdit = () => {
+    if (editingSegment && editingName.trim()) {
+      updateSegmentMutation.mutate({ id: editingSegment, data: { name: editingName.trim() } });
+    }
+  };
 
   if (role !== "admin") {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold">Access Denied</h1>
+        <div className="text-center py-12" dir="rtl">
+          <h1 className="text-2xl font-bold">אין גישה</h1>
           <p className="text-muted-foreground mt-2">
-            Only administrators can access settings.
+            רק מנהלים יכולים לגשת להגדרות.
           </p>
         </div>
       </DashboardLayout>
@@ -108,45 +184,44 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-6" dir="rtl">
         <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">Manage your CRM settings and team</p>
+          <h1 className="text-3xl font-bold">הגדרות</h1>
+          <p className="text-muted-foreground">ניהול הגדרות המערכת והצוות</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Team Members</CardTitle>
+            <CardTitle>חברי צוות</CardTitle>
             <CardDescription>
-              Manage who has access to the CRM and their roles.
+              ניהול גישה למערכת והרשאות.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex gap-4 items-end">
               <div className="flex-1 space-y-2">
-                <Label htmlFor="user-email">User Email</Label>
+                <Label htmlFor="user-email">אימייל משתמש</Label>
                 <Input
                   id="user-email"
-                  placeholder="Enter user email who has signed up"
+                  placeholder="הכנס אימייל של משתמש שנרשם למערכת"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                 />
               </div>
               <div className="w-32 space-y-2">
-                <Label>Role</Label>
+                <Label>תפקיד</Label>
                 <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as "admin" | "sales")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
+                    <SelectItem value="admin">מנהל</SelectItem>
+                    <SelectItem value="sales">מכירות</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Button
                 onClick={async () => {
-                  // Find user by email
                   const { data: profiles } = await supabase
                     .from("profiles")
                     .select("user_id")
@@ -154,7 +229,7 @@ export default function Settings() {
                     .limit(1);
 
                   if (!profiles?.length) {
-                    toast.error("User not found. They must sign up first.");
+                    toast.error("משתמש לא נמצא. המשתמש צריך להירשם קודם.");
                     return;
                   }
 
@@ -166,21 +241,21 @@ export default function Settings() {
                 disabled={!newUserEmail || addRoleMutation.isPending}
               >
                 {addRoleMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin ml-2" />
                 ) : (
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <UserPlus className="h-4 w-4 ml-2" />
                 )}
-                Add
+                הוסף
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Added</TableHead>
+                  <TableHead className="text-right">שם</TableHead>
+                  <TableHead className="text-right">אימייל</TableHead>
+                  <TableHead className="text-right">תפקיד</TableHead>
+                  <TableHead className="text-right">נוסף</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -194,7 +269,7 @@ export default function Settings() {
                 ) : users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No team members yet
+                      אין חברי צוות עדיין
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -204,11 +279,11 @@ export default function Settings() {
                       <TableCell>{user.profile?.email || "—"}</TableCell>
                       <TableCell>
                         <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                          {user.role}
+                          {user.role === "admin" ? "מנהל" : "מכירות"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString("he-IL")}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -230,9 +305,100 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Integrations</CardTitle>
+            <CardTitle>סגמנטים</CardTitle>
             <CardDescription>
-              Connect external services to your CRM.
+              ניהול סגמנטים לקטגוריזציה של מוצרים והצעות מחיר.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="שם סגמנט חדש..."
+                value={newSegmentName}
+                onChange={(e) => setNewSegmentName(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && newSegmentName.trim() && createSegmentMutation.mutate(newSegmentName.trim())}
+              />
+              <Button
+                onClick={() => newSegmentName.trim() && createSegmentMutation.mutate(newSegmentName.trim())}
+                disabled={!newSegmentName.trim() || createSegmentMutation.isPending}
+              >
+                <Plus className="h-4 w-4 ml-2" />
+                הוסף
+              </Button>
+            </div>
+
+            {segmentsLoading ? (
+              <div className="text-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+              </div>
+            ) : segments.length === 0 ? (
+              <p className="text-center py-4 text-muted-foreground">אין סגמנטים עדיין</p>
+            ) : (
+              <div className="space-y-2">
+                {segments.map((segment) => (
+                  <div
+                    key={segment.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    {editingSegment === segment.id ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <Input
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className="flex-1"
+                          autoFocus
+                        />
+                        <Button size="icon" variant="ghost" onClick={saveEdit}>
+                          <Check className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => setEditingSegment(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium">{segment.name}</span>
+                          <Badge variant={segment.is_active ? "default" : "secondary"}>
+                            {segment.is_active ? "פעיל" : "לא פעיל"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={segment.is_active ?? true}
+                            onCheckedChange={(checked) =>
+                              updateSegmentMutation.mutate({ id: segment.id, data: { is_active: checked } })
+                            }
+                          />
+                          <Button size="icon" variant="ghost" onClick={() => startEditing(segment)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (confirm(`האם למחוק את הסגמנט "${segment.name}"?`)) {
+                                deleteSegmentMutation.mutate(segment.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>אינטגרציות</CardTitle>
+            <CardDescription>
+              חיבור שירותים חיצוניים למערכת.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -240,19 +406,19 @@ export default function Settings() {
               <div>
                 <h3 className="font-medium">Shopify</h3>
                 <p className="text-sm text-muted-foreground">
-                  Sync products and orders from your Shopify store
+                  סנכרון מוצרים והזמנות מחנות Shopify
                 </p>
               </div>
-              <Badge variant="outline">Coming Soon</Badge>
+              <Badge variant="outline">בקרוב</Badge>
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <h3 className="font-medium">Green Invoice</h3>
                 <p className="text-sm text-muted-foreground">
-                  Generate tax-compliant Israeli invoices
+                  הפקת חשבוניות מס ישראליות
                 </p>
               </div>
-              <Badge variant="outline">Coming Soon</Badge>
+              <Badge variant="outline">בקרוב</Badge>
             </div>
           </CardContent>
         </Card>
