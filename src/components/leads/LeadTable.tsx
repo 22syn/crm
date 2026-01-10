@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import {
   Table,
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, MoreHorizontal, FileText, Phone, Mail } from "lucide-react";
+import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -35,6 +36,9 @@ interface LeadTableProps {
   onCreateQuote?: (lead: Lead) => void;
 }
 
+type SortField = "customer_name" | "source" | "status" | "meeting_date" | "created_at";
+type SortDirection = "asc" | "desc";
+
 const sourceLabels: Record<string, { label: string; icon: string }> = {
   instagram: { label: "Instagram", icon: "📷" },
   website: { label: "Website", icon: "🌐" },
@@ -43,17 +47,66 @@ const sourceLabels: Record<string, { label: string; icon: string }> = {
   facebook: { label: "Facebook", icon: "📘" },
 };
 
-const statusOptions: { value: LeadStatus; label: string; color: string }[] = [
-  { value: "new", label: "0 - New", color: "bg-blue-500" },
-  { value: "in_process", label: "1 - In Process", color: "bg-yellow-500" },
-  { value: "meeting_scheduled", label: "2 - Meeting Scheduled", color: "bg-purple-500" },
-  { value: "meeting_done", label: "2.5 - Meeting Done", color: "bg-indigo-500" },
-  { value: "waiting_for_approval", label: "3 - Waiting for Approval", color: "bg-orange-500" },
-  { value: "done", label: "4 - Done", color: "bg-green-500" },
-  { value: "not_done", label: "Not Done", color: "bg-red-500" },
+const statusOptions: { value: LeadStatus; label: string; color: string; order: number }[] = [
+  { value: "new", label: "0 - New", color: "bg-blue-500", order: 0 },
+  { value: "in_process", label: "1 - In Process", color: "bg-yellow-500", order: 1 },
+  { value: "meeting_scheduled", label: "2 - Meeting Scheduled", color: "bg-purple-500", order: 2 },
+  { value: "meeting_done", label: "2.5 - Meeting Done", color: "bg-indigo-500", order: 3 },
+  { value: "waiting_for_approval", label: "3 - Waiting for Approval", color: "bg-orange-500", order: 4 },
+  { value: "done", label: "4 - Done", color: "bg-green-500", order: 5 },
+  { value: "not_done", label: "Not Done", color: "bg-red-500", order: 6 },
 ];
 
 export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: LeadTableProps) {
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4 ml-1" />;
+    }
+    return sortDirection === "asc" 
+      ? <ArrowUp className="h-4 w-4 ml-1" />
+      : <ArrowDown className="h-4 w-4 ml-1" />;
+  };
+
+  const sortedLeads = [...leads].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortField) {
+      case "customer_name":
+        comparison = a.customer_name.localeCompare(b.customer_name);
+        break;
+      case "source":
+        comparison = a.source.localeCompare(b.source);
+        break;
+      case "status":
+        const aOrder = statusOptions.find(s => s.value === a.status)?.order ?? 0;
+        const bOrder = statusOptions.find(s => s.value === b.status)?.order ?? 0;
+        comparison = aOrder - bOrder;
+        break;
+      case "meeting_date":
+        const aDate = a.meeting_date ? new Date(a.meeting_date).getTime() : 0;
+        const bDate = b.meeting_date ? new Date(b.meeting_date).getTime() : 0;
+        comparison = aDate - bDate;
+        break;
+      case "created_at":
+        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        break;
+    }
+
+    return sortDirection === "asc" ? comparison : -comparison;
+  });
+
   const getStatusBadge = (status: LeadStatus) => {
     const statusOption = statusOptions.find(s => s.value === status);
     return (
@@ -72,24 +125,74 @@ export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: Lead
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Customer</TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 hover:bg-transparent"
+                onClick={() => handleSort("customer_name")}
+              >
+                Customer
+                {getSortIcon("customer_name")}
+              </Button>
+            </TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead>Source</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Meeting Date</TableHead>
-            <TableHead>Created</TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 hover:bg-transparent"
+                onClick={() => handleSort("source")}
+              >
+                Source
+                {getSortIcon("source")}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 hover:bg-transparent"
+                onClick={() => handleSort("status")}
+              >
+                Status
+                {getSortIcon("status")}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 hover:bg-transparent"
+                onClick={() => handleSort("meeting_date")}
+              >
+                Meeting Date
+                {getSortIcon("meeting_date")}
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-3 h-8 hover:bg-transparent"
+                onClick={() => handleSort("created_at")}
+              >
+                Created
+                {getSortIcon("created_at")}
+              </Button>
+            </TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leads.length === 0 ? (
+          {sortedLeads.length === 0 ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                 No leads found
               </TableCell>
             </TableRow>
           ) : (
-            leads.map((lead) => (
+            sortedLeads.map((lead) => (
               <TableRow key={lead.id}>
                 <TableCell>
                   <div className="font-medium">{lead.customer_name}</div>
