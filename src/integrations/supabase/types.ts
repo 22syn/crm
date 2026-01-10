@@ -61,7 +61,6 @@ export type Database = {
           id: string
           lead_id: string | null
           notes: string | null
-          order_id: string | null
           probability: number | null
           quote_id: string | null
           stage: Database["public"]["Enums"]["deal_stage"]
@@ -78,7 +77,6 @@ export type Database = {
           id?: string
           lead_id?: string | null
           notes?: string | null
-          order_id?: string | null
           probability?: number | null
           quote_id?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
@@ -95,7 +93,6 @@ export type Database = {
           id?: string
           lead_id?: string | null
           notes?: string | null
-          order_id?: string | null
           probability?: number | null
           quote_id?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
@@ -118,58 +115,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "deals_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "deals_quote_id_fkey"
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      documents: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          document_number: string
-          external_id: string | null
-          id: string
-          order_id: string
-          pdf_url: string | null
-          type: Database["public"]["Enums"]["document_type"]
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          document_number: string
-          external_id?: string | null
-          id?: string
-          order_id: string
-          pdf_url?: string | null
-          type: Database["public"]["Enums"]["document_type"]
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          document_number?: string
-          external_id?: string | null
-          id?: string
-          order_id?: string
-          pdf_url?: string | null
-          type?: Database["public"]["Enums"]["document_type"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "documents_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -229,126 +178,6 @@ export type Database = {
             columns: ["converted_customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      order_items: {
-        Row: {
-          created_at: string
-          custom_notes: string | null
-          custom_title: string | null
-          id: string
-          order_id: string
-          product_id: string | null
-          quantity: number
-          total_price: number
-          unit_price: number
-        }
-        Insert: {
-          created_at?: string
-          custom_notes?: string | null
-          custom_title?: string | null
-          id?: string
-          order_id: string
-          product_id?: string | null
-          quantity?: number
-          total_price: number
-          unit_price: number
-        }
-        Update: {
-          created_at?: string
-          custom_notes?: string | null
-          custom_title?: string | null
-          id?: string
-          order_id?: string
-          product_id?: string | null
-          quantity?: number
-          total_price?: number
-          unit_price?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          customer_id: string | null
-          discount: number | null
-          id: string
-          lead_id: string | null
-          notes: string | null
-          order_number: string
-          shopify_order_id: string | null
-          source: Database["public"]["Enums"]["order_source"]
-          status: Database["public"]["Enums"]["order_status"]
-          subtotal: number
-          tax: number | null
-          total: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          customer_id?: string | null
-          discount?: number | null
-          id?: string
-          lead_id?: string | null
-          notes?: string | null
-          order_number: string
-          shopify_order_id?: string | null
-          source?: Database["public"]["Enums"]["order_source"]
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal?: number
-          tax?: number | null
-          total?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          customer_id?: string | null
-          discount?: number | null
-          id?: string
-          lead_id?: string | null
-          notes?: string | null
-          order_number?: string
-          shopify_order_id?: string | null
-          source?: Database["public"]["Enums"]["order_source"]
-          status?: Database["public"]["Enums"]["order_status"]
-          subtotal?: number
-          tax?: number | null
-          total?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]

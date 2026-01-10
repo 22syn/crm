@@ -24,7 +24,6 @@ import {
   Users,
   FileText,
   Package,
-  ShoppingCart,
   Settings,
   LogOut,
   ChevronUp,
@@ -38,7 +37,6 @@ const menuItems = [
   { title: "לידים", url: "/leads", icon: Users },
   { title: "עסקאות", url: "/deals", icon: Handshake },
   { title: "הצעות מחיר", url: "/quotes", icon: FileText },
-  { title: "הזמנות", url: "/orders", icon: ShoppingCart },
   { title: "מוצרים", url: "/products", icon: Package },
 ];
 

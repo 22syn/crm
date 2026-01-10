@@ -10,7 +10,6 @@ interface Deal {
   probability: number | null;
   lead_id: string | null;
   quote_id: string | null;
-  order_id: string | null;
   notes: string | null;
   leads?: { customer_name: string } | null;
 }

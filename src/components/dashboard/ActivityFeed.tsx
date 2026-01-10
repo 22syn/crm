@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, ShoppingCart } from "lucide-react";
+import { Users, FileText, Handshake } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { he } from "date-fns/locale";
 
 interface ActivityItem {
   id: string;
-  type: "lead" | "quote" | "order";
+  type: "lead" | "quote" | "deal";
   title: string;
   timestamp: Date;
 }
@@ -16,7 +16,7 @@ export function ActivityFeed() {
   const { data: activities } = useQuery({
     queryKey: ["recent-activity"],
     queryFn: async () => {
-      const [leadsRes, quotesRes, ordersRes] = await Promise.all([
+      const [leadsRes, quotesRes, dealsRes] = await Promise.all([
         supabase
           .from("leads")
           .select("id, customer_name, created_at")
@@ -28,8 +28,8 @@ export function ActivityFeed() {
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
-          .from("orders")
-          .select("id, order_number, created_at")
+          .from("deals")
+          .select("id, title, created_at")
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
@@ -54,12 +54,12 @@ export function ActivityFeed() {
         });
       });
 
-      ordersRes.data?.forEach((order) => {
+      dealsRes.data?.forEach((deal) => {
         items.push({
-          id: order.id,
-          type: "order",
-          title: `הזמנה ${order.order_number}`,
-          timestamp: new Date(order.created_at),
+          id: deal.id,
+          type: "deal",
+          title: `עסקה חדשה: ${deal.title}`,
+          timestamp: new Date(deal.created_at),
         });
       });
 
@@ -76,8 +76,8 @@ export function ActivityFeed() {
         return <Users className="h-4 w-4 text-primary" />;
       case "quote":
         return <FileText className="h-4 w-4 text-primary" />;
-      case "order":
-        return <ShoppingCart className="h-4 w-4 text-primary" />;
+      case "deal":
+        return <Handshake className="h-4 w-4 text-primary" />;
     }
   };
 
