@@ -50,6 +50,89 @@ export type Database = {
         }
         Relationships: []
       }
+      deals: {
+        Row: {
+          amount: number
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          expected_close_date: string | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          order_id: string | null
+          probability: number | null
+          quote_id: string | null
+          stage: Database["public"]["Enums"]["deal_stage"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          probability?: number | null
+          quote_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          expected_close_date?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          order_id?: string | null
+          probability?: number | null
+          quote_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -491,6 +574,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "sales"
+      deal_stage:
+        | "proposal"
+        | "negotiation"
+        | "contract_sent"
+        | "closed_won"
+        | "closed_lost"
       document_type: "quote" | "invoice" | "receipt"
       lead_source:
         | "whatsapp"
@@ -640,6 +729,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sales"],
+      deal_stage: [
+        "proposal",
+        "negotiation",
+        "contract_sent",
+        "closed_won",
+        "closed_lost",
+      ],
       document_type: ["quote", "invoice", "receipt"],
       lead_source: [
         "whatsapp",

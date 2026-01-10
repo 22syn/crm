@@ -29,11 +29,13 @@ import {
   LogOut,
   ChevronUp,
   User,
+  Handshake,
 } from "lucide-react";
 
 const menuItems = [
   { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
   { title: "לידים", url: "/leads", icon: Users },
+  { title: "עסקאות", url: "/deals", icon: Handshake },
   { title: "הצעות מחיר", url: "/quotes", icon: FileText },
   { title: "הזמנות", url: "/orders", icon: ShoppingCart },
   { title: "מוצרים", url: "/products", icon: Package },
