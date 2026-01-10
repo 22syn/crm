@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
@@ -8,8 +8,10 @@ import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FileText, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Quotes() {
+  const queryClient = useQueryClient();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
@@ -28,6 +30,60 @@ export default function Quotes() {
     },
   });
 
+  const approveQuoteMutation = useMutation({
+    mutationFn: async (quote: any) => {
+      // Update quote status to approved
+      const { error: quoteError } = await supabase
+        .from("quotes")
+        .update({ status: "approved" })
+        .eq("id", quote.id);
+
+      if (quoteError) throw quoteError;
+
+      // Get quote items that require custom design
+      const { data: items, error: itemsError } = await supabase
+        .from("quote_items")
+        .select("*")
+        .eq("quote_id", quote.id)
+        .eq("requires_custom_design", true);
+
+      if (itemsError) throw itemsError;
+
+      // Create design requests for items that need custom design
+      if (items && items.length > 0) {
+        const designRequests = items.map((item: any) => ({
+          quote_id: quote.id,
+          quote_item_id: item.id,
+          customer_notes: item.custom_design_notes,
+          status: "pending",
+        }));
+
+        const { error: designError } = await supabase
+          .from("design_requests")
+          .insert(designRequests);
+
+        if (designError) throw designError;
+
+        return { quote, designRequestsCreated: items.length };
+      }
+
+      return { quote, designRequestsCreated: 0 };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["design-requests"] });
+      
+      if (result.designRequestsCreated > 0) {
+        toast.success(`הצעה אושרה! נוצרו ${result.designRequestsCreated} בקשות עיצוב`);
+      } else {
+        toast.success("הצעה אושרה בהצלחה");
+      }
+    },
+    onError: (error) => {
+      toast.error("שגיאה באישור ההצעה: " + error.message);
+    },
+  });
+
   const draftQuotes = quotes.filter(q => q.status === "draft");
   const sentQuotes = quotes.filter(q => q.status === "sent");
   const approvedQuotes = quotes.filter(q => q.status === "approved");
@@ -43,6 +99,10 @@ export default function Quotes() {
     
     setQuoteItems(items || []);
     setPreviewOpen(true);
+  };
+
+  const handleApproveQuote = (quote: any) => {
+    approveQuoteMutation.mutate(quote);
   };
 
   return (
@@ -89,6 +149,7 @@ export default function Quotes() {
                     key={quote.id} 
                     quote={quote}
                     onView={handleViewQuote}
+                    onConvertToOrder={handleApproveQuote}
                   />
                 ))}
               </div>
@@ -109,6 +170,7 @@ export default function Quotes() {
                     key={quote.id} 
                     quote={quote}
                     onView={handleViewQuote}
+                    onConvertToOrder={handleApproveQuote}
                   />
                 ))}
               </div>

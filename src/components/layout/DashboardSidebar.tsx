@@ -30,12 +30,14 @@ import {
   User,
   Handshake,
   Truck,
+  Palette,
 } from "lucide-react";
 
 const menuItems = [
   { title: "לידים", url: "/leads", icon: Users },
   { title: "הצעות מחיר", url: "/quotes", icon: FileText },
   { title: "עסקאות", url: "/deals", icon: Handshake },
+  { title: "עיצובים", url: "/design-requests", icon: Palette },
 ];
 
 const adminItems = [
