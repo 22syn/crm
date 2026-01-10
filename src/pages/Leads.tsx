@@ -3,11 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { LeadKanban } from "@/components/leads/LeadKanban";
+import { LeadTable } from "@/components/leads/LeadTable";
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { LeadFilters } from "@/components/leads/LeadFilters";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Plus, LayoutGrid, List } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -22,6 +24,7 @@ export default function Leads() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const queryClient = useQueryClient();
 
   const { data: leads = [], isLoading } = useQuery({
@@ -114,10 +117,20 @@ export default function Leads() {
             <h1 className="text-3xl font-bold">Leads</h1>
             <p className="text-muted-foreground">Manage your sales pipeline</p>
           </div>
-          <Button onClick={() => { setEditingLead(null); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Lead
-          </Button>
+          <div className="flex items-center gap-2">
+            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "kanban" | "table")}>
+              <ToggleGroupItem value="kanban" aria-label="Kanban view">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Table view">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Button onClick={() => { setEditingLead(null); setDialogOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Lead
+            </Button>
+          </div>
         </div>
 
         <LeadFilters
@@ -129,13 +142,22 @@ export default function Leads() {
           onSourceFilterChange={setSourceFilter}
         />
 
-        <LeadKanban
-          leads={filteredLeads}
-          isLoading={isLoading}
-          onEdit={handleEdit}
-          onStatusChange={handleStatusChange}
-          onCreateQuote={handleCreateQuote}
-        />
+        {viewMode === "kanban" ? (
+          <LeadKanban
+            leads={filteredLeads}
+            isLoading={isLoading}
+            onEdit={handleEdit}
+            onStatusChange={handleStatusChange}
+            onCreateQuote={handleCreateQuote}
+          />
+        ) : (
+          <LeadTable
+            leads={filteredLeads}
+            onEdit={handleEdit}
+            onStatusChange={handleStatusChange}
+            onCreateQuote={handleCreateQuote}
+          />
+        )}
 
         <LeadDialog
           open={dialogOpen}
