@@ -27,6 +27,11 @@ import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, Mail } from "lucid
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
+type ProductSegment = Tables<"product_segments">;
+
+interface SupplierWithSegment extends Supplier {
+  product_segments?: ProductSegment | null;
+}
 
 export default function Suppliers() {
   const { role } = useAuth();
@@ -40,13 +45,16 @@ export default function Suppliers() {
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["suppliers", showActiveOnly],
     queryFn: async () => {
-      let query = supabase.from("suppliers").select("*").order("name");
+      let query = supabase
+        .from("suppliers")
+        .select("*, product_segments(*)")
+        .order("name");
       if (showActiveOnly) {
         query = query.eq("is_active", true);
       }
       const { data, error } = await query;
       if (error) throw error;
-      return data as Supplier[];
+      return data as SupplierWithSegment[];
     },
   });
 
@@ -176,7 +184,7 @@ export default function Suppliers() {
                     <TableHead className="text-right">שם</TableHead>
                     <TableHead className="text-right">איש קשר</TableHead>
                     <TableHead className="text-right">פרטי התקשרות</TableHead>
-                    <TableHead className="text-right">התמחויות</TableHead>
+                    <TableHead className="text-right">סגמנט</TableHead>
                     <TableHead className="text-right">סטטוס</TableHead>
                     {isAdmin && <TableHead className="text-right w-12"></TableHead>}
                   </TableRow>
@@ -207,18 +215,11 @@ export default function Suppliers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {supplier.specialties?.slice(0, 3).map((specialty) => (
-                            <Badge key={specialty} variant="outline" className="text-xs">
-                              {specialty}
-                            </Badge>
-                          ))}
-                          {(supplier.specialties?.length || 0) > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{(supplier.specialties?.length || 0) - 3}
-                            </Badge>
-                          )}
-                        </div>
+                        {supplier.product_segments ? (
+                          <Badge variant="outline">{supplier.product_segments.name}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant={supplier.is_active ? "default" : "secondary"}>

@@ -1,15 +1,23 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
+type ProductSegment = Tables<"product_segments">;
 
 interface SupplierDialogProps {
   open: boolean;
@@ -27,9 +35,21 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
     address: "",
     notes: "",
     is_active: true,
-    specialties: [] as string[],
+    segment_id: null as string | null,
   });
-  const [newSpecialty, setNewSpecialty] = useState("");
+
+  const { data: segments = [] } = useQuery({
+    queryKey: ["product-segments-active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_segments")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data as ProductSegment[];
+    },
+  });
 
   useEffect(() => {
     if (supplier) {
@@ -41,7 +61,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: supplier.address || "",
         notes: supplier.notes || "",
         is_active: supplier.is_active ?? true,
-        specialties: supplier.specialties || [],
+        segment_id: supplier.segment_id || null,
       });
     } else {
       setFormData({
@@ -52,7 +72,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: "",
         notes: "",
         is_active: true,
-        specialties: [],
+        segment_id: null,
       });
     }
   }, [supplier, open]);
@@ -60,23 +80,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-  };
-
-  const addSpecialty = () => {
-    if (newSpecialty.trim() && !formData.specialties.includes(newSpecialty.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        specialties: [...prev.specialties, newSpecialty.trim()]
-      }));
-      setNewSpecialty("");
-    }
-  };
-
-  const removeSpecialty = (specialty: string) => {
-    setFormData(prev => ({
-      ...prev,
-      specialties: prev.specialties.filter(s => s !== specialty)
-    }));
   };
 
   return (
@@ -94,6 +97,26 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="segment">סגמנט</Label>
+            <Select
+              value={formData.segment_id || "__none__"}
+              onValueChange={(val) => setFormData(prev => ({ ...prev, segment_id: val === "__none__" ? null : val }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="בחר סגמנט..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">ללא</SelectItem>
+                {segments.map((segment) => (
+                  <SelectItem key={segment.id} value={segment.id}>
+                    {segment.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -132,32 +155,6 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
               value={formData.address}
               onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label>התמחויות</Label>
-            <div className="flex gap-2">
-              <Input
-                value={newSpecialty}
-                onChange={(e) => setNewSpecialty(e.target.value)}
-                placeholder="הוסף התמחות..."
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSpecialty())}
-              />
-              <Button type="button" variant="outline" onClick={addSpecialty}>
-                הוסף
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {formData.specialties.map((specialty) => (
-                <Badge key={specialty} variant="secondary" className="gap-1">
-                  {specialty}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => removeSpecialty(specialty)}
-                  />
-                </Badge>
-              ))}
-            </div>
           </div>
 
           <div className="space-y-2">
