@@ -17,10 +17,10 @@ import { Tables } from "@/integrations/supabase/types";
 type Supplier = Tables<"suppliers">;
 
 const CATEGORY_OPTIONS = [
-  { value: "sofas", label: "ספות" },
-  { value: "cabinets", label: "מזנונים" },
-  { value: "chairs", label: "כסאות" },
-  { value: "tables", label: "שולחנות" },
+  { value: "sofas", label: "Sofas" },
+  { value: "cabinets", label: "Cabinets" },
+  { value: "chairs", label: "Chairs" },
+  { value: "tables", label: "Tables" },
 ];
 
 interface SupplierDialogProps {
@@ -79,13 +79,13 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{supplier ? "עריכת ספק" : "ספק חדש"}</DialogTitle>
+          <DialogTitle>{supplier ? "Edit Supplier" : "New Supplier"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">שם הספק *</Label>
+            <Label htmlFor="name">Supplier Name *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -95,13 +95,13 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">תחום *</Label>
+            <Label htmlFor="category">Category *</Label>
             <Select
               value={formData.category}
               onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="בחר תחום" />
+                <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
                 {CATEGORY_OPTIONS.map((option) => (
@@ -114,7 +114,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact_name">איש קשר</Label>
+            <Label htmlFor="contact_name">Contact Person</Label>
             <Input
               id="contact_name"
               value={formData.contact_name}
@@ -124,7 +124,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">אימייל</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -133,7 +133,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">טלפון</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -143,7 +143,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">כתובת</Label>
+            <Label htmlFor="address">Address</Label>
             <Input
               id="address"
               value={formData.address}
@@ -152,7 +152,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">הערות</Label>
+            <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
               value={formData.notes}
@@ -162,7 +162,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
           </div>
 
           <div className="flex items-center justify-between">
-            <Label htmlFor="is_active">ספק פעיל</Label>
+            <Label htmlFor="is_active">Active Supplier</Label>
             <Switch
               id="is_active"
               checked={formData.is_active}
@@ -172,10 +172,10 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
 
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              ביטול
+              Cancel
             </Button>
             <Button type="submit">
-              {supplier ? "שמור שינויים" : "צור ספק"}
+              {supplier ? "Save Changes" : "Create Supplier"}
             </Button>
           </div>
         </form>

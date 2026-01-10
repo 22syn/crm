@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,6 @@ import {
 import { toast } from "sonner";
 import { Plus, Loader2, Users, Phone, Mail, MapPin, Search, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 
 interface Customer {
   id: string;
@@ -43,7 +42,6 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -88,12 +86,12 @@ export default function Customers() {
     },
     onSuccess: (_, isEdit) => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success(isEdit ? "לקוח עודכן בהצלחה" : "לקוח נוסף בהצלחה");
+      toast.success(isEdit ? "Customer updated successfully" : "Customer added successfully");
       resetForm();
       setDialogOpen(false);
     },
     onError: (error) => {
-      toast.error("שגיאה בשמירה: " + error.message);
+      toast.error("Error saving: " + error.message);
     },
   });
 
@@ -107,10 +105,10 @@ export default function Customers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      toast.success("לקוח נמחק בהצלחה");
+      toast.success("Customer deleted successfully");
     },
     onError: (error) => {
-      toast.error("שגיאה במחיקה: " + error.message);
+      toast.error("Error deleting: " + error.message);
     },
   });
 
@@ -150,32 +148,32 @@ export default function Customers() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">לקוחות</h1>
-            <p className="text-muted-foreground">ניהול רשומות לקוחות</p>
+            <h1 className="text-3xl font-bold">Customers</h1>
+            <p className="text-muted-foreground">Manage customer records</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                לקוח חדש
+                New Customer
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingCustomer ? "עריכת לקוח" : "לקוח חדש"}</DialogTitle>
+                <DialogTitle>{editingCustomer ? "Edit Customer" : "New Customer"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>שם</Label>
+                  <Label>Name</Label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="שם הלקוח"
+                    placeholder="Customer name"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>טלפון</Label>
+                    <Label>Phone</Label>
                     <Input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -183,7 +181,7 @@ export default function Customers() {
                     />
                   </div>
                   <div>
-                    <Label>אימייל</Label>
+                    <Label>Email</Label>
                     <Input
                       type="email"
                       value={email}
@@ -193,19 +191,19 @@ export default function Customers() {
                   </div>
                 </div>
                 <div>
-                  <Label>כתובת</Label>
+                  <Label>Address</Label>
                   <Input
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="כתובת מלאה"
+                    placeholder="Full address"
                   />
                 </div>
                 <div>
-                  <Label>הערות</Label>
+                  <Label>Notes</Label>
                   <Textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="הערות נוספות..."
+                    placeholder="Additional notes..."
                   />
                 </div>
                 <Button
@@ -214,7 +212,7 @@ export default function Customers() {
                   disabled={!name || saveMutation.isPending}
                 >
                   {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  {editingCustomer ? "עדכן לקוח" : "הוסף לקוח"}
+                  {editingCustomer ? "Update Customer" : "Add Customer"}
                 </Button>
               </div>
             </DialogContent>
@@ -223,12 +221,12 @@ export default function Customers() {
 
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="חיפוש לקוחות..."
+              placeholder="Search customers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10"
+              className="pl-10"
             />
           </div>
         </div>
@@ -240,8 +238,8 @@ export default function Customers() {
         ) : customers.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">אין לקוחות</h3>
-            <p className="text-muted-foreground mt-1">הוסף את הלקוח הראשון שלך</p>
+            <h3 className="text-lg font-medium">No Customers</h3>
+            <p className="text-muted-foreground mt-1">Add your first customer</p>
           </div>
         ) : (
           <Card>
@@ -249,12 +247,12 @@ export default function Customers() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">שם</TableHead>
-                    <TableHead className="text-right">טלפון</TableHead>
-                    <TableHead className="text-right">אימייל</TableHead>
-                    <TableHead className="text-right">כתובת</TableHead>
-                    <TableHead className="text-right">תאריך הוספה</TableHead>
-                    <TableHead className="text-right">פעולות</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Added</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -286,7 +284,7 @@ export default function Customers() {
                         )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(customer.created_at), "dd MMM yyyy", { locale: he })}
+                        {format(new Date(customer.created_at), "dd MMM yyyy")}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">

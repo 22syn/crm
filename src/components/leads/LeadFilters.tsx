@@ -19,26 +19,26 @@ interface LeadFiltersProps {
 }
 
 const statusOptions = [
-  { value: "all", label: "כל הסטטוסים" },
-  { value: "new", label: "חדש" },
-  { value: "contacted", label: "נוצר קשר" },
-  { value: "qualified", label: "מתאים" },
-  { value: "quoted", label: "נשלחה הצעה" },
-  { value: "won", label: "נסגר" },
-  { value: "lost", label: "אבוד" },
+  { value: "all", label: "All Statuses" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "qualified", label: "Qualified" },
+  { value: "quoted", label: "Quoted" },
+  { value: "won", label: "Won" },
+  { value: "lost", label: "Lost" },
 ];
 
 const sourceOptions = [
-  { value: "all", label: "כל המקורות" },
+  { value: "all", label: "All Sources" },
   { value: "whatsapp", label: "💬 WhatsApp" },
-  { value: "manual", label: "✏️ ידני" },
-  { value: "walkin", label: "🚶 נכנס לחנות" },
-  { value: "website", label: "🌐 אתר" },
-  { value: "referral", label: "👥 הפניה" },
-  { value: "instagram", label: "📷 אינסטגרם" },
-  { value: "facebook", label: "📘 פייסבוק" },
-  { value: "campaign", label: "📣 קמפיין" },
-  { value: "architects", label: "🏛️ אדריכלים" },
+  { value: "manual", label: "✏️ Manual" },
+  { value: "walkin", label: "🚶 Walk-in" },
+  { value: "website", label: "🌐 Website" },
+  { value: "referral", label: "👥 Referral" },
+  { value: "instagram", label: "📷 Instagram" },
+  { value: "facebook", label: "📘 Facebook" },
+  { value: "campaign", label: "📣 Campaign" },
+  { value: "architects", label: "🏛️ Architects" },
 ];
 
 export function LeadFilters({
@@ -60,19 +60,18 @@ export function LeadFilters({
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1 max-w-sm">
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="חיפוש לפי שם, אימייל, טלפון..."
+          placeholder="Search by name, email, phone..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pr-9"
-          dir="rtl"
+          className="pl-9"
         />
       </div>
 
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
         <SelectTrigger className="w-[160px]">
-          <SelectValue placeholder="סטטוס" />
+          <SelectValue placeholder="Status" />
         </SelectTrigger>
         <SelectContent>
           {statusOptions.map((option) => (
@@ -85,7 +84,7 @@ export function LeadFilters({
 
       <Select value={sourceFilter} onValueChange={onSourceFilterChange}>
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="מקור" />
+          <SelectValue placeholder="Source" />
         </SelectTrigger>
         <SelectContent>
           {sourceOptions.map((option) => (

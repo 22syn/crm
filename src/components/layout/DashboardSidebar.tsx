@@ -35,18 +35,18 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { title: "לידים", url: "/leads", icon: Users },
-  { title: "הצעות מחיר", url: "/quotes", icon: FileText },
-  { title: "עסקאות", url: "/deals", icon: Handshake },
-  { title: "עיצובים", url: "/design-requests", icon: Palette },
+  { title: "Leads", url: "/leads", icon: Users },
+  { title: "Quotes", url: "/quotes", icon: FileText },
+  { title: "Deals", url: "/deals", icon: Handshake },
+  { title: "Designs", url: "/design-requests", icon: Palette },
 ];
 
 const adminItems = [
-  { title: "דשבורד", url: "/dashboard", icon: LayoutDashboard },
-  { title: "לקוחות", url: "/customers", icon: UserCheck },
-  { title: "מוצרים", url: "/products", icon: Package },
-  { title: "ספקים", url: "/suppliers", icon: Truck },
-  { title: "הגדרות", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Customers", url: "/customers", icon: UserCheck },
+  { title: "Products", url: "/products", icon: Package },
+  { title: "Suppliers", url: "/suppliers", icon: Truck },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function DashboardSidebar() {
@@ -66,7 +66,7 @@ export function DashboardSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>תפריט</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -85,7 +85,7 @@ export function DashboardSidebar() {
 
         {role === "admin" && (
           <SidebarGroup>
-            <SidebarGroupLabel>ניהול</SidebarGroupLabel>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems.map((item) => (
@@ -123,7 +123,7 @@ export function DashboardSidebar() {
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              התנתק
+              Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

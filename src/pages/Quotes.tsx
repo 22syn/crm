@@ -110,12 +110,12 @@ export default function Quotes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">הצעות מחיר</h1>
-            <p className="text-muted-foreground">ניהול ויצירת הצעות מחיר ללקוחות</p>
+            <h1 className="text-3xl font-bold">Quotes</h1>
+            <p className="text-muted-foreground">Manage and create customer quotes</p>
           </div>
           <Button onClick={() => setBuilderOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            הצעה חדשה
+            New Quote
           </Button>
         </div>
 
@@ -126,20 +126,20 @@ export default function Quotes() {
         ) : quotes.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">אין הצעות מחיר</h3>
-            <p className="text-muted-foreground mt-1">צור את הצעת המחיר הראשונה שלך</p>
+            <h3 className="text-lg font-medium">No Quotes</h3>
+            <p className="text-muted-foreground mt-1">Create your first quote</p>
             <Button className="mt-4" onClick={() => setBuilderOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              צור הצעה
+              Create Quote
             </Button>
           </div>
         ) : (
           <Tabs defaultValue="all" className="w-full">
             <TabsList>
-              <TabsTrigger value="all">הכל ({quotes.length})</TabsTrigger>
-              <TabsTrigger value="draft">טיוטות ({draftQuotes.length})</TabsTrigger>
-              <TabsTrigger value="sent">נשלחו ({sentQuotes.length})</TabsTrigger>
-              <TabsTrigger value="approved">אושרו ({approvedQuotes.length})</TabsTrigger>
+              <TabsTrigger value="all">All ({quotes.length})</TabsTrigger>
+              <TabsTrigger value="draft">Drafts ({draftQuotes.length})</TabsTrigger>
+              <TabsTrigger value="sent">Sent ({sentQuotes.length})</TabsTrigger>
+              <TabsTrigger value="approved">Approved ({approvedQuotes.length})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="mt-4">
