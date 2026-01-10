@@ -244,11 +244,11 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
         }
       }
 
-      // Update lead status to quoted if linked
+      // Update lead status to waiting_for_approval if linked and quote is sent
       if (lead) {
         await supabase
           .from("leads")
-          .update({ status: "quoted" })
+          .update({ status: "waiting_for_approval" })
           .eq("id", lead.id);
       }
 

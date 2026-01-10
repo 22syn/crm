@@ -71,12 +71,12 @@ export default function Quotes() {
 
           customerId = customer.id;
 
-          // Update lead with converted customer id and status to won
+          // Update lead with converted customer id and status to done
           const { error: updateLeadError } = await supabase
             .from("leads")
             .update({ 
               converted_customer_id: customer.id,
-              status: "won"
+              status: "done"
             })
             .eq("id", quote.lead_id);
 

@@ -528,16 +528,19 @@ export type Database = {
         | "closed_lost"
       document_type: "quote" | "invoice" | "receipt"
       lead_source:
-        | "whatsapp"
-        | "manual"
-        | "walkin"
-        | "website"
-        | "referral"
         | "instagram"
-        | "campaign"
+        | "website"
         | "architects"
+        | "organic"
         | "facebook"
-      lead_status: "new" | "contacted" | "qualified" | "quoted" | "won" | "lost"
+      lead_status:
+        | "new"
+        | "in_process"
+        | "meeting_scheduled"
+        | "meeting_done"
+        | "waiting_for_approval"
+        | "done"
+        | "not_done"
       order_source: "shopify" | "crm"
       order_status:
         | "pending"
@@ -685,17 +688,21 @@ export const Constants = {
       ],
       document_type: ["quote", "invoice", "receipt"],
       lead_source: [
-        "whatsapp",
-        "manual",
-        "walkin",
-        "website",
-        "referral",
         "instagram",
-        "campaign",
+        "website",
         "architects",
+        "organic",
         "facebook",
       ],
-      lead_status: ["new", "contacted", "qualified", "quoted", "won", "lost"],
+      lead_status: [
+        "new",
+        "in_process",
+        "meeting_scheduled",
+        "meeting_done",
+        "waiting_for_approval",
+        "done",
+        "not_done",
+      ],
       order_source: ["shopify", "crm"],
       order_status: [
         "pending",

@@ -1,7 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,15 +10,11 @@ import type { Database } from "@/integrations/supabase/types";
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
 const sourceLabels: Record<string, { label: string; icon: string }> = {
-  whatsapp: { label: "WhatsApp", icon: "💬" },
-  manual: { label: "Manual", icon: "✏️" },
-  walkin: { label: "Walk-in", icon: "🚶" },
-  website: { label: "Website", icon: "🌐" },
-  referral: { label: "Referral", icon: "👥" },
   instagram: { label: "Instagram", icon: "📷" },
-  facebook: { label: "Facebook", icon: "📘" },
-  campaign: { label: "Campaign", icon: "📣" },
+  website: { label: "Website", icon: "🌐" },
   architects: { label: "Architects", icon: "🏛️" },
+  organic: { label: "Organic", icon: "🌱" },
+  facebook: { label: "Facebook", icon: "📘" },
 };
 
 interface LeadCardProps {
@@ -43,6 +38,9 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  // Hide create quote button for done/not_done/waiting_for_approval statuses
+  const canCreateQuote = !["done", "not_done", "waiting_for_approval"].includes(lead.status);
 
   return (
     <Card
@@ -97,7 +95,7 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
               rel="noopener noreferrer"
               className="text-green-600 hover:text-green-700 mr-1"
               onClick={(e) => e.stopPropagation()}
-              title="פתח בוואטסאפ"
+              title="Open WhatsApp"
             >
               💬
             </a>
@@ -115,7 +113,7 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
             <span className="line-clamp-2">{lead.notes}</span>
           </div>
         )}
-        {onCreateQuote && lead.status !== "won" && lead.status !== "lost" && lead.status !== "quoted" && (
+        {onCreateQuote && canCreateQuote && (
           <Button
             variant="outline"
             size="sm"
