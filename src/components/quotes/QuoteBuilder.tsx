@@ -26,8 +26,15 @@ import {
   Save,
   Eye,
   Palette,
-  Pencil
+  Search
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { QuotePreview } from "./QuotePreview";
 import type { Database } from "@/integrations/supabase/types";
@@ -68,6 +75,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const [customerAddress, setCustomerAddress] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: products, isLoading: productsLoading } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products-quote"],
@@ -84,6 +93,23 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       setCustomerAddress((lead as any).customer_address || "");
     }
   }, [open, lead]);
+
+  // Extract unique categories from products
+  const categories = products 
+    ? [...new Set(products.map(p => p.node.productType).filter(Boolean))]
+    : [];
+
+  // Filter products based on search and category
+  const filteredProducts = products?.filter(product => {
+    const matchesSearch = searchQuery === "" || 
+      product.node.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.node.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "all" || 
+      product.node.productType === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   // Shopify prices include 17% VAT, so we need to extract the net price
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
@@ -302,19 +328,48 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           {/* Products Selection */}
           <div className="flex flex-col min-h-0">
             <Label className="mb-2">Select Products from Catalog</Label>
+            
+            {/* Search and Filter Controls */}
+            <div className="space-y-2 mb-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8"
+                />
+              </div>
+              {categories.length > 0 && (
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-8">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            
             <ScrollArea className="flex-1 border rounded-md p-2">
               {productsLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>
-              ) : products?.length === 0 ? (
+              ) : filteredProducts?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="h-8 w-8 mx-auto mb-2" />
-                  <p>No products in catalog</p>
+                  <p>{searchQuery || selectedCategory !== "all" ? "No matching products" : "No products in catalog"}</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {products?.map((product) => (
+                  {filteredProducts?.map((product) => (
                     <Card
                       key={product.node.id}
                       className="p-2 flex items-center gap-3 cursor-pointer hover:bg-accent transition-colors"
@@ -339,6 +394,9 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                           ₪{parseFloat(product.node.priceRange.minVariantPrice.amount).toFixed(2)}
                           <span className="text-xs ml-1">(incl. VAT)</span>
                         </p>
+                        {product.node.productType && (
+                          <p className="text-xs text-muted-foreground">{product.node.productType}</p>
+                        )}
                       </div>
                       <Plus className="h-4 w-4 text-muted-foreground" />
                     </Card>
