@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown, Eye, Unlink } from "lucide-react";
+import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown, Eye } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -275,15 +275,6 @@ export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote, leadQu
                           onClick={() => onViewQuote?.(lead.id)}
                         >
                           <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => onUnlinkQuote?.(lead.id)}
-                          title="Unlink Quote"
-                        >
-                          <Unlink className="h-3 w-3" />
                         </Button>
                       </div>
                     ) : (

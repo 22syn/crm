@@ -1,12 +1,24 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Form,
   FormControl,
@@ -31,12 +43,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, CalendarIcon } from "lucide-react";
+import { Loader2, CalendarIcon, FileText, Eye, Unlink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 interface LeadDialogProps {
   open: boolean;
@@ -44,6 +57,9 @@ interface LeadDialogProps {
   lead: Lead | null;
   onSave: (data: LeadInsert) => void;
   isLoading: boolean;
+  onCreateQuote?: (lead: Lead) => void;
+  onViewQuote?: (leadId: string) => void;
+  onUnlinkQuote?: (leadId: string) => void;
 }
 
 const sources = [
@@ -64,7 +80,27 @@ const statuses = [
   { value: "not_done", label: "Not Done" },
 ] as const;
 
-export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: LeadDialogProps) {
+export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, onCreateQuote, onViewQuote, onUnlinkQuote }: LeadDialogProps) {
+  const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false);
+  
+  // Fetch quote for this lead
+  const { data: quote } = useQuery<Quote | null>({
+    queryKey: ["lead-quote", lead?.id],
+    queryFn: async () => {
+      if (!lead) return null;
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*")
+        .eq("lead_id", lead.id)
+        .is("archived_at", null)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!lead && open,
+  });
+  
   const form = useForm<LeadInsert & { customer_address?: string }>({
     defaultValues: {
       customer_name: "",
@@ -106,6 +142,15 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
 
   const handleSubmit = (data: LeadInsert) => {
     onSave(data);
+  };
+
+  const canCreateQuote = lead && !["done", "not_done", "waiting_for_approval"].includes(lead.status) && !quote;
+
+  const handleUnlinkConfirm = () => {
+    if (lead) {
+      onUnlinkQuote?.(lead.id);
+      setUnlinkConfirmOpen(false);
+    }
   };
 
   return (
@@ -272,6 +317,57 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
               )}
             />
 
+            {/* Quote Actions - only show when editing */}
+            {lead && (
+              <div className="space-y-2">
+                <FormLabel>Quote</FormLabel>
+                <div className="flex gap-2">
+                  {quote ? (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          onOpenChange(false);
+                          onViewQuote?.(lead.id);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Quote ({quote.quote_number})
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setUnlinkConfirmOpen(true)}
+                      >
+                        <Unlink className="h-4 w-4 mr-2" />
+                        Unlink
+                      </Button>
+                    </>
+                  ) : canCreateQuote ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onCreateQuote?.(lead);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Create Quote
+                    </Button>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No quote linked</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="notes"
@@ -302,6 +398,23 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
           </form>
         </Form>
       </DialogContent>
+
+      <AlertDialog open={unlinkConfirmOpen} onOpenChange={setUnlinkConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unlink Quote</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to unlink this quote from the lead? The quote will not be deleted, but it will no longer be associated with this lead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnlinkConfirm}>
+              Unlink Quote
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
