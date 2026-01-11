@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye, Unlink } from "lucide-react";
+import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -120,32 +120,18 @@ export function LeadCard({ lead, onEdit, onCreateQuote, quote, onViewQuote, onUn
         
         {/* Quote Actions */}
         {quote ? (
-          <div className="flex gap-1 mt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewQuote?.(lead.id);
-              }}
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              View Quote
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={(e) => {
-                e.stopPropagation();
-                onUnlinkQuote?.(lead.id);
-              }}
-              title="Unlink Quote"
-            >
-              <Unlink className="h-3 w-3" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewQuote?.(lead.id);
+            }}
+          >
+            <Eye className="h-3 w-3 mr-1" />
+            View Quote
+          </Button>
         ) : (
           onCreateQuote && canCreateQuote && (
             <Button

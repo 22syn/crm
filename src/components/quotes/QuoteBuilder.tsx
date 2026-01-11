@@ -392,7 +392,6 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                         <p className="font-medium text-sm truncate">{product.node.title}</p>
                         <p className="text-sm text-muted-foreground">
                           ₪{parseFloat(product.node.priceRange.minVariantPrice.amount).toFixed(2)}
-                          <span className="text-xs ml-1">(incl. VAT)</span>
                         </p>
                         {product.node.productType && (
                           <p className="text-xs text-muted-foreground">{product.node.productType}</p>
@@ -602,7 +601,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           >
             {saveMutation.isPending && !isSending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             <Save className="h-4 w-4 mr-2" />
-            Save as Draft
+            Save
           </Button>
           
           <Button

@@ -241,6 +241,9 @@ export default function Leads() {
           lead={editingLead}
           onSave={handleSave}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          onCreateQuote={handleCreateQuote}
+          onViewQuote={handleViewQuote}
+          onUnlinkQuote={handleUnlinkQuote}
         />
 
         <QuoteBuilder 
