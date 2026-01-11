@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -25,16 +33,27 @@ import {
 import { toast } from "sonner";
 import { Plus, Loader2, Users, Phone, Mail, MapPin, Search, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import type { Database } from "@/integrations/supabase/types";
+
+type CustomerStatus = Database["public"]["Enums"]["customer_status"];
 
 interface Customer {
   id: string;
   name: string;
-  email: string | null;
-  phone: string | null;
+  email: string;
+  phone: string;
   address: string | null;
   notes: string | null;
+  status: CustomerStatus;
   created_at: string;
 }
+
+const STATUS_OPTIONS: { value: CustomerStatus; label: string; color: string }[] = [
+  { value: "new", label: "New", color: "bg-blue-500" },
+  { value: "in_progress", label: "In Progress", color: "bg-yellow-500" },
+  { value: "closed", label: "Closed", color: "bg-green-500" },
+  { value: "returning", label: "Returning", color: "bg-purple-500" },
+];
 
 export default function Customers() {
   const queryClient = useQueryClient();
@@ -47,6 +66,7 @@ export default function Customers() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<CustomerStatus>("new");
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
@@ -65,10 +85,11 @@ export default function Customers() {
     mutationFn: async (isEdit: boolean) => {
       const customerData = {
         name,
-        email: email || null,
-        phone: phone || null,
+        email,
+        phone,
         address: address || null,
         notes: notes || null,
+        status,
       };
 
       if (isEdit && editingCustomer) {
@@ -118,16 +139,18 @@ export default function Customers() {
     setPhone("");
     setAddress("");
     setNotes("");
+    setStatus("new");
     setEditingCustomer(null);
   };
 
   const openEditDialog = (customer: Customer) => {
     setEditingCustomer(customer);
     setName(customer.name);
-    setEmail(customer.email || "");
-    setPhone(customer.phone || "");
+    setEmail(customer.email);
+    setPhone(customer.phone);
     setAddress(customer.address || "");
     setNotes(customer.notes || "");
+    setStatus(customer.status);
     setDialogOpen(true);
   };
 
@@ -136,12 +159,24 @@ export default function Customers() {
     if (!open) resetForm();
   };
 
+  const isFormValid = name && phone && email;
+
   const filteredCustomers = customers.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone?.includes(searchQuery)
   );
+
+  const getStatusBadge = (customerStatus: CustomerStatus) => {
+    const option = STATUS_OPTIONS.find(s => s.value === customerStatus);
+    return (
+      <Badge variant="outline">
+        <span className={`w-2 h-2 rounded-full ${option?.color} mr-2`} />
+        {option?.label || customerStatus}
+      </Badge>
+    );
+  };
 
   return (
     <DashboardLayout>
@@ -164,7 +199,7 @@ export default function Customers() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label>Name</Label>
+                  <Label>Name *</Label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -173,7 +208,7 @@ export default function Customers() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Phone</Label>
+                    <Label>Phone *</Label>
                     <Input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -181,7 +216,7 @@ export default function Customers() {
                     />
                   </div>
                   <div>
-                    <Label>Email</Label>
+                    <Label>Email *</Label>
                     <Input
                       type="email"
                       value={email}
@@ -189,6 +224,24 @@ export default function Customers() {
                       placeholder="email@example.com"
                     />
                   </div>
+                </div>
+                <div>
+                  <Label>Status *</Label>
+                  <Select value={status} onValueChange={(val: CustomerStatus) => setStatus(val)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <span className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${option.color}`} />
+                            {option.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label>Address</Label>
@@ -209,7 +262,7 @@ export default function Customers() {
                 <Button
                   className="w-full"
                   onClick={() => saveMutation.mutate(!!editingCustomer)}
-                  disabled={!name || saveMutation.isPending}
+                  disabled={!isFormValid || saveMutation.isPending}
                 >
                   {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                   {editingCustomer ? "Update Customer" : "Add Customer"}
@@ -250,6 +303,7 @@ export default function Customers() {
                     <TableHead>Name</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Email</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Added</TableHead>
                     <TableHead>Actions</TableHead>
@@ -260,20 +314,19 @@ export default function Customers() {
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
                       <TableCell>
-                        {customer.phone && (
-                          <a href={`tel:${customer.phone}`} className="flex items-center gap-1 text-sm hover:underline">
-                            <Phone className="h-3 w-3" />
-                            {customer.phone}
-                          </a>
-                        )}
+                        <a href={`tel:${customer.phone}`} className="flex items-center gap-1 text-sm hover:underline">
+                          <Phone className="h-3 w-3" />
+                          {customer.phone}
+                        </a>
                       </TableCell>
                       <TableCell>
-                        {customer.email && (
-                          <a href={`mailto:${customer.email}`} className="flex items-center gap-1 text-sm hover:underline">
-                            <Mail className="h-3 w-3" />
-                            {customer.email}
-                          </a>
-                        )}
+                        <a href={`mailto:${customer.email}`} className="flex items-center gap-1 text-sm hover:underline">
+                          <Mail className="h-3 w-3" />
+                          {customer.email}
+                        </a>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(customer.status)}
                       </TableCell>
                       <TableCell>
                         {customer.address && (

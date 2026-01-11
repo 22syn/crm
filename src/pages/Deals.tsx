@@ -20,6 +20,7 @@ interface Deal {
   lead_id: string | null;
   quote_id: string | null;
   notes: string | null;
+  created_at: string;
   leads?: { customer_name: string } | null;
 }
 
