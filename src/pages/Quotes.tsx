@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -7,7 +7,17 @@ import { QuoteCard } from "@/components/quotes/QuoteCard";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, FileText, Loader2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, FileText, Loader2, Archive } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Quotes() {
@@ -16,6 +26,8 @@ export default function Quotes() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<any>(null);
   const [quoteItems, setQuoteItems] = useState<any[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [quoteToDelete, setQuoteToDelete] = useState<any>(null);
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes"],
@@ -23,12 +35,54 @@ export default function Quotes() {
       const { data, error } = await supabase
         .from("quotes")
         .select("*")
+        .is("archived_at", null)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
       return data;
     },
   });
+
+  const { data: archivedQuotes = [] } = useQuery({
+    queryKey: ["archived-quotes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*")
+        .not("archived_at", "is", null)
+        .order("archived_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Auto-archive unlinked quotes older than 14 days
+  const archiveOldQuotesMutation = useMutation({
+    mutationFn: async () => {
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      
+      const { error } = await supabase
+        .from("quotes")
+        .update({ archived_at: new Date().toISOString() })
+        .is("lead_id", null)
+        .not("unlinked_at", "is", null)
+        .lt("unlinked_at", fourteenDaysAgo.toISOString())
+        .is("archived_at", null);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["archived-quotes"] });
+    },
+  });
+
+  // Run auto-archive on mount
+  useEffect(() => {
+    archiveOldQuotesMutation.mutate();
+  }, []);
 
   const approveQuoteMutation = useMutation({
     mutationFn: async (quote: any) => {
@@ -135,6 +189,37 @@ export default function Quotes() {
     },
   });
 
+  const deleteQuoteMutation = useMutation({
+    mutationFn: async (quoteId: string) => {
+      // First delete quote items
+      const { error: itemsError } = await supabase
+        .from("quote_items")
+        .delete()
+        .eq("quote_id", quoteId);
+      
+      if (itemsError) throw itemsError;
+
+      // Then delete the quote
+      const { error } = await supabase
+        .from("quotes")
+        .delete()
+        .eq("id", quoteId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["archived-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
+      toast.success("Quote deleted successfully");
+      setDeleteDialogOpen(false);
+      setQuoteToDelete(null);
+    },
+    onError: (error) => {
+      toast.error("Error deleting quote: " + error.message);
+    },
+  });
+
   const draftQuotes = quotes.filter(q => q.status === "draft");
   const sentQuotes = quotes.filter(q => q.status === "sent");
   const approvedQuotes = quotes.filter(q => q.status === "approved");
@@ -156,6 +241,22 @@ export default function Quotes() {
     approveQuoteMutation.mutate(quote);
   };
 
+  const handleEditQuote = async (quote: any) => {
+    // Show the quote preview - full edit requires more changes
+    handleViewQuote(quote);
+  };
+
+  const handleDeleteQuote = (quote: any) => {
+    setQuoteToDelete(quote);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (quoteToDelete) {
+      deleteQuoteMutation.mutate(quoteToDelete.id);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -174,7 +275,7 @@ export default function Quotes() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : quotes.length === 0 ? (
+        ) : quotes.length === 0 && archivedQuotes.length === 0 ? (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium">No Quotes</h3>
@@ -191,6 +292,12 @@ export default function Quotes() {
               <TabsTrigger value="draft">Drafts ({draftQuotes.length})</TabsTrigger>
               <TabsTrigger value="sent">Sent ({sentQuotes.length})</TabsTrigger>
               <TabsTrigger value="approved">Approved ({approvedQuotes.length})</TabsTrigger>
+              {archivedQuotes.length > 0 && (
+                <TabsTrigger value="archived">
+                  <Archive className="h-4 w-4 mr-1" />
+                  Archived ({archivedQuotes.length})
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="all" className="mt-4">
@@ -201,6 +308,8 @@ export default function Quotes() {
                     quote={quote}
                     onView={handleViewQuote}
                     onConvertToOrder={handleApproveQuote}
+                    onEdit={handleEditQuote}
+                    onDelete={handleDeleteQuote}
                   />
                 ))}
               </div>
@@ -209,7 +318,13 @@ export default function Quotes() {
             <TabsContent value="draft" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {draftQuotes.map((quote) => (
-                  <QuoteCard key={quote.id} quote={quote} onView={handleViewQuote} />
+                  <QuoteCard 
+                    key={quote.id} 
+                    quote={quote} 
+                    onView={handleViewQuote}
+                    onEdit={handleEditQuote}
+                    onDelete={handleDeleteQuote}
+                  />
                 ))}
               </div>
             </TabsContent>
@@ -222,6 +337,8 @@ export default function Quotes() {
                     quote={quote}
                     onView={handleViewQuote}
                     onConvertToOrder={handleApproveQuote}
+                    onEdit={handleEditQuote}
+                    onDelete={handleDeleteQuote}
                   />
                 ))}
               </div>
@@ -230,14 +347,37 @@ export default function Quotes() {
             <TabsContent value="approved" className="mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {approvedQuotes.map((quote) => (
-                  <QuoteCard key={quote.id} quote={quote} onView={handleViewQuote} />
+                  <QuoteCard 
+                    key={quote.id} 
+                    quote={quote} 
+                    onView={handleViewQuote}
+                    onDelete={handleDeleteQuote}
+                  />
                 ))}
               </div>
             </TabsContent>
+
+            {archivedQuotes.length > 0 && (
+              <TabsContent value="archived" className="mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {archivedQuotes.map((quote) => (
+                    <QuoteCard 
+                      key={quote.id} 
+                      quote={quote} 
+                      onView={handleViewQuote}
+                      onDelete={handleDeleteQuote}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         )}
 
-        <QuoteBuilder open={builderOpen} onOpenChange={setBuilderOpen} />
+        <QuoteBuilder 
+          open={builderOpen} 
+          onOpenChange={setBuilderOpen}
+        />
 
         {selectedQuote && (
           <QuotePreview
@@ -254,6 +394,26 @@ export default function Quotes() {
             notes={selectedQuote.notes}
           />
         )}
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Quote</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete quote {quoteToDelete?.quote_number}? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

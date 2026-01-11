@@ -14,6 +14,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -23,17 +24,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown, Eye, Unlink } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 interface LeadTableProps {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
   onCreateQuote?: (lead: Lead) => void;
+  leadQuotes?: Record<string, Quote>;
+  onViewQuote?: (leadId: string) => void;
+  onUnlinkQuote?: (leadId: string) => void;
 }
 
 type SortField = "customer_name" | "source" | "status" | "meeting_date" | "created_at";
@@ -57,7 +62,7 @@ const statusOptions: { value: LeadStatus; label: string; color: string; order: n
   { value: "not_done", label: "Not Done", color: "bg-red-500", order: 6 },
 ];
 
-export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: LeadTableProps) {
+export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote, leadQuotes = {}, onViewQuote, onUnlinkQuote }: LeadTableProps) {
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
@@ -117,8 +122,8 @@ export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: Lead
     );
   };
 
-  const canCreateQuote = (status: LeadStatus) => 
-    !["done", "not_done", "waiting_for_approval"].includes(status);
+  const canCreateQuote = (lead: Lead) => 
+    !["done", "not_done", "waiting_for_approval"].includes(lead.status) && !leadQuotes[lead.id];
 
   return (
     <div className="rounded-md border">
@@ -159,6 +164,7 @@ export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: Lead
                 {getSortIcon("status")}
               </Button>
             </TableHead>
+            <TableHead>Quote</TableHead>
             <TableHead>
               <Button
                 variant="ghost"
@@ -187,110 +193,141 @@ export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote }: Lead
         <TableBody>
           {sortedLeads.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                 No leads found
               </TableCell>
             </TableRow>
           ) : (
-            sortedLeads.map((lead) => (
-              <TableRow key={lead.id}>
-                <TableCell>
-                  <div className="font-medium">{lead.customer_name}</div>
-                  {lead.customer_address && (
-                    <div className="text-xs text-muted-foreground">{lead.customer_address}</div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col gap-1">
-                    {lead.customer_phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-3 w-3" />
-                        <span dir="ltr">{lead.customer_phone}</span>
-                        <a
-                          href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-600 hover:text-green-700"
-                        >
-                          💬
-                        </a>
-                      </div>
+            sortedLeads.map((lead) => {
+              const quote = leadQuotes[lead.id];
+              return (
+                <TableRow key={lead.id}>
+                  <TableCell>
+                    <div className="font-medium">{lead.customer_name}</div>
+                    {lead.customer_address && (
+                      <div className="text-xs text-muted-foreground">{lead.customer_address}</div>
                     )}
-                    {lead.customer_email && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="h-3 w-3" />
-                        <span dir="ltr">{lead.customer_email}</span>
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    <span className="flex items-center gap-1">
-                      <span>{sourceLabels[lead.source]?.icon || "📌"}</span>
-                      <span>{sourceLabels[lead.source]?.label || lead.source}</span>
-                    </span>
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Select
-                    value={lead.status}
-                    onValueChange={(value: LeadStatus) => onStatusChange(lead.id, value)}
-                  >
-                    <SelectTrigger className="w-[180px] h-8">
-                      <SelectValue>
-                        {getStatusBadge(lead.status)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <span className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${option.color}`} />
-                            {option.label}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  {lead.meeting_date ? (
-                    <span className="text-sm">
-                      {format(new Date(lead.meeting_date), "dd/MM/yyyy")}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">—</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">
-                    {format(new Date(lead.created_at), "dd/MM/yyyy")}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onEdit(lead)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      {onCreateQuote && canCreateQuote(lead.status) && (
-                        <DropdownMenuItem onClick={() => onCreateQuote(lead)}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Create Quote
-                        </DropdownMenuItem>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {lead.customer_phone && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-3 w-3" />
+                          <span dir="ltr">{lead.customer_phone}</span>
+                          <a
+                            href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 hover:text-green-700"
+                          >
+                            💬
+                          </a>
+                        </div>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
+                      {lead.customer_email && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          <span dir="ltr">{lead.customer_email}</span>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      <span className="flex items-center gap-1">
+                        <span>{sourceLabels[lead.source]?.icon || "📌"}</span>
+                        <span>{sourceLabels[lead.source]?.label || lead.source}</span>
+                      </span>
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={lead.status}
+                      onValueChange={(value: LeadStatus) => onStatusChange(lead.id, value)}
+                    >
+                      <SelectTrigger className="w-[180px] h-8">
+                        <SelectValue>
+                          {getStatusBadge(lead.status)}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <span className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full ${option.color}`} />
+                              {option.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    {quote ? (
+                      <div className="flex items-center gap-1">
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          {quote.quote_number}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => onViewQuote?.(lead.id)}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive hover:text-destructive"
+                          onClick={() => onUnlinkQuote?.(lead.id)}
+                          title="Unlink Quote"
+                        >
+                          <Unlink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {lead.meeting_date ? (
+                      <span className="text-sm">
+                        {format(new Date(lead.meeting_date), "dd/MM/yyyy")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">
+                      {format(new Date(lead.created_at), "dd/MM/yyyy")}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(lead)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        {onCreateQuote && canCreateQuote(lead) && (
+                          <DropdownMenuItem onClick={() => onCreateQuote(lead)}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            Create Quote
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>

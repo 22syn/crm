@@ -375,6 +375,7 @@ export type Database = {
       }
       quotes: {
         Row: {
+          archived_at: string | null
           created_at: string
           created_by: string | null
           customer_address: string | null
@@ -390,10 +391,12 @@ export type Database = {
           subtotal: number
           tax: number | null
           total: number
+          unlinked_at: string | null
           updated_at: string
           valid_until: string | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_address?: string | null
@@ -409,10 +412,12 @@ export type Database = {
           subtotal?: number
           tax?: number | null
           total?: number
+          unlinked_at?: string | null
           updated_at?: string
           valid_until?: string | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           created_by?: string | null
           customer_address?: string | null
@@ -428,6 +433,7 @@ export type Database = {
           subtotal?: number
           tax?: number | null
           total?: number
+          unlinked_at?: string | null
           updated_at?: string
           valid_until?: string | null
         }

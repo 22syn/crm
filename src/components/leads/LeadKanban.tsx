@@ -16,6 +16,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 interface LeadKanbanProps {
   leads: Lead[];
@@ -23,6 +24,9 @@ interface LeadKanbanProps {
   onEdit: (lead: Lead) => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
   onCreateQuote?: (lead: Lead) => void;
+  leadQuotes?: Record<string, Quote>;
+  onViewQuote?: (leadId: string) => void;
+  onUnlinkQuote?: (leadId: string) => void;
 }
 
 const statusColumns: { status: LeadStatus; label: string; color: string }[] = [
@@ -35,7 +39,7 @@ const statusColumns: { status: LeadStatus; label: string; color: string }[] = [
   { status: "not_done", label: "Not Done", color: "bg-red-500" },
 ];
 
-export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQuote }: LeadKanbanProps) {
+export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQuote, leadQuotes = {}, onViewQuote, onUnlinkQuote }: LeadKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -115,12 +119,15 @@ export function LeadKanban({ leads, isLoading, onEdit, onStatusChange, onCreateQ
             leads={getLeadsByStatus(column.status)}
             onEdit={onEdit}
             onCreateQuote={onCreateQuote}
+            leadQuotes={leadQuotes}
+            onViewQuote={onViewQuote}
+            onUnlinkQuote={onUnlinkQuote}
           />
         ))}
       </div>
 
       <DragOverlay>
-        {activeLead ? <LeadCard lead={activeLead} onEdit={() => {}} /> : null}
+        {activeLead ? <LeadCard lead={activeLead} onEdit={() => {}} quote={leadQuotes[activeLead.id]} /> : null}
       </DragOverlay>
     </DndContext>
   );

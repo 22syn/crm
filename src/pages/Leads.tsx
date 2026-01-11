@@ -7,6 +7,7 @@ import { LeadTable } from "@/components/leads/LeadTable";
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { LeadFilters } from "@/components/leads/LeadFilters";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
+import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Plus, LayoutGrid, List } from "lucide-react";
@@ -15,6 +16,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 export default function Leads() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -25,6 +27,9 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [quoteItems, setQuoteItems] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
   const { data: leads = [], isLoading } = useQuery({
@@ -37,6 +42,29 @@ export default function Leads() {
       
       if (error) throw error;
       return data as Lead[];
+    },
+  });
+
+  // Fetch quotes for leads
+  const { data: leadQuotes = {} } = useQuery({
+    queryKey: ["lead-quotes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("*")
+        .not("lead_id", "is", null)
+        .is("archived_at", null);
+      
+      if (error) throw error;
+      
+      // Create a map of lead_id -> quote
+      const quotesMap: Record<string, Quote> = {};
+      data?.forEach((quote) => {
+        if (quote.lead_id) {
+          quotesMap[quote.lead_id] = quote;
+        }
+      });
+      return quotesMap;
     },
   });
 
@@ -71,6 +99,25 @@ export default function Leads() {
     },
   });
 
+  const unlinkQuoteMutation = useMutation({
+    mutationFn: async (quoteId: string) => {
+      const { error } = await supabase
+        .from("quotes")
+        .update({ lead_id: null, unlinked_at: new Date().toISOString() })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Quote unlinked from lead");
+    },
+    onError: (error) => {
+      toast.error("Failed to unlink quote: " + error.message);
+    },
+  });
+
   const handleSave = (data: LeadInsert) => {
     if (editingLead) {
       updateMutation.mutate({ id: editingLead.id, ...data });
@@ -91,6 +138,29 @@ export default function Leads() {
   const handleCreateQuote = (lead: Lead) => {
     setQuoteLead(lead);
     setQuoteBuilderOpen(true);
+  };
+
+  const handleViewQuote = async (leadId: string) => {
+    const quote = leadQuotes[leadId];
+    if (quote) {
+      setSelectedQuote(quote);
+      
+      // Fetch quote items
+      const { data: items } = await supabase
+        .from("quote_items")
+        .select("*")
+        .eq("quote_id", quote.id);
+      
+      setQuoteItems(items || []);
+      setPreviewOpen(true);
+    }
+  };
+
+  const handleUnlinkQuote = (leadId: string) => {
+    const quote = leadQuotes[leadId];
+    if (quote) {
+      unlinkQuoteMutation.mutate(quote.id);
+    }
   };
 
   const filteredLeads = useMemo(() => {
@@ -149,6 +219,9 @@ export default function Leads() {
             onEdit={handleEdit}
             onStatusChange={handleStatusChange}
             onCreateQuote={handleCreateQuote}
+            leadQuotes={leadQuotes}
+            onViewQuote={handleViewQuote}
+            onUnlinkQuote={handleUnlinkQuote}
           />
         ) : (
           <LeadTable
@@ -156,6 +229,9 @@ export default function Leads() {
             onEdit={handleEdit}
             onStatusChange={handleStatusChange}
             onCreateQuote={handleCreateQuote}
+            leadQuotes={leadQuotes}
+            onViewQuote={handleViewQuote}
+            onUnlinkQuote={handleUnlinkQuote}
           />
         )}
 
@@ -172,6 +248,22 @@ export default function Leads() {
           onOpenChange={setQuoteBuilderOpen} 
           lead={quoteLead}
         />
+
+        {selectedQuote && (
+          <QuotePreview
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            customerName={selectedQuote.customer_name}
+            quoteNumber={selectedQuote.quote_number}
+            items={quoteItems}
+            subtotal={selectedQuote.subtotal}
+            discount={selectedQuote.discount || 0}
+            tax={selectedQuote.tax || 0}
+            total={selectedQuote.total}
+            validUntil={selectedQuote.valid_until ? new Date(selectedQuote.valid_until) : undefined}
+            notes={selectedQuote.notes}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
