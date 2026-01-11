@@ -14,14 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { 
   Loader2, 
@@ -29,13 +21,12 @@ import {
   Minus, 
   Trash2, 
   Package, 
-  Send, 
   MessageCircle,
   Mail,
   Save,
   Eye,
-  Ruler,
-  Palette
+  Palette,
+  Pencil
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { QuotePreview } from "./QuotePreview";
@@ -59,12 +50,6 @@ interface QuoteItem {
   custom_design_notes?: string;
 }
 
-interface ProductSegment {
-  id: string;
-  name: string;
-  description?: string;
-}
-
 interface QuoteBuilderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -81,27 +66,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const [customerEmail, setCustomerEmail] = useState(lead?.customer_email || "");
   const [customerPhone, setCustomerPhone] = useState(lead?.customer_phone || "");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [selectedSegment, setSelectedSegment] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: products, isLoading: productsLoading } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products-quote"],
     queryFn: () => fetchShopifyProducts(50),
-    enabled: open,
-  });
-
-  const { data: segments = [] } = useQuery<ProductSegment[]>({
-    queryKey: ["product-segments"],
-    queryFn: async () => {
-      const { data, error } = await (supabase
-        .from("product_segments" as any)
-        .select("*")
-        .eq("is_active", true)
-        .order("name") as any);
-      if (error) throw error;
-      return data as ProductSegment[];
-    },
     enabled: open,
   });
 
@@ -115,9 +85,10 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     }
   }, [open, lead]);
 
+  // Shopify prices include 17% VAT, so we need to extract the net price
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
-  const tax = (subtotal - discount) * 0.17; // 17% VAT
-  const total = subtotal - discount + tax;
+  const tax = subtotal * 0.17; // VAT already included in prices
+  const total = subtotal + tax - discount;
 
   const getValidUntilDate = () => {
     const date = new Date();
@@ -135,6 +106,9 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       return;
     }
 
+    // Shopify price already includes 17% VAT
+    const priceWithVat = parseFloat(variant.price.amount);
+
     const newItem: QuoteItem = {
       id: crypto.randomUUID(),
       shopify_product_id: product.node.id,
@@ -143,8 +117,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       description: product.node.description,
       image_url: product.node.images.edges[0]?.node.url,
       quantity: 1,
-      unit_price: parseFloat(variant.price.amount),
-      total_price: parseFloat(variant.price.amount),
+      unit_price: priceWithVat,
+      total_price: priceWithVat,
     };
 
     setItems([...items, newItem]);
@@ -155,6 +129,14 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     const updated = [...items];
     updated[index].quantity = quantity;
     updated[index].total_price = updated[index].unit_price * quantity;
+    setItems(updated);
+  };
+
+  const updatePrice = (index: number, newPrice: number) => {
+    if (newPrice < 0) return;
+    const updated = [...items];
+    updated[index].unit_price = newPrice;
+    updated[index].total_price = newPrice * updated[index].quantity;
     setItems(updated);
   };
 
@@ -238,8 +220,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
 
         if (response.error) {
           console.error("Email send error:", response.error);
-          // Quote was saved but email failed - still show success
-          toast.warning("הצעה נשמרה, אך שליחת המייל נכשלה");
+          toast.warning("Quote saved, but email failed to send");
           return quote;
         }
       }
@@ -257,12 +238,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     onSuccess: (quote, sendEmail) => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
-      toast.success(sendEmail ? "הצעה נשמרה ונשלחה!" : "הצעה נשמרה כטיוטה");
+      toast.success(sendEmail ? "Quote saved and sent!" : "Quote saved as draft");
       resetForm();
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("שגיאה בשמירת ההצעה: " + error.message);
+      toast.error("Error saving quote: " + error.message);
     },
     onSettled: () => {
       setIsSending(false);
@@ -275,7 +256,6 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     setNotes("");
     setValidDays(14);
     setCustomerAddress("");
-    setSelectedSegment("");
   };
 
   const updateItemDimensions = (index: number, dimensions: string) => {
@@ -306,7 +286,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     if (!customerPhone) return "";
     const phone = customerPhone.replace(/\D/g, "");
     const message = encodeURIComponent(
-      `שלום ${customerName}, מצורפת הצעת המחיר שלך בסך ₪${total.toFixed(2)}. לפרטים נוספים אנא צרו קשר.`
+      `Hello ${customerName}, please find your quote for ₪${total.toFixed(2)}. For more details, please contact us.`
     );
     return `https://wa.me/${phone}?text=${message}`;
   };
@@ -315,13 +295,13 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>יצירת הצעת מחיר {lead && `עבור ${lead.customer_name}`}</DialogTitle>
+          <DialogTitle>Create Quote {lead && `for ${lead.customer_name}`}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Products Selection */}
           <div className="flex flex-col min-h-0">
-            <Label className="mb-2">בחר מוצרים מהקטלוג</Label>
+            <Label className="mb-2">Select Products from Catalog</Label>
             <ScrollArea className="flex-1 border rounded-md p-2">
               {productsLoading ? (
                 <div className="flex justify-center py-8">
@@ -330,7 +310,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
               ) : products?.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Package className="h-8 w-8 mx-auto mb-2" />
-                  <p>אין מוצרים בקטלוג</p>
+                  <p>No products in catalog</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -357,6 +337,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                         <p className="font-medium text-sm truncate">{product.node.title}</p>
                         <p className="text-sm text-muted-foreground">
                           ₪{parseFloat(product.node.priceRange.minVariantPrice.amount).toFixed(2)}
+                          <span className="text-xs ml-1">(incl. VAT)</span>
                         </p>
                       </div>
                       <Plus className="h-4 w-4 text-muted-foreground" />
@@ -372,15 +353,15 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             <div className="space-y-3 mb-4">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label>שם לקוח</Label>
+                  <Label>Customer Name</Label>
                   <Input
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="שם הלקוח"
+                    placeholder="Customer name"
                   />
                 </div>
                 <div>
-                  <Label>טלפון</Label>
+                  <Label>Phone</Label>
                   <Input
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
@@ -389,7 +370,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                 </div>
               </div>
               <div>
-                <Label>אימייל</Label>
+                <Label>Email</Label>
                 <Input
                   type="email"
                   value={customerEmail}
@@ -398,35 +379,20 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                 />
               </div>
               <div>
-                <Label>כתובת</Label>
+                <Label>Address</Label>
                 <Input
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
-                  placeholder="כתובת הלקוח"
+                  placeholder="Customer address"
                 />
-              </div>
-              <div>
-                <Label>סגמנט מוצרים</Label>
-                <Select value={selectedSegment} onValueChange={setSelectedSegment}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר סגמנט" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {segments.map((segment) => (
-                      <SelectItem key={segment.id} value={segment.id}>
-                        {segment.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
-            <Label className="mb-2">פריטים בהצעה</Label>
+            <Label className="mb-2">Quote Items</Label>
             <ScrollArea className="flex-1 border rounded-md p-2 min-h-[150px]">
               {items.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>לחץ על מוצר להוספה להצעה</p>
+                  <p>Click on a product to add to quote</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -435,9 +401,18 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                       <div className="flex items-center gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            ₪{item.unit_price.toFixed(2)} x {item.quantity} = ₪{item.total_price.toFixed(2)}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>₪</span>
+                            <Input
+                              type="number"
+                              value={item.unit_price}
+                              onChange={(e) => updatePrice(index, parseFloat(e.target.value) || 0)}
+                              className="w-20 h-5 text-xs p-1"
+                              min={0}
+                              step={0.01}
+                            />
+                            <span>x {item.quantity} = ₪{item.total_price.toFixed(2)}</span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
@@ -469,20 +444,20 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs">מידות</Label>
+                          <Label className="text-xs">Dimensions</Label>
                           <Input
                             value={item.dimensions || ""}
                             onChange={(e) => updateItemDimensions(index, e.target.value)}
-                            placeholder="לדוגמה: 180x90 ס״מ"
+                            placeholder="e.g. 180x90 cm"
                             className="h-7 text-xs"
                           />
                         </div>
                         <div>
-                          <Label className="text-xs">סוג מוצר</Label>
+                          <Label className="text-xs">Product Type</Label>
                           <Input
                             value={item.product_type || ""}
                             onChange={(e) => updateItemProductType(index, e.target.value)}
-                            placeholder="לדוגמה: שולחן אוכל"
+                            placeholder="e.g. Dining Table"
                             className="h-7 text-xs"
                           />
                         </div>
@@ -495,16 +470,16 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                         />
                         <Label htmlFor={`custom-design-${item.id}`} className="text-xs flex items-center gap-1 cursor-pointer">
                           <Palette className="h-3 w-3" />
-                          דורש עיצוב מותאם אישית
+                          Requires Custom Design
                         </Label>
                       </div>
                       {item.requires_custom_design && (
                         <div className="mt-2">
-                          <Label className="text-xs">הערות למעצבת</Label>
+                          <Label className="text-xs">Designer Notes</Label>
                           <Input
                             value={item.custom_design_notes || ""}
                             onChange={(e) => updateItemCustomDesignNotes(index, e.target.value)}
-                            placeholder="פרטים על העיצוב הנדרש..."
+                            placeholder="Design requirements..."
                             className="h-7 text-xs"
                           />
                         </div>
@@ -517,11 +492,15 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
 
             <div className="mt-4 space-y-2 p-3 bg-muted/50 rounded-md">
               <div className="flex justify-between text-sm">
-                <span>סכום ביניים:</span>
+                <span>Subtotal:</span>
                 <span>₪{subtotal.toFixed(2)}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span>VAT (17%):</span>
+                <span>₪{tax.toFixed(2)}</span>
+              </div>
               <div className="flex items-center justify-between text-sm">
-                <span>הנחה:</span>
+                <span>Discount:</span>
                 <Input
                   type="number"
                   value={discount}
@@ -530,22 +509,18 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                   min={0}
                 />
               </div>
-              <div className="flex justify-between text-sm">
-                <span>מע"מ (17%):</span>
-                <span>₪{tax.toFixed(2)}</span>
-              </div>
               <div className="flex justify-between font-bold text-lg border-t pt-2">
-                <span>סה"כ:</span>
+                <span>Total:</span>
                 <span>₪{total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="mt-3">
-              <Label>הערות</Label>
+              <Label>Notes</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="הערות נוספות להצעה..."
+                placeholder="Additional notes for the quote..."
                 className="h-16"
               />
             </div>
@@ -559,7 +534,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             disabled={items.length === 0}
           >
             <Eye className="h-4 w-4 mr-2" />
-            תצוגה מקדימה
+            Preview
           </Button>
 
           <Button
@@ -569,7 +544,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           >
             {saveMutation.isPending && !isSending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             <Save className="h-4 w-4 mr-2" />
-            שמור כטיוטה
+            Save as Draft
           </Button>
           
           <Button
@@ -578,7 +553,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           >
             {isSending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             <Mail className="h-4 w-4 mr-2" />
-            שלח במייל
+            Send Email
           </Button>
 
           {customerPhone && (
@@ -589,7 +564,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             >
               <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="h-4 w-4 mr-2" />
-                שלח בוואטסאפ
+                Send WhatsApp
               </a>
             </Button>
           )}
