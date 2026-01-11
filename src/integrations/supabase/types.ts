@@ -18,34 +18,37 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
-          email: string | null
+          email: string
           id: string
           name: string
           notes: string | null
-          phone: string | null
+          phone: string
           shopify_customer_id: string | null
+          status: Database["public"]["Enums"]["customer_status"]
           updated_at: string
         }
         Insert: {
           address?: string | null
           created_at?: string
-          email?: string | null
+          email: string
           id?: string
           name: string
           notes?: string | null
-          phone?: string | null
+          phone: string
           shopify_customer_id?: string | null
+          status?: Database["public"]["Enums"]["customer_status"]
           updated_at?: string
         }
         Update: {
           address?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           id?: string
           name?: string
           notes?: string | null
-          phone?: string | null
+          phone?: string
           shopify_customer_id?: string | null
+          status?: Database["public"]["Enums"]["customer_status"]
           updated_at?: string
         }
         Relationships: []
@@ -188,7 +191,7 @@ export type Database = {
           customer_address: string | null
           customer_email: string | null
           customer_name: string
-          customer_phone: string | null
+          customer_phone: string
           id: string
           meeting_date: string | null
           notes: string | null
@@ -204,7 +207,7 @@ export type Database = {
           customer_address?: string | null
           customer_email?: string | null
           customer_name: string
-          customer_phone?: string | null
+          customer_phone: string
           id?: string
           meeting_date?: string | null
           notes?: string | null
@@ -220,7 +223,7 @@ export type Database = {
           customer_address?: string | null
           customer_email?: string | null
           customer_name?: string
-          customer_phone?: string | null
+          customer_phone?: string
           id?: string
           meeting_date?: string | null
           notes?: string | null
@@ -450,41 +453,41 @@ export type Database = {
       suppliers: {
         Row: {
           address: string | null
-          category: Database["public"]["Enums"]["supplier_category"] | null
-          contact_name: string | null
+          category: Database["public"]["Enums"]["supplier_category"]
+          contact_name: string
           created_at: string
           email: string | null
           id: string
           is_active: boolean | null
           name: string
           notes: string | null
-          phone: string | null
+          phone: string
           updated_at: string
         }
         Insert: {
           address?: string | null
-          category?: Database["public"]["Enums"]["supplier_category"] | null
-          contact_name?: string | null
+          category: Database["public"]["Enums"]["supplier_category"]
+          contact_name: string
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           notes?: string | null
-          phone?: string | null
+          phone: string
           updated_at?: string
         }
         Update: {
           address?: string | null
-          category?: Database["public"]["Enums"]["supplier_category"] | null
-          contact_name?: string | null
+          category?: Database["public"]["Enums"]["supplier_category"]
+          contact_name?: string
           created_at?: string
           email?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           notes?: string | null
-          phone?: string | null
+          phone?: string
           updated_at?: string
         }
         Relationships: []
@@ -526,6 +529,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "sales"
+      customer_status: "new" | "in_progress" | "closed" | "returning"
       deal_stage:
         | "proposal"
         | "negotiation"
@@ -685,6 +689,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "sales"],
+      customer_status: ["new", "in_progress", "closed", "returning"],
       deal_stage: [
         "proposal",
         "negotiation",

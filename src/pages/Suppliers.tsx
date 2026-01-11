@@ -58,7 +58,7 @@ export default function Suppliers() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Partial<Supplier> & { name: string }) => {
+    mutationFn: async (data: { name: string; category: "sofas" | "cabinets" | "chairs" | "tables"; contact_name: string; phone: string; email?: string; address?: string; notes?: string; is_active: boolean }) => {
       const { error } = await supabase.from("suppliers").insert([data]);
       if (error) throw error;
     },
@@ -102,7 +102,7 @@ export default function Suppliers() {
     },
   });
 
-  const handleSave = (data: Partial<Supplier> & { name: string }) => {
+  const handleSave = (data: { name: string; category: "sofas" | "cabinets" | "chairs" | "tables"; contact_name: string; phone: string; email?: string; address?: string; notes?: string; is_active: boolean }) => {
     if (selectedSupplier) {
       updateMutation.mutate({ id: selectedSupplier.id, data });
     } else {

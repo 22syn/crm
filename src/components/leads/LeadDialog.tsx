@@ -153,9 +153,10 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading }: Lead
               <FormField
                 control={form.control}
                 name="customer_phone"
+                rules={{ required: "Phone is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Phone *</FormLabel>
                     <FormControl>
                       <Input placeholder="+972-50-000-0000" {...field} />
                     </FormControl>
