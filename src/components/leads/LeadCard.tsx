@@ -4,10 +4,11 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar } from "lucide-react";
+import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye, Unlink } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 const sourceLabels: Record<string, { label: string; icon: string }> = {
   instagram: { label: "Instagram", icon: "📷" },
@@ -21,9 +22,12 @@ interface LeadCardProps {
   lead: Lead;
   onEdit: (lead: Lead) => void;
   onCreateQuote?: (lead: Lead) => void;
+  quote?: Quote;
+  onViewQuote?: (leadId: string) => void;
+  onUnlinkQuote?: (leadId: string) => void;
 }
 
-export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
+export function LeadCard({ lead, onEdit, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
   const {
     attributes,
     listeners,
@@ -39,8 +43,8 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  // Hide create quote button for done/not_done/waiting_for_approval statuses
-  const canCreateQuote = !["done", "not_done", "waiting_for_approval"].includes(lead.status);
+  // Hide create quote button for done/not_done/waiting_for_approval statuses or if quote exists
+  const canCreateQuote = !["done", "not_done", "waiting_for_approval"].includes(lead.status) && !quote;
 
   return (
     <Card
@@ -113,19 +117,50 @@ export function LeadCard({ lead, onEdit, onCreateQuote }: LeadCardProps) {
             <span className="line-clamp-2">{lead.notes}</span>
           </div>
         )}
-        {onCreateQuote && canCreateQuote && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCreateQuote(lead);
-            }}
-          >
-            <FileText className="h-3 w-3 mr-1" />
-            Create Quote
-          </Button>
+        
+        {/* Quote Actions */}
+        {quote ? (
+          <div className="flex gap-1 mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewQuote?.(lead.id);
+              }}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              View Quote
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlinkQuote?.(lead.id);
+              }}
+              title="Unlink Quote"
+            >
+              <Unlink className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          onCreateQuote && canCreateQuote && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCreateQuote(lead);
+              }}
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              Create Quote
+            </Button>
+          )
         )}
       </CardContent>
     </Card>

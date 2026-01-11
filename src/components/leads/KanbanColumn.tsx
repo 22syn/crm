@@ -6,6 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
 interface KanbanColumnProps {
   status: LeadStatus;
@@ -14,9 +15,12 @@ interface KanbanColumnProps {
   leads: Lead[];
   onEdit: (lead: Lead) => void;
   onCreateQuote?: (lead: Lead) => void;
+  leadQuotes?: Record<string, Quote>;
+  onViewQuote?: (leadId: string) => void;
+  onUnlinkQuote?: (leadId: string) => void;
 }
 
-export function KanbanColumn({ status, label, color, leads, onEdit, onCreateQuote }: KanbanColumnProps) {
+export function KanbanColumn({ status, label, color, leads, onEdit, onCreateQuote, leadQuotes = {}, onViewQuote, onUnlinkQuote }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -37,7 +41,15 @@ export function KanbanColumn({ status, label, color, leads, onEdit, onCreateQuot
       >
         <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
           {leads.map((lead) => (
-            <LeadCard key={lead.id} lead={lead} onEdit={onEdit} onCreateQuote={onCreateQuote} />
+            <LeadCard 
+              key={lead.id} 
+              lead={lead} 
+              onEdit={onEdit} 
+              onCreateQuote={onCreateQuote}
+              quote={leadQuotes[lead.id]}
+              onViewQuote={onViewQuote}
+              onUnlinkQuote={onUnlinkQuote}
+            />
           ))}
         </SortableContext>
 

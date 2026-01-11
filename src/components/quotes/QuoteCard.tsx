@@ -7,10 +7,19 @@ import {
   MessageCircle, 
   CheckCircle, 
   Clock,
-  Eye
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 
 interface Quote {
   id: string;
@@ -22,6 +31,7 @@ interface Quote {
   total: number;
   valid_until: string | null;
   created_at: string;
+  lead_id?: string | null;
 }
 
 interface QuoteCardProps {
@@ -29,17 +39,19 @@ interface QuoteCardProps {
   onConvertToOrder?: (quote: Quote) => void;
   onResend?: (quote: Quote) => void;
   onView?: (quote: Quote) => void;
+  onEdit?: (quote: Quote) => void;
+  onDelete?: (quote: Quote) => void;
 }
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  draft: { label: "טיוטה", variant: "outline" },
-  sent: { label: "נשלח", variant: "secondary" },
-  approved: { label: "אושר", variant: "default" },
-  rejected: { label: "נדחה", variant: "destructive" },
-  expired: { label: "פג תוקף", variant: "outline" },
+  draft: { label: "Draft", variant: "outline" },
+  sent: { label: "Sent", variant: "secondary" },
+  approved: { label: "Approved", variant: "default" },
+  rejected: { label: "Rejected", variant: "destructive" },
+  expired: { label: "Expired", variant: "outline" },
 };
 
-export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCardProps) {
+export function QuoteCard({ quote, onConvertToOrder, onResend, onView, onEdit, onDelete }: QuoteCardProps) {
   const status = statusConfig[quote.status] || statusConfig.draft;
   
   const getWhatsAppLink = () => {
@@ -59,7 +71,38 @@ export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCa
             <FileText className="h-4 w-4 text-muted-foreground" />
             <span className="font-mono text-sm">{quote.quote_number}</span>
           </div>
-          <Badge variant={status.variant}>{status.label}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={status.variant}>{status.label}</Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onView?.(quote)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </DropdownMenuItem>
+                {quote.status === "draft" && onEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(quote)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                {onDelete && (
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(quote)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -70,12 +113,12 @@ export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCa
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Clock className="h-3 w-3" />
             <span>
-              {format(new Date(quote.created_at), "dd MMM yyyy", { locale: he })}
+              {format(new Date(quote.created_at), "dd MMM yyyy")}
             </span>
             {quote.valid_until && (
               <>
                 <span className="mx-1">•</span>
-                <span>תקף עד {format(new Date(quote.valid_until), "dd/MM/yy")}</span>
+                <span>Valid until {format(new Date(quote.valid_until), "dd/MM/yy")}</span>
               </>
             )}
           </div>
@@ -87,7 +130,7 @@ export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCa
               onClick={() => onView?.(quote)}
             >
               <Eye className="h-3 w-3 mr-1" />
-              צפייה
+              View
             </Button>
 
             {quote.status === "sent" && (
@@ -97,7 +140,7 @@ export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCa
                 onClick={() => onConvertToOrder?.(quote)}
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
-                אשר והמר להזמנה
+                Approve
               </Button>
             )}
             
@@ -108,7 +151,7 @@ export function QuoteCard({ quote, onConvertToOrder, onResend, onView }: QuoteCa
                 onClick={() => onResend?.(quote)}
               >
                 <Mail className="h-3 w-3 mr-1" />
-                שלח שוב
+                Resend
               </Button>
             )}
             
