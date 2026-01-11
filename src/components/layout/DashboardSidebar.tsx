@@ -32,6 +32,7 @@ import {
   Truck,
   Palette,
   UserCheck,
+  Zap,
 } from "lucide-react";
 
 const menuItems = [
@@ -46,6 +47,7 @@ const adminItems = [
   { title: "Customers", url: "/customers", icon: UserCheck },
   { title: "Products", url: "/products", icon: Package },
   { title: "Suppliers", url: "/suppliers", icon: Truck },
+  { title: "Automations", url: "/automations", icon: Zap },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

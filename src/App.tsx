@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Suppliers from "./pages/Suppliers";
 import DesignRequests from "./pages/DesignRequests";
 import Customers from "./pages/Customers";
+import Automations from "./pages/Automations";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/suppliers" element={<Suppliers />} />
             <Route path="/design-requests" element={<DesignRequests />} />
             <Route path="/customers" element={<Customers />} />
+            <Route path="/automations" element={<Automations />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
