@@ -32,6 +32,8 @@ interface DealFiltersProps {
   onSearchChange: (value: string) => void;
   stageFilter: string;
   onStageFilterChange: (value: string) => void;
+  /** default: Search + Stage + Clear; searchOnly: only Search; filtersOnly: Stage + Clear (if hasFilters) */
+  variant?: "default" | "searchOnly" | "filtersOnly";
 }
 
 export function DealFilters({
@@ -39,6 +41,7 @@ export function DealFilters({
   onSearchChange,
   stageFilter,
   onStageFilterChange,
+  variant = "default",
 }: DealFiltersProps) {
   const hasFilters = search || stageFilter !== "all";
 
@@ -47,33 +50,42 @@ export function DealFilters({
     onStageFilterChange("all");
   };
 
+  const showSearch = variant === "default" || variant === "searchOnly";
+  const showFilters = variant === "default" || variant === "filtersOnly";
+
   return (
-    <div className="flex flex-col sm:flex-row gap-tight">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by deal title..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 rounded-sm"
-        />
-      </div>
-      <Select value={stageFilter} onValueChange={onStageFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px] rounded-sm">
-          <SelectValue placeholder="Stage" />
-        </SelectTrigger>
-        <SelectContent>
-          {stageOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {hasFilters && (
-        <Button variant="ghost" size="icon" onClick={clearFilters}>
-          <X className="h-4 w-4" />
-        </Button>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
+      {showSearch && (
+        <div className="relative flex-1 min-w-0 sm:max-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search deals..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9 h-9 rounded-md text-sm"
+          />
+        </div>
+      )}
+      {showFilters && (
+        <>
+          <Select value={stageFilter} onValueChange={onStageFilterChange}>
+            <SelectTrigger className="w-full sm:w-[180px] h-9 rounded-md shrink-0">
+              <SelectValue placeholder="Stage" />
+            </SelectTrigger>
+            <SelectContent>
+              {stageOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {hasFilters && (
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={clearFilters}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
