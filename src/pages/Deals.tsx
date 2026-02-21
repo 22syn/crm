@@ -237,6 +237,24 @@ export default function Deals() {
         onDeleteView={deleteView}
         hasFilters={hasFilters}
         onClearFilters={handleClearFilters}
+        renderMobileSearch={
+          <DealFilters
+            variant="searchOnly"
+            search={search}
+            onSearchChange={setSearch}
+            stageFilter={stageFilter}
+            onStageFilterChange={setStageFilter}
+          />
+        }
+        renderMobileFilters={
+          <DealFilters
+            variant="filtersOnly"
+            search={search}
+            onSearchChange={setSearch}
+            stageFilter={stageFilter}
+            onStageFilterChange={setStageFilter}
+          />
+        }
       >
         <DealFilters
           search={search}

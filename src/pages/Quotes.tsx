@@ -370,7 +370,28 @@ export default function Quotes() {
         />
       }
       renderToolbar={() => (
-        <EntityToolbar>
+        <EntityToolbar
+          renderMobileSearch={
+            <QuoteFilters
+              variant="searchOnly"
+              search={search}
+              onSearchChange={setSearch}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              archivedCount={archivedQuotes.length}
+            />
+          }
+          renderMobileFilters={
+            <QuoteFilters
+              variant="filtersOnly"
+              search={search}
+              onSearchChange={setSearch}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              archivedCount={archivedQuotes.length}
+            />
+          }
+        >
           <QuoteFilters
             search={search}
             onSearchChange={setSearch}
