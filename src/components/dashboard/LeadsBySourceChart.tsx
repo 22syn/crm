@@ -15,16 +15,17 @@ const SOURCE_LABELS: Record<string, string> = {
   facebook: "Facebook",
 };
 
+/* Production company theme - cool palette */
 const COLORS = [
-  "hsl(142 71% 45%)", // whatsapp green
-  "hsl(30 15% 45%)",  // manual
-  "hsl(35 25% 55%)",  // walkin
-  "hsl(200 70% 50%)", // website blue
-  "hsl(280 60% 55%)", // referral purple
-  "hsl(330 70% 55%)", // instagram pink
-  "hsl(45 80% 50%)",  // campaign yellow
-  "hsl(20 70% 50%)",  // architects orange
-  "hsl(220 70% 55%)", // facebook blue
+  "hsl(142 65% 42%)",  // whatsapp - success green
+  "hsl(262 55% 50%)",  // manual - accent purple-magenta
+  "hsl(220 50% 52%)",  // walkin - cool blue-gray
+  "hsl(200 60% 50%)",  // website - cyan
+  "hsl(280 55% 55%)",  // referral - purple
+  "hsl(320 50% 55%)",  // instagram - magenta
+  "hsl(190 50% 48%)",  // campaign - teal
+  "hsl(250 55% 55%)",  // architects - violet
+  "hsl(210 55% 52%)",  // facebook - blue
 ];
 
 interface LeadsBySourceChartProps {
