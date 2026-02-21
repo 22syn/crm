@@ -32,6 +32,7 @@ export function LeadsEmptyState({
   if (hasActiveFilters) {
     return (
       <div className="rounded-sm border border-dashed bg-muted/30 py-12 px-6 text-center">
+        <FilterX className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
         <p className="text-body font-medium text-foreground">No leads match your filters</p>
         <p className="text-meta text-muted-foreground mt-1">
           Try clearing or resetting your filters to see more leads.
@@ -52,7 +53,8 @@ export function LeadsEmptyState({
 
   return (
     <div className="rounded-sm border border-dashed bg-muted/30 py-12 px-6 text-center">
-      <p className="text-body font-medium text-foreground">Add your first lead</p>
+      <Plus className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
+      <p className="text-title font-medium text-foreground">Add your first lead</p>
       <p className="text-meta text-muted-foreground mt-1">
         Get started by creating a lead or add demo data to explore the pipeline.
       </p>
