@@ -8,42 +8,43 @@
 
 @layer base {
   :root {
-    /* Hadarya Brand Colors - Warm Beige/Taupe Palette */
-    --background: 40 20% 97%;
-    --foreground: 30 10% 20%;
+    /* Hadarya Design System - Production Company (Clean Creative) */
+    --background: 220 15% 98%;
+    --foreground: 220 20% 15%;
 
-    --card: 40 15% 99%;
-    --card-foreground: 30 10% 20%;
+    --card: 220 15% 99%;
+    --card-foreground: 220 20% 15%;
 
-    --popover: 40 15% 99%;
-    --popover-foreground: 30 10% 20%;
+    --popover: 220 15% 99%;
+    --popover-foreground: 220 20% 15%;
 
-    /* Primary - Warm Taupe/Brown */
-    --primary: 30 15% 35%;
-    --primary-foreground: 40 20% 97%;
+    /* Primary - Cool dark */
+    --primary: 220 20% 25%;
+    --primary-foreground: 220 15% 98%;
 
-    /* Secondary - Light Cream */
-    --secondary: 40 20% 94%;
-    --secondary-foreground: 30 15% 35%;
+    /* Secondary - Light cool gray */
+    --secondary: 220 20% 95%;
+    --secondary-foreground: 220 20% 25%;
 
-    /* Muted - Soft Beige */
-    --muted: 35 15% 92%;
-    --muted-foreground: 30 10% 45%;
+    /* Muted */
+    --muted: 220 15% 93%;
+    --muted-foreground: 220 15% 45%;
 
-    /* Accent - Golden Beige */
-    --accent: 35 25% 88%;
-    --accent-foreground: 30 15% 25%;
+    /* Accent - Light cool */
+    --accent: 220 20% 90%;
+    --accent-foreground: 220 20% 25%;
 
     --destructive: 0 65% 55%;
-    --destructive-foreground: 40 20% 97%;
+    --destructive-foreground: 220 15% 98%;
 
-    --border: 35 15% 88%;
-    --input: 35 15% 88%;
-    --ring: 30 15% 35%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 220 20% 35%;
 
-    /* Action accent - Teal (primary CTAs) */
-    --accent-action: 168 45% 38%;
+    /* Action accent - Purple-magenta (primary CTAs) */
+    --accent-action: 262 55% 50%;
     --accent-action-foreground: 0 0% 100%;
+
     /* Semantic */
     --success: 142 65% 42%;
     --success-foreground: 0 0% 100%;
