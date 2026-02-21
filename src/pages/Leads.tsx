@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, Fragment } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -6,57 +7,379 @@ import { LeadKanban } from "@/components/leads/LeadKanban";
 import { LeadTable } from "@/components/leads/LeadTable";
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { LeadFilters } from "@/components/leads/LeadFilters";
+import { LeadsEmptyState } from "@/components/leads/LeadsEmptyState";
+import { LeadsTableSkeleton } from "@/components/leads/LeadsTableSkeleton";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Plus, LayoutGrid, List } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, LayoutGrid, List, X, Sparkles, BookmarkPlus, RotateCcw, LayoutList, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCrmTeam } from "@/hooks/useCrmTeam";
+import { useTablePreferences } from "@/hooks/useTablePreferences";
+import { LEAD_STAGES } from "@/utils/leadStages";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
+type LeadStatus = Lead["status"];
+type LeadSource = Lead["source"];
 type Quote = Database["public"]["Tables"]["quotes"]["Row"];
+
+const DEMO_LEADS: { customer_name: string; customer_phone: string; customer_email?: string; source: LeadSource; status: LeadStatus }[] = [
+  { customer_name: "Yael Cohen", customer_phone: "+972-50-111-2233", customer_email: "yael.c@example.com", source: "instagram", status: "new" },
+  { customer_name: "David Levi", customer_phone: "+972-52-222-3344", customer_email: "d.levi@example.com", source: "website", status: "new" },
+  { customer_name: "Sarah Mizrahi", customer_phone: "+972-54-333-4455", source: "architects", status: "new" },
+  { customer_name: "Michael Ben-David", customer_phone: "+972-50-444-5566", customer_email: "michael.bd@example.com", source: "organic", status: "new" },
+  { customer_name: "Rachel Avraham", customer_phone: "+972-52-555-6677", source: "facebook", status: "new" },
+  { customer_name: "Jonathan Shapira", customer_phone: "+972-54-666-7788", customer_email: "j.shapira@example.com", source: "instagram", status: "new" },
+  { customer_name: "Noa Goldstein", customer_phone: "+972-50-777-8899", source: "website", status: "new" },
+  { customer_name: "Eitan Friedman", customer_phone: "+972-52-888-9900", customer_email: "eitan.f@example.com", source: "architects", status: "new" },
+  { customer_name: "Maya Rosen", customer_phone: "+972-54-999-0011", source: "organic", status: "new" },
+  { customer_name: "Oren Baruch", customer_phone: "+972-50-100-2234", customer_email: "oren.b@example.com", source: "facebook", status: "new" },
+  { customer_name: "Tamar Dahan", customer_phone: "+972-52-201-3345", source: "instagram", status: "new" },
+  { customer_name: "Itamar Golan", customer_phone: "+972-54-302-4456", customer_email: "itamar.g@example.com", source: "website", status: "new" },
+  { customer_name: "Lior Peretz", customer_phone: "+972-50-403-5567", source: "architects", status: "in_process" },
+  { customer_name: "Shira Kaufman", customer_phone: "+972-52-504-6678", customer_email: "shira.k@example.com", source: "organic", status: "in_process" },
+  { customer_name: "Nir Azoulay", customer_phone: "+972-54-605-7789", source: "facebook", status: "in_process" },
+  { customer_name: "Hila Barkan", customer_phone: "+972-50-706-8890", customer_email: "hila.b@example.com", source: "instagram", status: "in_process" },
+  { customer_name: "Guy Meir", customer_phone: "+972-52-807-9901", source: "website", status: "in_process" },
+  { customer_name: "Roni Adler", customer_phone: "+972-54-908-0012", customer_email: "roni.a@example.com", source: "architects", status: "in_process" },
+  { customer_name: "Tal Carmi", customer_phone: "+972-50-009-1123", source: "organic", status: "in_process" },
+  { customer_name: "Yoni Segal", customer_phone: "+972-52-110-2234", customer_email: "yoni.s@example.com", source: "facebook", status: "in_process" },
+  { customer_name: "Dana Weiss", customer_phone: "+972-54-211-3345", source: "instagram", status: "in_process" },
+  { customer_name: "Amir Biton", customer_phone: "+972-50-312-4456", customer_email: "amir.b@example.com", source: "website", status: "in_process" },
+  { customer_name: "Keren Haim", customer_phone: "+972-52-413-5567", source: "architects", status: "in_process" },
+  { customer_name: "Roi Ashkenazi", customer_phone: "+972-54-514-6678", customer_email: "roi.a@example.com", source: "organic", status: "in_process" },
+  { customer_name: "Eden Shalom", customer_phone: "+972-50-615-7789", source: "facebook", status: "meeting_scheduled" },
+  { customer_name: "Ido Malka", customer_phone: "+972-52-716-8890", customer_email: "ido.m@example.com", source: "instagram", status: "meeting_scheduled" },
+  { customer_name: "Lihi Brody", customer_phone: "+972-54-817-9901", source: "website", status: "meeting_scheduled" },
+  { customer_name: "Yuval Gabbay", customer_phone: "+972-50-918-0012", customer_email: "yuval.g@example.com", source: "architects", status: "meeting_scheduled" },
+  { customer_name: "Noga Stern", customer_phone: "+972-52-019-1123", source: "organic", status: "meeting_scheduled" },
+  { customer_name: "Erez Cohen", customer_phone: "+972-54-120-2234", customer_email: "erez.c@example.com", source: "facebook", status: "meeting_scheduled" },
+  { customer_name: "Michal Dor", customer_phone: "+972-50-221-3345", source: "instagram", status: "meeting_scheduled" },
+  { customer_name: "Aviad Zohar", customer_phone: "+972-52-322-4456", customer_email: "aviad.z@example.com", source: "website", status: "meeting_scheduled" },
+  { customer_name: "Shani Reuven", customer_phone: "+972-54-423-5567", source: "architects", status: "meeting_done" },
+  { customer_name: "Barak Erez", customer_phone: "+972-50-524-6678", customer_email: "barak.e@example.com", source: "organic", status: "meeting_done" },
+  { customer_name: "Galit Ohayon", customer_phone: "+972-52-625-7789", source: "facebook", status: "meeting_done" },
+  { customer_name: "Danielle Ben-Ami", customer_phone: "+972-54-726-8890", customer_email: "danielle.ba@example.com", source: "instagram", status: "meeting_done" },
+  { customer_name: "Omer Tal", customer_phone: "+972-50-827-9901", source: "website", status: "meeting_done" },
+  { customer_name: "Adi Cohen", customer_phone: "+972-52-928-0012", customer_email: "adi.c@example.com", source: "architects", status: "waiting_for_approval" },
+  { customer_name: "Ran Levi", customer_phone: "+972-54-029-1123", source: "organic", status: "waiting_for_approval" },
+  { customer_name: "Mor Dror", customer_phone: "+972-50-130-2234", customer_email: "mor.d@example.com", source: "facebook", status: "waiting_for_approval" },
+  { customer_name: "Shaked Ben-David", customer_phone: "+972-52-241-3345", source: "instagram", status: "waiting_for_approval" },
+  { customer_name: "Tom Gefen", customer_phone: "+972-54-352-4456", customer_email: "tom.g@example.com", source: "website", status: "waiting_for_approval" },
+  { customer_name: "Liat Harari", customer_phone: "+972-50-463-5567", customer_email: "liat.h@example.com", source: "architects", status: "done" },
+  { customer_name: "Gilad Katz", customer_phone: "+972-52-574-6678", source: "organic", status: "done" },
+  { customer_name: "Rivka Abramov", customer_phone: "+972-54-685-7789", customer_email: "rivka.a@example.com", source: "facebook", status: "done" },
+  { customer_name: "Asaf Rubin", customer_phone: "+972-50-796-8890", source: "instagram", status: "done" },
+  { customer_name: "Tali Gross", customer_phone: "+972-52-807-9901", customer_email: "tali.g@example.com", source: "website", status: "done" },
+  { customer_name: "Uri Shalev", customer_phone: "+972-54-918-0012", source: "architects", status: "not_done" },
+  { customer_name: "Neta Ben-Shalom", customer_phone: "+972-50-029-1123", customer_email: "neta.bs@example.com", source: "organic", status: "not_done" },
+  { customer_name: "Eyal Maman", customer_phone: "+972-52-130-2234", source: "facebook", status: "not_done" },
+  { customer_name: "Inbar Sade", customer_phone: "+972-54-241-3345", customer_email: "inbar.s@example.com", source: "instagram", status: "not_done" },
+  { customer_name: "Yogev Dagan", customer_phone: "+972-50-352-4456", source: "website", status: "not_done" },
+];
 
 export default function Leads() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [quoteBuilderOpen, setQuoteBuilderOpen] = useState(false);
   const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
+
+  // Search & Filter State
+  /** Immediate value in the search input (updates on every keystroke). */
+  const [searchInput, setSearchInput] = useState("");
+  /** Debounced value used for the leads query (reduces request churn while typing). */
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  /** Empty = all statuses, non-empty = only these statuses */
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [sourceFilter, setSourceFilter] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+
+  const {
+    filters: savedFilters,
+    views: savedViews,
+    saveAsNewView,
+    saveAsNewViewPending,
+    updateView,
+    deleteView,
+    resetToDefault,
+    resetPending,
+  } = useTablePreferences("leads");
+  const appliedSavedRef = useRef(false);
+  const [saveViewDialogOpen, setSaveViewDialogOpen] = useState(false);
+  const [newViewName, setNewViewName] = useState("");
+  const [renameViewId, setRenameViewId] = useState<string | null>(null);
+  const [renameViewName, setRenameViewName] = useState("");
+
+  // Debounce search input (300ms) before updating query key and resetting page.
+  // Keeps request churn low while typing; saved preferences and URL params use the same search state.
+  const SEARCH_DEBOUNCE_MS = 300;
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(0);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // Apply saved filter preferences once when they load (search + searchInput stay in sync for saved state).
+  useEffect(() => {
+    if (appliedSavedRef.current || !savedFilters) return;
+    if (typeof savedFilters.search === "string") {
+      setSearch(savedFilters.search);
+      setSearchInput(savedFilters.search);
+    }
+    if (Array.isArray(savedFilters.statusFilter)) {
+      setStatusFilter(savedFilters.statusFilter);
+    } else if (typeof savedFilters.statusFilter === "string" && savedFilters.statusFilter !== "all") {
+      setStatusFilter([savedFilters.statusFilter]);
+    }
+    if (typeof savedFilters.sourceFilter === "string") setSourceFilter(savedFilters.sourceFilter);
+    if (typeof savedFilters.assigneeFilter === "string") setAssigneeFilter(savedFilters.assigneeFilter);
+    appliedSavedRef.current = true;
+  }, [savedFilters]);
+
+  const currentFilters = () => ({ search, statusFilter, sourceFilter, assigneeFilter });
+
+  const handleSaveAsNewView = async () => {
+    const name = newViewName.trim() || "Untitled view";
+    try {
+      await saveAsNewView({ view_name: name, filters: currentFilters() });
+      toast.success(`View "${name}" saved`);
+      setSaveViewDialogOpen(false);
+      setNewViewName("");
+    } catch {
+      toast.error("Failed to save view");
+    }
+  };
+
+  const applyView = (filters: Record<string, string>) => {
+    if (typeof filters.search === "string") {
+      setSearch(filters.search);
+      setSearchInput(filters.search);
+    }
+    if (Array.isArray(filters.statusFilter)) {
+      setStatusFilter(filters.statusFilter);
+    } else if (typeof filters.statusFilter === "string" && filters.statusFilter !== "all") {
+      setStatusFilter([filters.statusFilter]);
+    } else {
+      setStatusFilter([]);
+    }
+    if (typeof filters.sourceFilter === "string") setSourceFilter(filters.sourceFilter);
+    if (typeof filters.assigneeFilter === "string") setAssigneeFilter(filters.assigneeFilter);
+    setPage(0);
+  };
+
+  const handleRenameView = async () => {
+    if (!renameViewId) return;
+    const name = renameViewName.trim() || "Untitled view";
+    try {
+      await updateView({ id: renameViewId, view_name: name });
+      toast.success("View renamed");
+      setRenameViewId(null);
+      setRenameViewName("");
+    } catch {
+      toast.error("Failed to rename view");
+    }
+  };
+
+  const handleResetPreferences = async () => {
+    try {
+      await resetToDefault();
+      setSearch("");
+      setSearchInput("");
+      setStatusFilter([]);
+      setSourceFilter("all");
+      setAssigneeFilter("all");
+      setPage(0);
+      toast.success("Filters reset to default");
+    } catch {
+      toast.error("Failed to reset preferences");
+    }
+  };
+
+  /** Clear filter state locally (no preference save). Used by empty state "Clear filters". */
+  const handleClearFilters = () => {
+    setSearch("");
+    setSearchInput("");
+    setStatusFilter([]);
+    setSourceFilter("all");
+    setAssigneeFilter("all");
+    setPage(0);
+  };
+
+  /** True when any filter is applied (used for empty-state copy and actions). */
+  const hasActiveFilters =
+    search.trim() !== "" ||
+    statusFilter.length > 0 ||
+    sourceFilter !== "all" ||
+    assigneeFilter !== "all";
+
+  // Pagination State
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
+
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
+  const [savingCell, setSavingCell] = useState<{ leadId: string; field: string } | null>(null);
+  const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [quoteItems, setQuoteItems] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const { data: leads = [], isLoading } = useQuery({
-    queryKey: ["leads"],
+  // Apply URL filters on mount (from dashboard drill-down)
+  useEffect(() => {
+    const noMeeting = searchParams.get("noMeeting") === "1";
+    const urlStatus = searchParams.get("status");
+    const urlAssignee = searchParams.get("assignee");
+    if (noMeeting) {
+      setStatusFilter([]);
+      setSourceFilter("all");
+      setAssigneeFilter("all");
+    } else {
+      if (urlStatus && ["new", "in_process", "meeting_scheduled", "meeting_done", "waiting_for_approval", "done", "not_done"].includes(urlStatus)) {
+        setStatusFilter([urlStatus]);
+      }
+      if (urlAssignee) {
+        setAssigneeFilter(urlAssignee === "unassigned" ? "unassigned" : urlAssignee);
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount for URL params
+
+  const noMeetingFilter = searchParams.get("noMeeting") === "1";
+
+  // Open lead from global command palette (navigate with state.openLeadId)
+  // Open new lead dialog from FAB or command palette (state.openNewLead)
+  useEffect(() => {
+    const state = location.state as { openLeadId?: string; openNewLead?: boolean } | null;
+    if (state?.openNewLead) {
+      navigate(location.pathname, { replace: true, state: {} });
+      setEditingLead(null);
+      setDialogOpen(true);
+      return;
+    }
+    const openLeadId = state?.openLeadId;
+    if (!openLeadId) return;
+    navigate(location.pathname, { replace: true, state: {} });
+    const fromList = leads.find((l) => l.id === openLeadId);
+    if (fromList) {
+      setEditingLead(fromList);
+      setDialogOpen(true);
+      return;
+    }
+    supabase
+      .from("leads")
+      .select("*")
+      .eq("id", openLeadId)
+      .single()
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setEditingLead(data as Lead);
+          setDialogOpen(true);
+        }
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run when openLeadId appears in location.state
+  }, [location.state]);
+
+  // Search input updates immediately; debounce effect above applies search to query and resets page.
+  const handleSearchChange = (val: string) => setSearchInput(val);
+  const handleStatusFilterChange = (vals: string[]) => { setStatusFilter(vals); setPage(0); };
+  const handleSourceFilterChange = (val: string) => { setSourceFilter(val); setPage(0); };
+  const handleAssigneeFilterChange = (val: string) => { setAssigneeFilter(val); setPage(0); };
+
+  const { user } = useAuth();
+  const { data: teamMembers = [] } = useCrmTeam();
+
+  const { data: leadsData, isLoading } = useQuery({
+    queryKey: ["leads", page, search, statusFilter, sourceFilter, assigneeFilter, noMeetingFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("leads")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (search) {
+        query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+      }
+      if (noMeetingFilter) {
+        // Leads without meeting scheduled (active statuses only)
+        query = query
+          .is("meeting_date", null)
+          .in("status", ["new", "in_process"]);
+      } else if (statusFilter.length > 0) {
+        query = query.in("status", statusFilter as Lead["status"][]);
+      }
+      if (sourceFilter !== "all") {
+        query = query.eq("source", sourceFilter as Lead["source"]);
+      }
+      if (assigneeFilter === "unassigned") {
+        query = query.is("assigned_to", null);
+      } else if (assigneeFilter !== "all") {
+        query = query.eq("assigned_to", assigneeFilter);
+      }
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Lead[];
+
+      return {
+        data: data as Lead[],
+        count: count || 0
+      };
     },
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new page
   });
 
-  // Fetch quotes for leads
+  const leads = leadsData?.data || [];
+  const totalCount = leadsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // Fetch quotes ONLY for the currently visible leads to save bandwidth
+  const leadIds = leads.map(l => l.id);
   const { data: leadQuotes = {} } = useQuery({
-    queryKey: ["lead-quotes"],
+    queryKey: ["lead-quotes", leadIds.join(",")], // Dependent on visible leads
+    enabled: leadIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quotes")
         .select("*")
-        .not("lead_id", "is", null)
+        .in("lead_id", leadIds)
         .is("archived_at", null);
-      
+
       if (error) throw error;
-      
+
       // Create a map of lead_id -> quote
       const quotesMap: Record<string, Quote> = {};
       data?.forEach((quote) => {
@@ -83,18 +406,46 @@ export default function Leads() {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<Lead> & { id: string }) => {
-      const { error } = await supabase.from("leads").update(updates).eq("id", id);
+  const seedDemoLeadsMutation = useMutation({
+    mutationFn: async () => {
+      const inserts: LeadInsert[] = DEMO_LEADS.map((demo) => ({
+        customer_name: demo.customer_name,
+        customer_phone: demo.customer_phone,
+        customer_email: demo.customer_email ?? null,
+        source: demo.source,
+        status: demo.status,
+      }));
+      const { error } = await supabase.from("leads").insert(inserts);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
-      toast.success("Lead updated successfully");
-      setDialogOpen(false);
-      setEditingLead(null);
+      toast.success(`Added ${DEMO_LEADS.length} demo leads to the board`);
     },
     onError: (error) => {
+      toast.error("Failed to add demo leads: " + (error as Error).message);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (variables: Partial<Lead> & { id: string; inline?: boolean }) => {
+      const { id, inline: _inline, ...payload } = variables;
+      const { error } = await supabase.from("leads").update(payload).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      if (variables.inline) {
+        setSavingCell(null);
+        toast.success("Saved");
+      } else {
+        setDialogOpen(false);
+        setEditingLead(null);
+        toast.success("Lead updated successfully");
+      }
+    },
+    onError: (error) => {
+      setSavingCell(null);
       toast.error("Failed to update lead: " + error.message);
     },
   });
@@ -118,6 +469,25 @@ export default function Leads() {
     },
   });
 
+  const associateQuoteMutation = useMutation({
+    mutationFn: async ({ quoteId, leadId }: { quoteId: string; leadId: string }) => {
+      const { error } = await supabase
+        .from("quotes")
+        .update({ lead_id: leadId, unlinked_at: null })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Quote associated with lead");
+    },
+    onError: (error) => {
+      toast.error("Failed to associate quote: " + error.message);
+    },
+  });
+
   const handleSave = (data: LeadInsert) => {
     if (editingLead) {
       updateMutation.mutate({ id: editingLead.id, ...data });
@@ -135,6 +505,54 @@ export default function Leads() {
     updateMutation.mutate({ id: leadId, status: newStatus });
   };
 
+  const handleAssigneeChange = (leadId: string, userId: string | null) => {
+    setSavingCell({ leadId, field: "assigned_to" });
+    updateMutation.mutate({
+      id: leadId,
+      assigned_to: userId,
+      inline: true,
+    } as Partial<Lead> & { id: string; inline: boolean });
+  };
+
+  const handleInlineUpdate = (leadId: string, field: keyof Lead, value: string | null) => {
+    setSavingCell({ leadId, field });
+    updateMutation.mutate({ id: leadId, [field]: value ?? undefined, inline: true } as Partial<Lead> & { id: string; inline: boolean });
+  };
+
+  const handleBulkStatusChange = async (newStatus: Lead["status"]) => {
+    const ids = Array.from(selectedLeadIds);
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from("leads")
+      .update({ status: newStatus })
+      .in("id", ids);
+    if (error) {
+      toast.error("Failed to update leads: " + error.message);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    setSelectedLeadIds(new Set());
+    toast.success(`Updated ${ids.length} lead(s) to ${newStatus}`);
+  };
+
+  const handleBulkAssign = async (userId: string | null) => {
+    const ids = Array.from(selectedLeadIds);
+    if (ids.length === 0) return;
+    const { error } = await supabase
+      .from("leads")
+      .update({ assigned_to: userId })
+      .in("id", ids);
+    if (error) {
+      toast.error("Failed to assign leads: " + error.message);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    setSelectedLeadIds(new Set());
+    toast.success(`Assigned ${ids.length} lead(s)`);
+  };
+
+  const bulkStatusOptions = LEAD_STAGES.map((s) => ({ value: s.value, label: s.label }));
+
   const handleCreateQuote = (lead: Lead) => {
     setQuoteLead(lead);
     setQuoteBuilderOpen(true);
@@ -144,13 +562,13 @@ export default function Leads() {
     const quote = leadQuotes[leadId];
     if (quote) {
       setSelectedQuote(quote);
-      
+
       // Fetch quote items
       const { data: items } = await supabase
         .from("quote_items")
         .select("*")
         .eq("quote_id", quote.id);
-      
+
       setQuoteItems(items || []);
       setPreviewOpen(true);
     }
@@ -163,77 +581,369 @@ export default function Leads() {
     }
   };
 
-  const filteredLeads = useMemo(() => {
-    return leads.filter((lead) => {
-      const searchLower = search.toLowerCase();
-      const matchesSearch =
-        !search ||
-        lead.customer_name.toLowerCase().includes(searchLower) ||
-        lead.customer_email?.toLowerCase().includes(searchLower) ||
-        lead.customer_phone?.toLowerCase().includes(searchLower);
-
-      const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
-      const matchesSource = sourceFilter === "all" || lead.source === sourceFilter;
-
-      return matchesSearch && matchesStatus && matchesSource;
-    });
-  }, [leads, search, statusFilter, sourceFilter]);
+  const handleAssociateQuote = (quoteId: string, leadId: string) => {
+    associateQuoteMutation.mutate({ quoteId, leadId });
+  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-section">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Leads</h1>
-            <p className="text-muted-foreground">Manage your sales pipeline</p>
+            <h1 className="text-display font-semibold">Leads</h1>
+            <p className="text-body text-muted-foreground mt-1">Manage your sales pipeline</p>
           </div>
           <div className="flex items-center gap-2">
-            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "kanban" | "table")}>
-              <ToggleGroupItem value="kanban" aria-label="Kanban view">
-                <LayoutGrid className="h-4 w-4" />
-              </ToggleGroupItem>
-              <ToggleGroupItem value="table" aria-label="Table view">
-                <List className="h-4 w-4" />
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <Button onClick={() => { setEditingLead(null); setDialogOpen(true); }}>
+            <Button
+              variant="outline"
+              className="rounded-sm"
+              onClick={() => seedDemoLeadsMutation.mutate()}
+              disabled={seedDemoLeadsMutation.isPending}
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              {seedDemoLeadsMutation.isPending ? "Adding…" : "Add 50 demo leads"}
+            </Button>
+            <Button
+              variant="accent"
+              className="rounded-sm"
+              onClick={() => { setEditingLead(null); setDialogOpen(true); }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Lead
             </Button>
           </div>
         </div>
 
-        <LeadFilters
-          search={search}
-          onSearchChange={setSearch}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          sourceFilter={sourceFilter}
-          onSourceFilterChange={setSourceFilter}
-        />
+        <Tabs value={viewMode} onValueChange={(v) => v && setViewMode(v as "kanban" | "table")} className="w-full">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="kanban" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Pipeline
+            </TabsTrigger>
+            <TabsTrigger value="table" className="gap-2">
+              <List className="h-4 w-4" />
+              Table
+            </TabsTrigger>
+          </TabsList>
 
-        {viewMode === "kanban" ? (
-          <LeadKanban
-            leads={filteredLeads}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onStatusChange={handleStatusChange}
-            onCreateQuote={handleCreateQuote}
-            leadQuotes={leadQuotes}
-            onViewQuote={handleViewQuote}
-            onUnlinkQuote={handleUnlinkQuote}
-          />
-        ) : (
-          <LeadTable
-            leads={filteredLeads}
-            onEdit={handleEdit}
-            onStatusChange={handleStatusChange}
-            onCreateQuote={handleCreateQuote}
-            leadQuotes={leadQuotes}
-            onViewQuote={handleViewQuote}
-            onUnlinkQuote={handleUnlinkQuote}
-          />
-        )}
+          <TabsContent value="kanban" className="mt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <LeadFilters
+                search={searchInput}
+                onSearchChange={handleSearchChange}
+                statusFilter={statusFilter}
+                onStatusFilterChange={handleStatusFilterChange}
+                sourceFilter={sourceFilter}
+                onSourceFilterChange={handleSourceFilterChange}
+                assigneeFilter={assigneeFilter}
+                onAssigneeFilterChange={handleAssigneeFilterChange}
+                teamMembers={teamMembers}
+              />
+              <Button variant="outline" size="sm" onClick={() => setSaveViewDialogOpen(true)} disabled={saveAsNewViewPending} className="shrink-0">
+                <BookmarkPlus className="h-4 w-4 mr-1" />
+                Save preferences
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleResetPreferences} disabled={resetPending} className="shrink-0">
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Reset to default
+              </Button>
+              {savedViews.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
+                      Saved views ({savedViews.length})
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[200px]">
+                    {savedViews.map((v) => {
+                      const displayName = v.view_name === "default" ? "Default" : v.view_name;
+                      return (
+                        <Fragment key={v.id}>
+                          <DropdownMenuItem onSelect={() => applyView(v.filters as Record<string, string>)}>
+                            {displayName}
+                          </DropdownMenuItem>
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
+                              Manage "{displayName}"
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  setRenameViewId(v.id);
+                                  setRenameViewName(displayName);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={async (e) => {
+                                  e.preventDefault();
+                                  try {
+                                    await deleteView(v.id);
+                                    toast.success("View deleted");
+                                  } catch {
+                                    toast.error("Failed to delete view");
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                        </Fragment>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <Select
+                value=""
+                onValueChange={(v) => {
+                  if (v === "my") {
+                    setAssigneeFilter(user?.id ?? "all");
+                    setPage(0);
+                  } else if (v === "unassigned") {
+                    setAssigneeFilter("unassigned");
+                    setPage(0);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[160px] rounded-sm shrink-0">
+                  <LayoutList className="h-4 w-4 mr-1" />
+                  <SelectValue placeholder="Quick views" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="my">My pipeline</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-4">
+              {!isLoading && leads.length === 0 ? (
+                <LeadsEmptyState
+                  hasActiveFilters={hasActiveFilters}
+                  onResetFilters={handleResetPreferences}
+                  onClearFilters={handleClearFilters}
+                  onAddFirstLead={() => { setEditingLead(null); setDialogOpen(true); }}
+                  onAddDemoLeads={() => seedDemoLeadsMutation.mutate()}
+                  addDemoLeadsPending={seedDemoLeadsMutation.isPending}
+                />
+              ) : (
+                <LeadKanban
+                  leads={leads}
+                  teamMembers={teamMembers}
+                  isLoading={isLoading}
+                  onEdit={handleEdit}
+                  onViewLead={(l) => navigate(`/leads/${l.id}`)}
+                  onStatusChange={handleStatusChange}
+                  onCreateQuote={handleCreateQuote}
+                  leadQuotes={leadQuotes}
+                  onViewQuote={handleViewQuote}
+                  onUnlinkQuote={handleUnlinkQuote}
+                  selectedStatuses={statusFilter.length > 0 ? statusFilter : undefined}
+                />
+              )}
+            </div>
+            {totalCount > 0 && (
+              <div className="flex items-center justify-between mt-section">
+                <div className="text-meta text-muted-foreground">
+                  Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="table" className="mt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <LeadFilters
+                search={searchInput}
+                onSearchChange={handleSearchChange}
+                statusFilter={statusFilter}
+                onStatusFilterChange={handleStatusFilterChange}
+                sourceFilter={sourceFilter}
+                onSourceFilterChange={handleSourceFilterChange}
+                assigneeFilter={assigneeFilter}
+                onAssigneeFilterChange={handleAssigneeFilterChange}
+                teamMembers={teamMembers}
+              />
+              <Button variant="outline" size="sm" onClick={() => setSaveViewDialogOpen(true)} disabled={saveAsNewViewPending} className="shrink-0">
+                <BookmarkPlus className="h-4 w-4 mr-1" />
+                Save preferences
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleResetPreferences} disabled={resetPending} className="shrink-0">
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Reset to default
+              </Button>
+              {savedViews.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
+                      Saved views ({savedViews.length})
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[200px]">
+                    {savedViews.map((v) => {
+                      const displayName = v.view_name === "default" ? "Default" : v.view_name;
+                      return (
+                        <Fragment key={v.id}>
+                          <DropdownMenuItem onSelect={() => applyView(v.filters as Record<string, string>)}>
+                            {displayName}
+                          </DropdownMenuItem>
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
+                              Manage "{displayName}"
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem
+                                onSelect={(e) => {
+                                  e.preventDefault();
+                                  setRenameViewId(v.id);
+                                  setRenameViewName(displayName);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onSelect={async (e) => {
+                                  e.preventDefault();
+                                  try {
+                                    await deleteView(v.id);
+                                    toast.success("View deleted");
+                                  } catch {
+                                    toast.error("Failed to delete view");
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                        </Fragment>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <Select
+                value=""
+                onValueChange={(v) => {
+                  if (v === "my") {
+                    setAssigneeFilter(user?.id ?? "all");
+                    setPage(0);
+                  } else if (v === "unassigned") {
+                    setAssigneeFilter("unassigned");
+                    setPage(0);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[160px] rounded-sm shrink-0">
+                  <LayoutList className="h-4 w-4 mr-1" />
+                  <SelectValue placeholder="Quick views" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="my">My pipeline</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-4">
+              {isLoading && leads.length === 0 ? (
+                <LeadsTableSkeleton />
+              ) : !isLoading && leads.length === 0 ? (
+                <LeadsEmptyState
+                  hasActiveFilters={hasActiveFilters}
+                  onResetFilters={handleResetPreferences}
+                  onClearFilters={handleClearFilters}
+                  onAddFirstLead={() => { setEditingLead(null); setDialogOpen(true); }}
+                  onAddDemoLeads={() => seedDemoLeadsMutation.mutate()}
+                  addDemoLeadsPending={seedDemoLeadsMutation.isPending}
+                />
+              ) : (
+                <>
+                  {selectedLeadIds.size > 0 && (
+                    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-sm border bg-card px-4 py-2 mb-4 shadow-sm">
+                      <span className="text-body font-medium">{selectedLeadIds.size} selected</span>
+                      <Select onValueChange={(v) => handleBulkStatusChange(v as Lead["status"])}>
+                        <SelectTrigger className="w-[200px] h-8">
+                          <SelectValue placeholder="Change status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {bulkStatusOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select onValueChange={(v) => handleBulkAssign(v === "unassigned" ? null : v)}>
+                        <SelectTrigger className="w-[200px] h-8">
+                          <SelectValue placeholder="Assign to..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {teamMembers.map((m) => (
+                            <SelectItem key={m.user_id} value={m.user_id}>
+                              {m.full_name || m.email || m.user_id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedLeadIds(new Set())}>
+                        <X className="h-4 w-4 mr-1" />
+                        Clear selection
+                      </Button>
+                    </div>
+                  )}
+                  <LeadTable
+                    leads={leads}
+                    teamMembers={teamMembers}
+                    onEdit={handleEdit}
+                    onViewLead={(l) => navigate(`/leads/${l.id}`)}
+                    onStatusChange={handleStatusChange}
+                    onAssigneeChange={handleAssigneeChange}
+                    onInlineUpdate={handleInlineUpdate}
+                    savingCell={savingCell}
+                    selectedLeadIds={selectedLeadIds}
+                    onSelectionChange={setSelectedLeadIds}
+                    onCreateQuote={handleCreateQuote}
+                    leadQuotes={leadQuotes}
+                    onViewQuote={handleViewQuote}
+                    onUnlinkQuote={handleUnlinkQuote}
+                  />
+                </>
+              )}
+            </div>
+            {totalCount > 0 && (
+              <div className="flex items-center justify-between mt-section">
+                <div className="text-meta text-muted-foreground">
+                  Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
         <LeadDialog
           open={dialogOpen}
@@ -241,14 +951,26 @@ export default function Leads() {
           lead={editingLead}
           onSave={handleSave}
           isLoading={createMutation.isPending || updateMutation.isPending}
+          teamMembers={teamMembers}
           onCreateQuote={handleCreateQuote}
           onViewQuote={handleViewQuote}
           onUnlinkQuote={handleUnlinkQuote}
+          onAssociateQuote={handleAssociateQuote}
+          onViewExistingLead={(leadId) => {
+            setDialogOpen(false);
+            setEditingLead(null);
+            navigate("/leads", { state: { openLeadId: leadId } });
+          }}
+          onViewLead={(leadId) => {
+            setDialogOpen(false);
+            setEditingLead(null);
+            navigate(`/leads/${leadId}`);
+          }}
         />
 
-        <QuoteBuilder 
-          open={quoteBuilderOpen} 
-          onOpenChange={setQuoteBuilderOpen} 
+        <QuoteBuilder
+          open={quoteBuilderOpen}
+          onOpenChange={setQuoteBuilderOpen}
           lead={quoteLead}
         />
 
@@ -267,6 +989,61 @@ export default function Leads() {
             notes={selectedQuote.notes}
           />
         )}
+
+        <Dialog open={saveViewDialogOpen} onOpenChange={setSaveViewDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Save as new view</DialogTitle>
+            </DialogHeader>
+            <p className="text-muted-foreground text-sm">
+              Save current filters as a named view so you can switch back to it later.
+            </p>
+            <div className="grid gap-2 py-2">
+              <Label htmlFor="view-name">View name</Label>
+              <Input
+                id="view-name"
+                value={newViewName}
+                onChange={(e) => setNewViewName(e.target.value)}
+                placeholder="e.g. My pipeline"
+                onKeyDown={(e) => e.key === "Enter" && handleSaveAsNewView()}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveViewDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveAsNewView} disabled={saveAsNewViewPending}>
+                {saveAsNewViewPending ? "Saving…" : "Save view"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!renameViewId} onOpenChange={(open) => !open && setRenameViewId(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Rename view</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-2 py-2">
+              <Label htmlFor="rename-view-name">View name</Label>
+              <Input
+                id="rename-view-name"
+                value={renameViewName}
+                onChange={(e) => setRenameViewName(e.target.value)}
+                placeholder="View name"
+                onKeyDown={(e) => e.key === "Enter" && handleRenameView()}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setRenameViewId(null); setRenameViewName(""); }}>
+                Cancel
+              </Button>
+              <Button onClick={handleRenameView} disabled={!renameViewName.trim()}>
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
