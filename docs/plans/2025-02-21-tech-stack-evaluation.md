@@ -51,7 +51,7 @@
 - RLS used (e.g. `user_table_preferences` per user).
 
 **Gaps:**
-- Search (Leads, etc.) refetches on every keystroke; no debounce.
+- Leads has 300ms debounce ✓. Customers and GlobalCommandPalette still refetch on every keystroke.
 - Some sorting client-side on 50-row pages; server-side sort needed when data grows.
 
 ---
@@ -97,7 +97,7 @@
 
 ## Quick Wins (Prioritized)
 
-1. **Search debounce (300ms)** — Leads/customers search refetches on every keystroke; add debounce to reduce requests.
+1. **Search debounce (300ms)** — Leads already has it. Add debounce to Customers and GlobalCommandPalette.
 2. **Fix maestro.config.json** — Update to Supabase (or remove Maestro reference if not used).
 3. **Split Leads.tsx** — Extract subcomponents to reduce size and improve maintainability.
 
