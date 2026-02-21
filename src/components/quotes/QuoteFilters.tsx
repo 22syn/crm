@@ -23,6 +23,8 @@ interface QuoteFiltersProps {
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
   archivedCount?: number;
+  /** default: Search + Status + Clear; searchOnly: only Search; filtersOnly: Status + Clear (if hasFilters) */
+  variant?: "default" | "searchOnly" | "filtersOnly";
 }
 
 export function QuoteFilters({
@@ -31,6 +33,7 @@ export function QuoteFilters({
   statusFilter,
   onStatusFilterChange,
   archivedCount = 0,
+  variant = "default",
 }: QuoteFiltersProps) {
   const hasFilters = search || statusFilter !== "all";
 
@@ -38,6 +41,9 @@ export function QuoteFilters({
     onSearchChange("");
     onStatusFilterChange("all");
   };
+
+  const showSearch = variant === "default" || variant === "searchOnly";
+  const showFilters = variant === "default" || variant === "filtersOnly";
 
   const options =
     archivedCount > 0
@@ -48,32 +54,38 @@ export function QuoteFilters({
       : statusOptions.filter((o) => o.value !== "archived");
 
   return (
-    <div className="flex flex-col sm:flex-row gap-tight">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by customer, contract #..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9 rounded-sm"
-        />
-      </div>
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px] rounded-sm">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {hasFilters && (
-        <Button variant="ghost" size="icon" onClick={clearFilters}>
-          <X className="h-4 w-4" />
-        </Button>
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
+      {showSearch && (
+        <div className="relative flex-1 min-w-0 sm:max-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search contracts..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9 h-9 rounded-md text-sm"
+          />
+        </div>
+      )}
+      {showFilters && (
+        <>
+          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+            <SelectTrigger className="w-full sm:w-[180px] h-9 rounded-md shrink-0">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {hasFilters && (
+            <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={clearFilters}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </>
       )}
     </div>
   );
