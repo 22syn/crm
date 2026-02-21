@@ -1,12 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { DealKanban } from "@/components/deals/DealKanban";
 import { DealDialog } from "@/components/deals/DealDialog";
+import { DealTable } from "@/components/deals/DealTable";
+import { DealFilters } from "@/components/deals/DealFilters";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useTablePreferences } from "@/hooks/useTablePreferences";
+import type { EntityViewMode } from "@/components/entity-page";
 
 type DealStage = "proposal" | "negotiation" | "contract_sent" | "closed_won" | "closed_lost";
 
@@ -27,22 +39,98 @@ interface Deal {
 export default function Deals() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [viewMode, setViewMode] = useState<EntityViewMode>("kanban");
+  const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState<string>("all");
   const queryClient = useQueryClient();
+
+  const {
+    filters: savedFilters,
+    views: savedViews,
+    saveAsNewView,
+    saveAsNewViewPending,
+    updateView,
+    deleteView,
+    resetToDefault,
+    resetPending,
+  } = useTablePreferences("deals");
+  const appliedSavedRef = useRef(false);
+  const [saveViewDialogOpen, setSaveViewDialogOpen] = useState(false);
+  const [newViewName, setNewViewName] = useState("");
+
+  useEffect(() => {
+    if (appliedSavedRef.current || !savedFilters) return;
+    if (typeof savedFilters.search === "string") setSearch(savedFilters.search);
+    if (typeof savedFilters.stageFilter === "string") setStageFilter(savedFilters.stageFilter);
+    appliedSavedRef.current = true;
+  }, [savedFilters]);
+
+  const currentFilters = () => ({ search, stageFilter });
+
+  const handleSaveAsNewView = async () => {
+    const name = newViewName.trim() || "Untitled view";
+    try {
+      await saveAsNewView({ view_name: name, filters: currentFilters() });
+      toast.success(`View "${name}" saved`);
+      setSaveViewDialogOpen(false);
+      setNewViewName("");
+    } catch {
+      toast.error("Failed to save view");
+    }
+  };
+
+  const applyView = (filters: Record<string, string>) => {
+    if (typeof filters.search === "string") setSearch(filters.search);
+    if (typeof filters.stageFilter === "string") setStageFilter(filters.stageFilter);
+  };
+
+  const handleRenameView = async (id: string, name: string) => {
+    try {
+      await updateView({ id, view_name: name.trim() || "Untitled view" });
+      toast.success("View renamed");
+    } catch {
+      toast.error("Failed to rename view");
+    }
+  };
+
+  const handleResetPreferences = async () => {
+    try {
+      await resetToDefault();
+      setSearch("");
+      setStageFilter("all");
+      toast.success("Filters reset to default");
+    } catch {
+      toast.error("Failed to reset preferences");
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setStageFilter("all");
+  };
+
+  const hasFilters = search.trim() !== "" || stageFilter !== "all";
 
   const { data: deals = [], isLoading } = useQuery({
     queryKey: ["deals"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("deals")
-        .select(`
-          *,
-          leads(customer_name)
-        `)
+        .select(`*, leads(customer_name)`)
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       return data as Deal[];
     },
+  });
+
+  const filteredDeals = deals.filter((d) => {
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      if (!d.title.toLowerCase().includes(q) && !d.leads?.customer_name?.toLowerCase().includes(q)) return false;
+    }
+    if (stageFilter !== "all" && d.stage !== stageFilter) return false;
+    return true;
   });
 
   const createMutation = useMutation({
@@ -60,17 +148,17 @@ export default function Deals() {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
-      toast.success("העסקה נוצרה בהצלחה");
+      toast.success("Deal created successfully");
       setDialogOpen(false);
     },
     onError: () => {
-      toast.error("שגיאה ביצירת העסקה");
+      toast.error("Error creating deal");
     },
   });
 
@@ -88,28 +176,25 @@ export default function Deals() {
           notes: data.notes,
         })
         .eq("id", id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
-      toast.success("העסקה עודכנה בהצלחה");
+      toast.success("Deal updated successfully");
       setDialogOpen(false);
       setSelectedDeal(null);
     },
     onError: () => {
-      toast.error("שגיאה בעדכון העסקה");
+      toast.error("Error updating deal");
     },
   });
 
   const handleStageChange = async (dealId: string, stage: DealStage) => {
-    const { error } = await supabase
-      .from("deals")
-      .update({ stage })
-      .eq("id", dealId);
-    
+    const { error } = await supabase.from("deals").update({ stage }).eq("id", dealId);
+
     if (error) {
-      toast.error("שגיאה בעדכון השלב");
+      toast.error("Error updating stage");
     } else {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
     }
@@ -120,7 +205,7 @@ export default function Deals() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: Omit<Deal, "id" | "quote_id" | "leads">) => {
     if (selectedDeal) {
       updateMutation.mutate({ id: selectedDeal.id, ...data });
     } else {
@@ -130,40 +215,93 @@ export default function Deals() {
 
   const handleDialogChange = (open: boolean) => {
     setDialogOpen(open);
-    if (!open) {
-      setSelectedDeal(null);
-    }
+    if (!open) setSelectedDeal(null);
   };
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6" dir="rtl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">עסקאות</h1>
-            <p className="text-muted-foreground">ניהול צינור המכירות</p>
-          </div>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 ml-2" />
-            עסקה חדשה
-          </Button>
-        </div>
+  const renderToolbar = (mode: EntityViewMode) =>
+    (mode === "kanban" || mode === "table") ? (
+      <EntityToolbar
+        onSaveView={() => setSaveViewDialogOpen(true)}
+        savePending={saveAsNewViewPending}
+        onReset={handleResetPreferences}
+        resetPending={resetPending}
+        savedViews={savedViews}
+        onApplyView={applyView}
+        onRenameView={handleRenameView}
+        onDeleteView={deleteView}
+        hasFilters={hasFilters}
+        onClearFilters={handleClearFilters}
+      >
+        <DealFilters
+          search={search}
+          onSearchChange={setSearch}
+          stageFilter={stageFilter}
+          onStageFilterChange={setStageFilter}
+        />
+      </EntityToolbar>
+    ) : null;
 
+  return (
+    <EntityPageShell
+      title="Deals"
+      subtitle="Sales pipeline management"
+      addButtonText="New Deal"
+      onAddClick={() => setDialogOpen(true)}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      renderKanban={
         <DealKanban
-          deals={deals}
+          deals={filteredDeals}
           isLoading={isLoading}
           onEdit={handleEdit}
           onStageChange={handleStageChange}
         />
-
-        <DealDialog
-          open={dialogOpen}
-          onOpenChange={handleDialogChange}
-          deal={selectedDeal}
-          onSubmit={handleSubmit}
-          isLoading={createMutation.isPending || updateMutation.isPending}
+      }
+      renderTable={
+        <DealTable
+          deals={filteredDeals}
+          onEdit={handleEdit}
+          onStageChange={(id, stage) => handleStageChange(id, stage as DealStage)}
         />
-      </div>
-    </DashboardLayout>
+      }
+      renderToolbar={renderToolbar}
+    >
+      <DealDialog
+        open={dialogOpen}
+        onOpenChange={handleDialogChange}
+        deal={selectedDeal}
+        onSubmit={handleSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      <Dialog open={saveViewDialogOpen} onOpenChange={setSaveViewDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save as new view</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm">
+            Save current filters as a named view so you can switch back to it later.
+          </p>
+          <div className="grid gap-2 py-2">
+            <Label htmlFor="deal-view-name">View name</Label>
+            <Input
+              id="deal-view-name"
+              value={newViewName}
+              onChange={(e) => setNewViewName(e.target.value)}
+              placeholder="e.g. Hot deals"
+              onKeyDown={(e) => e.key === "Enter" && handleSaveAsNewView()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveViewDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAsNewView} disabled={saveAsNewViewPending}>
+              {saveAsNewViewPending ? "Saving…" : "Save view"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </EntityPageShell>
   );
 }

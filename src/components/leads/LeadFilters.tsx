@@ -6,36 +6,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, X } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SOURCE_ICONS } from "@/utils/sourceIcons";
+import { LEAD_STAGES } from "@/utils/leadStages";
+import type { CrmTeamMember } from "@/hooks/useCrmTeam";
 
 interface LeadFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
-  statusFilter: string;
-  onStatusFilterChange: (value: string) => void;
+  /** Empty array = all statuses, non-empty = only these statuses */
+  statusFilter: string[];
+  onStatusFilterChange: (value: string[]) => void;
   sourceFilter: string;
   onSourceFilterChange: (value: string) => void;
+  assigneeFilter: string;
+  onAssigneeFilterChange: (value: string) => void;
+  teamMembers: CrmTeamMember[];
 }
-
-const statusOptions = [
-  { value: "all", label: "All Statuses" },
-  { value: "new", label: "0 - New" },
-  { value: "in_process", label: "1 - In Process" },
-  { value: "meeting_scheduled", label: "2 - Meeting Scheduled" },
-  { value: "meeting_done", label: "2.5 - Meeting Done" },
-  { value: "waiting_for_approval", label: "3 - Waiting for Approval" },
-  { value: "done", label: "4 - Done" },
-  { value: "not_done", label: "Not Done" },
-];
 
 const sourceOptions = [
   { value: "all", label: "All Sources" },
-  { value: "instagram", label: "📷 Instagram" },
-  { value: "website", label: "🌐 Website" },
-  { value: "architects", label: "🏛️ Architects/Designers" },
-  { value: "organic", label: "🌱 Organic" },
-  { value: "facebook", label: "📘 Facebook" },
+  ...Object.entries(SOURCE_ICONS).map(([value, { label }]) => ({
+    value,
+    label: value === "architects" ? "Architects/Designers" : label,
+  })),
 ];
 
 export function LeadFilters({
@@ -45,42 +46,72 @@ export function LeadFilters({
   onStatusFilterChange,
   sourceFilter,
   onSourceFilterChange,
+  assigneeFilter,
+  onAssigneeFilterChange,
+  teamMembers,
 }: LeadFiltersProps) {
-  const hasFilters = search || statusFilter !== "all" || sourceFilter !== "all";
-
-  const clearFilters = () => {
-    onSearchChange("");
-    onStatusFilterChange("all");
-    onSourceFilterChange("all");
+  const toggleStatus = (value: string) => {
+    if (statusFilter.includes(value)) {
+      const next = statusFilter.filter((s) => s !== value);
+      onStatusFilterChange(next.length > 0 ? next : []);
+    } else {
+      onStatusFilterChange([...statusFilter, value]);
+    }
   };
 
+  const selectAllStatuses = () => onStatusFilterChange([]);
+  const statusTriggerLabel = statusFilter.length === 0
+    ? "All Statuses"
+    : statusFilter.length === 1
+      ? LEAD_STAGES.find((s) => s.value === statusFilter[0])?.label ?? statusFilter[0]
+      : `${statusFilter.length} statuses`;
+
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <div className="flex flex-col sm:flex-row gap-tight">
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by name, email, phone..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
+          className="pl-9 rounded-sm"
         />
       </div>
 
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          {statusOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full sm:w-[200px] justify-between rounded-sm font-normal">
+            <span>{statusTriggerLabel}</span>
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[220px] p-2" align="start">
+          <div className="space-y-1">
+            <label className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-muted cursor-pointer">
+              <Checkbox
+                checked={statusFilter.length === 0}
+                onCheckedChange={() => selectAllStatuses()}
+              />
+              All Statuses
+            </label>
+            {LEAD_STAGES.map((stage) => (
+              <label
+                key={stage.value}
+                className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-muted cursor-pointer"
+              >
+                <Checkbox
+                  checked={statusFilter.includes(stage.value)}
+                  onCheckedChange={() => toggleStatus(stage.value)}
+                />
+                {stage.label}
+              </label>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
 
       <Select value={sourceFilter} onValueChange={onSourceFilterChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full sm:w-[180px] rounded-sm">
           <SelectValue placeholder="Source" />
         </SelectTrigger>
         <SelectContent>
@@ -92,11 +123,20 @@ export function LeadFilters({
         </SelectContent>
       </Select>
 
-      {hasFilters && (
-        <Button variant="ghost" size="icon" onClick={clearFilters}>
-          <X className="h-4 w-4" />
-        </Button>
-      )}
+      <Select value={assigneeFilter} onValueChange={onAssigneeFilterChange}>
+        <SelectTrigger className="w-full sm:w-[200px] rounded-sm">
+          <SelectValue placeholder="Assigned to" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All assignees</SelectItem>
+          <SelectItem value="unassigned">Unassigned</SelectItem>
+          {teamMembers.map((m) => (
+            <SelectItem key={m.user_id} value={m.user_id}>
+              {m.full_name || m.email || m.user_id}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
