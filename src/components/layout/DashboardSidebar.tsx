@@ -35,6 +35,11 @@ import {
   Zap,
 } from "lucide-react";
 
+/** Dashboard first—visible to all users. */
+const primaryItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+];
+
 const menuItems = [
   { title: "Leads", url: "/leads", icon: Users },
   { title: "Quotes", url: "/quotes", icon: FileText },
@@ -42,8 +47,8 @@ const menuItems = [
   { title: "Designs", url: "/design-requests", icon: Palette },
 ];
 
+/** Admin section—excludes Dashboard (now in primary). */
 const adminItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Customers", url: "/customers", icon: UserCheck },
   { title: "Products", url: "/products", icon: Package },
   { title: "Suppliers", url: "/suppliers", icon: Truck },
@@ -59,14 +64,30 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-light tracking-widest text-sidebar-foreground">הדריה</span>
-            <span className="text-[10px] tracking-[0.3em] text-sidebar-foreground/60 uppercase">By Elle</span>
+          <div className="flex flex-col items-center w-full">
+            <span className="text-xl font-bold tracking-tight text-sidebar-foreground">Hadarya CRM</span>
+            <span className="text-[10px] tracking-[0.2em] text-sidebar-foreground/60 uppercase">Premium Management</span>
           </div>
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {primaryItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -86,7 +107,7 @@ export function DashboardSidebar() {
         </SidebarGroup>
 
         {role === "admin" && (
-          <SidebarGroup>
+          <SidebarGroup className="mt-4">
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
