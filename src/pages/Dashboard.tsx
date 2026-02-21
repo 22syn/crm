@@ -22,13 +22,13 @@ function DashboardContent() {
   return (
     <div className="space-y-section">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        <div className="hidden md:block">
           <h1 className="text-display font-semibold">Dashboard</h1>
           <p className="text-body text-muted-foreground mt-1">
             {role === "sales" ? "My Pipeline" : "CRM performance overview"}
           </p>
         </div>
-        <Select value={timeRange} onValueChange={(v: TimeRange) => setTimeRange(v)}>
+        <Select value={timeRange} onValueChange={(v: TimeRange) => setTimeRange(v)} className="md:ml-auto">
           <SelectTrigger className="w-[160px] rounded-sm">
             <SelectValue placeholder="Time range" />
           </SelectTrigger>

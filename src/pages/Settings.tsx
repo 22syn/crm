@@ -95,8 +95,8 @@ export default function Settings() {
   if (role !== "admin") {
     return (
       <DashboardLayout>
-        <div className="text-center py-12" >
-          <h1 className="text-2xl font-bold">Access denied</h1>
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold hidden md:block">Access denied</h1>
           <p className="text-muted-foreground mt-2">
             Only admins can access settings.
           </p>
@@ -107,8 +107,8 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6" >
-        <div>
+      <div className="space-y-6 p-6">
+        <div className="hidden md:block">
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage system and team settings</p>
         </div>

@@ -8,8 +8,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-/** Route-to-label mapping for breadcrumb trails. */
-const ROUTE_MAP: Record<string, string> = {
+/** Route-to-label mapping for breadcrumb trails and mobile header title. */
+export const ROUTE_MAP: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/leads": "Leads",
   "/quotes": "Contracts",

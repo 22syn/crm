@@ -47,8 +47,8 @@ const primaryItems = [
 const menuItems = [
   { title: "Leads", url: "/leads", icon: Users },
   { title: "Contracts", url: "/contracts", icon: FileText },
-  { title: "Deals", url: "/deals", icon: Handshake },
   { title: "Designs", url: "/design-requests", icon: Palette },
+  { title: "Deals", url: "/deals", icon: Handshake },
 ];
 
 /** Admin section—excludes Dashboard (now in primary). */

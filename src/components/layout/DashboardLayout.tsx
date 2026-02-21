@@ -1,10 +1,23 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { DashboardBreadcrumb } from "./DashboardBreadcrumb";
+import { ROUTE_MAP } from "./DashboardBreadcrumb";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
+
+function MobileHeaderTitle() {
+  const { pathname } = useLocation();
+  const segments = pathname.split("/").filter(Boolean);
+  const label =
+    ROUTE_MAP[pathname]
+    ?? (segments[0] === "leads" && segments[1]?.match(/^[0-9a-f-]{36}$/i) ? "Lead" : null)
+    ?? (pathname.startsWith("/contracts/approve") ? "Approve" : null)
+    ?? ROUTE_MAP[`/${segments[0]}`]
+    ?? segments[segments.length - 1]
+    ?? "Dashboard";
+  return <span className="text-lg font-semibold text-foreground truncate">{label}</span>;
+}
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,9 +56,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:hidden">
-          <SidebarTrigger aria-label="Open menu" />
-          <DashboardBreadcrumb />
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:hidden">
+          <SidebarTrigger aria-label="Open menu" className="shrink-0" />
+          <div className="flex-1 min-w-0 flex items-center">
+            <MobileHeaderTitle />
+          </div>
         </header>
         <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
       </SidebarInset>

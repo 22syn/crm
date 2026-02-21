@@ -149,14 +149,14 @@ const Automations = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="hidden md:block">
             <h1 className="text-3xl font-bold">Automations</h1>
             <p className="text-muted-foreground mt-1">
               View all active automations in the system
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:ml-auto">
             <Badge variant="outline" className="text-sm py-1 px-3">
               <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
               {activeCount} active automations

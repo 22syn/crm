@@ -97,7 +97,7 @@ export function EntityPageShell({
 
         {/* View toggle + Toolbar + Content — matches Leads */}
         <Tabs value={viewMode} onValueChange={handleViewChange} className="w-full">
-          <TabsList className="w-full sm:w-auto">
+          <TabsList className="w-full sm:w-auto justify-start">
             <TabsTrigger value="kanban" className="gap-2">
               <LayoutGrid className="h-4 w-4" />
               Pipeline

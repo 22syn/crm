@@ -89,13 +89,14 @@ export default function LeadDetail() {
         </Button>
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">{lead.customer_name}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold hidden md:block">{lead.customer_name}</h1>
+            <p className="text-base font-medium md:hidden truncate">{lead.customer_name}</p>
+            <p className="text-sm text-muted-foreground mt-1 hidden md:block">
               Created {format(new Date(lead.created_at), "MMM d, yyyy")} · ID {lead.id.slice(0, 8)}
             </p>
           </div>
-          <Button onClick={() => setEditOpen(true)} className="gap-2">
+          <Button onClick={() => setEditOpen(true)} className="gap-2 shrink-0 md:ml-auto">
             <Pencil className="h-4 w-4" />
             Edit
           </Button>

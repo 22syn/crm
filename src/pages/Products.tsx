@@ -15,12 +15,12 @@ export default function Products() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="hidden md:block">
             <h1 className="text-3xl font-bold">Products</h1>
             <p className="text-muted-foreground">Synced from Shopify</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 md:ml-auto">
             <Badge variant="outline" className="gap-1">
               <span className="h-2 w-2 rounded-full bg-green-500" />
               Connected
