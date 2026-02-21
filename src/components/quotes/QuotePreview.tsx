@@ -55,10 +55,10 @@ export function QuotePreview({
         </DialogHeader>
 
         <div className="bg-[#f8f6f3] rounded-lg border border-[#e8e4de] shadow-sm" dir="rtl">
-          {/* Header - Hadarya Style */}
+          {/* Header - Demo Style */}
           <div className="bg-[#3d3830] text-[#f8f6f3] p-8 text-center rounded-t-lg">
             <div className="mb-4">
-              <h2 className="text-3xl font-bold tracking-tight">Hadarya CRM</h2>
+              <h2 className="text-3xl font-bold tracking-tight">Demo CRM</h2>
               <span className="text-[10px] tracking-[0.2em] opacity-70 uppercase">Premium Furniture Management</span>
             </div>
             <div className="w-16 h-[1px] bg-[#c4b8a8] mx-auto my-4"></div>
@@ -145,7 +145,7 @@ export function QuotePreview({
           {/* Footer */}
           <div className="text-center p-6 border-t border-[#e8e4de] text-[#8a8279] text-sm">
             <p className="font-light">Because ordinary isn't an option</p>
-            <p className="mt-2 text-xs">hadaryacrm.com</p>
+            <p className="mt-2 text-xs">democrm.com</p>
           </div>
         </div>
 

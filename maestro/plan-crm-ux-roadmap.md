@@ -1,4 +1,4 @@
-# Feature Implementation Plan: Hadarya CRM UX/UI Roadmap
+# Feature Implementation Plan: Demo CRM UX/UI Roadmap
 
 **Overall Progress:** `25%`
 

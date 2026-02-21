@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Elevate Hadarya CRM UI/UX to a "Luxury / Refined" aesthetic—typography, colors, motion, depth—without generic AI aesthetics.
+**Goal:** Elevate Demo CRM UI/UX to a "Luxury / Refined" aesthetic—typography, colors, motion, depth—without generic AI aesthetics.
 
 **Architecture:** Extend existing design system (CSS variables in index.css, Tailwind config). Add semantic colors and accent-action for primary CTAs. Introduce display font, keyframes for staggered reveals. Touch components incrementally. DRY—replace hardcoded teal with design tokens.
 

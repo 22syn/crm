@@ -170,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <div class="footer">
             <p style="font-weight: 300; font-style: italic;">Because ordinary isn't an option</p>
-            <p style="margin-top: 8px; font-size: 12px;">hadaryadesign.com</p>
+            <p style="margin-top: 8px; font-size: 12px;">democrm.com</p>
           </div>
         </div>
       </body>

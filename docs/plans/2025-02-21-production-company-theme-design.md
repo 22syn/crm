@@ -1,8 +1,8 @@
-# Hadarya CRM — Production Company Theme Design
+# Demo CRM — Production Company Theme Design
 
 **תאריך:** 21 בפברואר 2025  
 **סטטוס:** מאושר  
-**הקשר:** Hadarya CRM עוברת מורשה חברת ריהוט לחברת הפקות (פרסומות טלוויזיה, תצוגות אופנה).
+**הקשר:** Demo CRM עוברת מורשה חברת ריהוט לחברת הפקות (פרסומות טלוויזיה, תצוגות אופנה).
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Migrate Hadarya CRM from furniture (Beige/Taupe) to production-company (Clean Creative) theme — cool palette, purple-magenta accent, modern agency feel.
+**Goal:** Migrate Demo CRM from furniture (Beige/Taupe) to production-company (Clean Creative) theme — cool palette, purple-magenta accent, modern agency feel.
 
 **Architecture:** Replace all CSS variables in `src/index.css` — both `:root` and `.dark`. Update body gradient to cool hue. No new dependencies. Design doc: `docs/plans/2025-02-21-production-company-theme-design.md`.
 
@@ -20,7 +20,7 @@
 Change the comment and the block from line 11 through 42:
 
 ```css
-    /* Hadarya Design System - Production Company (Clean Creative) */
+    /* Demo Design System - Production Company (Clean Creative) */
     --background: 220 15% 98%;
     --foreground: 220 20% 15%;
 

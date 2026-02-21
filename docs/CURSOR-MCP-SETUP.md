@@ -41,11 +41,11 @@ The project has `.cursor/mcp.json` with Supabase and Vercel. To add GitHub, appe
 
 ### Option: Vercel project-specific URL
 
-If you want the AI to default to your hadaryaCRM project:
+If you want the AI to default to your demoCRM project:
 
 ```json
 "vercel": {
-  "url": "https://mcp.vercel.com/YOUR_TEAM_SLUG/hadaryaCRM"
+  "url": "https://mcp.vercel.com/YOUR_TEAM_SLUG/demoCRM"
 }
 ```
 

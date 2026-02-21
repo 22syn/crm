@@ -1,4 +1,4 @@
-# Hadarya CRM — UX/UI Analysis vs. Industry Best Practices
+# Demo CRM — UX/UI Analysis vs. Industry Best Practices
 
 **Date:** February 2025  
 **Scope:** Lead management flows, component architecture, state management, data loading.  

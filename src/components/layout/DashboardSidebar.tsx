@@ -73,7 +73,7 @@ export function DashboardSidebar() {
           className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2"
         >
           <div className="flex flex-col items-center w-full min-w-0 group-data-[collapsible=icon]:items-center">
-            <span className="text-xl font-bold tracking-tight text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">Hadarya CRM</span>
+            <span className="text-xl font-bold tracking-tight text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">Demo CRM</span>
             <LayoutDashboard className="h-5 w-5 shrink-0 text-sidebar-foreground hidden group-data-[collapsible=icon]:block" />
             <span className="text-[10px] tracking-[0.2em] text-sidebar-foreground/60 uppercase group-data-[collapsible=icon]:hidden">Premium Management</span>
           </div>

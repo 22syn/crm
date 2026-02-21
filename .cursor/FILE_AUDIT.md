@@ -1,7 +1,7 @@
 # סקירת קבצים – קבצים לא רלוונטיים / לניקוי
 
 תאריך: פברואר 2025  
-פרויקט: hadaryaCRM (React + Vite + Supabase)
+פרויקט: demoCRM (React + Vite + Supabase)
 
 ---
 
@@ -43,7 +43,7 @@
 
 | חבילה | הערה |
 |--------|------|
-| ~~**`lovable-tagger`**~~ (devDependencies) | **הוסר:** החבילה וה־plugin הוסרו מ־`vite.config.ts` ו־`package.json`. |
+| ~~**`tagger`**~~ (devDependencies) | **הוסר:** החבילה וה־plugin הוסרו מ־`vite.config.ts` ו־`package.json`. |
 
 ---
 
@@ -53,7 +53,7 @@
 
 2. **maestro/:** לא נמחק – נשמר לפי בקשת משתמש.
 
-3. **בוצע:** אומת ש־`dist` לא ב־git. הוסר `lovable-tagger` מ־package.json ו־vite.config.ts.
+3. **בוצע:** אומת ש־`dist` לא ב־git. הוסר ה־tagger מ־package.json ו־vite.config.ts.
 
 4. **toast:** נשאר במבנה הנוכחי (re-export ב־ui נשמר).
 

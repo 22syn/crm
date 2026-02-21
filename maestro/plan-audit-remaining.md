@@ -1,6 +1,6 @@
 # Implementation Plan: Remaining UX Audit Recommendations
 
-**Source:** Hadarya CRM Full UX/UI Audit Report (February 18, 2026)  
+**Source:** Demo CRM Full UX/UI Audit Report (February 18, 2026)  
 **Scope:** Items not covered by `plan-ux-analysis-implementation.md` (13 steps completed)  
 **Date:** February 18, 2026
 

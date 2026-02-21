@@ -15,7 +15,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
-const RECENT_SEARCHES_KEY = "hadarya-recent-lead-ids";
+const RECENT_SEARCHES_KEY = "demo-recent-lead-ids";
 const MAX_RECENT = 5;
 
 function getRecentLeadIds(): string[] {

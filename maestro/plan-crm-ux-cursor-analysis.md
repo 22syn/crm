@@ -26,7 +26,7 @@ We produced a research-backed best-practices summary for lead-management CRMs an
 
 - [ ] 🟥 **Step 3: Run Cursor analysis**
   - [ ] 🟥 Copy the prompt from `maestro/CRM-UX-best-practices-and-Cursor-analysis-prompt.md` (Part 2)
-  - [ ] 🟥 Paste into a new Cursor chat with access to the hadaryaCRM repo
+  - [ ] 🟥 Paste into a new Cursor chat with access to the demoCRM repo
   - [ ] 🟥 Obtain the full report (all five sections)
 
 - [ ] 🟥 **Step 4: Review and prioritize**

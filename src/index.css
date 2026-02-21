@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hadarya Design System - Production Company (Clean Creative) */
+/* Demo Design System - Production Company (Clean Creative) */
 
 @layer base {
   :root {
-    /* Hadarya Design System - Production Company (Clean Creative) */
+    /* Demo Design System - Production Company (Clean Creative) */
     --background: 220 15% 98%;
     --foreground: 220 20% 15%;
 
