@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect, useRef, Fragment } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { LeadKanban } from "@/components/leads/LeadKanban";
 import { LeadTable } from "@/components/leads/LeadTable";
 import { LeadDialog } from "@/components/leads/LeadDialog";
@@ -12,7 +12,6 @@ import { LeadsTableSkeleton } from "@/components/leads/LeadsTableSkeleton";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -27,25 +26,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, LayoutGrid, List, X, Sparkles, BookmarkPlus, RotateCcw, LayoutList, Pencil, Trash2 } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCrmTeam } from "@/hooks/useCrmTeam";
 import { useTablePreferences } from "@/hooks/useTablePreferences";
 import { LEAD_STAGES } from "@/utils/leadStages";
+import {
+  SORT_OPTIONS,
+  type SortOption,
+} from "@/utils/leadSort";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
@@ -123,6 +116,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [sourceFilter, setSourceFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [sortOption, setSortOption] = useState<SortOption>("created_at_asc");
 
   const {
     filters: savedFilters,
@@ -137,8 +131,6 @@ export default function Leads() {
   const appliedSavedRef = useRef(false);
   const [saveViewDialogOpen, setSaveViewDialogOpen] = useState(false);
   const [newViewName, setNewViewName] = useState("");
-  const [renameViewId, setRenameViewId] = useState<string | null>(null);
-  const [renameViewName, setRenameViewName] = useState("");
 
   // Debounce search input (300ms) before updating query key and resetting page.
   // Keeps request churn low while typing; saved preferences and URL params use the same search state.
@@ -199,14 +191,10 @@ export default function Leads() {
     setPage(0);
   };
 
-  const handleRenameView = async () => {
-    if (!renameViewId) return;
-    const name = renameViewName.trim() || "Untitled view";
+  const handleRenameView = async (id: string, name: string) => {
     try {
-      await updateView({ id: renameViewId, view_name: name });
+      await updateView({ id, view_name: name.trim() || "Untitled view" });
       toast.success("View renamed");
-      setRenameViewId(null);
-      setRenameViewName("");
     } catch {
       toast.error("Failed to rename view");
     }
@@ -585,144 +573,75 @@ export default function Leads() {
     associateQuoteMutation.mutate({ quoteId, leadId });
   };
 
+  const sortSelect = (
+    <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
+      <SelectTrigger className="w-[220px] h-8 rounded-sm shrink-0">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {SORT_OPTIONS.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+
+  const leadsToolbar = (
+    <EntityToolbar
+      onSaveView={() => setSaveViewDialogOpen(true)}
+      savePending={saveAsNewViewPending}
+      onReset={handleResetPreferences}
+      resetPending={resetPending}
+      savedViews={savedViews}
+      onApplyView={applyView}
+      onRenameView={handleRenameView}
+      onDeleteView={deleteView}
+      quickViews={[
+        { value: "my", label: "My pipeline", onSelect: () => { setAssigneeFilter(user?.id ?? "all"); setPage(0); } },
+        { value: "unassigned", label: "Unassigned", onSelect: () => { setAssigneeFilter("unassigned"); setPage(0); } },
+      ]}
+      renderSort={sortSelect}
+      hasFilters={hasActiveFilters}
+      onClearFilters={handleClearFilters}
+    >
+      <LeadFilters
+        search={searchInput}
+        onSearchChange={handleSearchChange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
+        sourceFilter={sourceFilter}
+        onSourceFilterChange={handleSourceFilterChange}
+        assigneeFilter={assigneeFilter}
+        onAssigneeFilterChange={handleAssigneeFilterChange}
+        teamMembers={teamMembers}
+      />
+    </EntityToolbar>
+  );
+
   return (
-    <DashboardLayout>
-      <div className="space-y-section">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-display font-semibold">Leads</h1>
-            <p className="text-body text-muted-foreground mt-1">Manage your sales pipeline</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              className="rounded-sm"
-              onClick={() => seedDemoLeadsMutation.mutate()}
-              disabled={seedDemoLeadsMutation.isPending}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              {seedDemoLeadsMutation.isPending ? "Adding…" : "Add 50 demo leads"}
-            </Button>
-            <Button
-              variant="accent"
-              className="rounded-sm"
-              onClick={() => { setEditingLead(null); setDialogOpen(true); }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Lead
-            </Button>
-          </div>
-        </div>
-
-        <Tabs value={viewMode} onValueChange={(v) => v && setViewMode(v as "kanban" | "table")} className="w-full">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="kanban" className="gap-2">
-              <LayoutGrid className="h-4 w-4" />
-              Pipeline
-            </TabsTrigger>
-            <TabsTrigger value="table" className="gap-2">
-              <List className="h-4 w-4" />
-              Table
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="kanban" className="mt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <LeadFilters
-                search={searchInput}
-                onSearchChange={handleSearchChange}
-                statusFilter={statusFilter}
-                onStatusFilterChange={handleStatusFilterChange}
-                sourceFilter={sourceFilter}
-                onSourceFilterChange={handleSourceFilterChange}
-                assigneeFilter={assigneeFilter}
-                onAssigneeFilterChange={handleAssigneeFilterChange}
-                teamMembers={teamMembers}
-              />
-              <Button variant="outline" size="sm" onClick={() => setSaveViewDialogOpen(true)} disabled={saveAsNewViewPending} className="shrink-0">
-                <BookmarkPlus className="h-4 w-4 mr-1" />
-                Save preferences
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleResetPreferences} disabled={resetPending} className="shrink-0">
-                <RotateCcw className="h-4 w-4 mr-1" />
-                Reset to default
-              </Button>
-              {savedViews.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
-                      Saved views ({savedViews.length})
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[200px]">
-                    {savedViews.map((v) => {
-                      const displayName = v.view_name === "default" ? "Default" : v.view_name;
-                      return (
-                        <Fragment key={v.id}>
-                          <DropdownMenuItem onSelect={() => applyView(v.filters as Record<string, string>)}>
-                            {displayName}
-                          </DropdownMenuItem>
-                          <DropdownMenuSub>
-                            <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
-                              Manage "{displayName}"
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                              <DropdownMenuItem
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  setRenameViewId(v.id);
-                                  setRenameViewName(displayName);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onSelect={async (e) => {
-                                  e.preventDefault();
-                                  try {
-                                    await deleteView(v.id);
-                                    toast.success("View deleted");
-                                  } catch {
-                                    toast.error("Failed to delete view");
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                          </DropdownMenuSub>
-                        </Fragment>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              <Select
-                value=""
-                onValueChange={(v) => {
-                  if (v === "my") {
-                    setAssigneeFilter(user?.id ?? "all");
-                    setPage(0);
-                  } else if (v === "unassigned") {
-                    setAssigneeFilter("unassigned");
-                    setPage(0);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-[160px] rounded-sm shrink-0">
-                  <LayoutList className="h-4 w-4 mr-1" />
-                  <SelectValue placeholder="Quick views" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="my">My pipeline</SelectItem>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mt-4">
+    <EntityPageShell
+      title="Leads"
+      subtitle="Manage your sales pipeline"
+      addButtonText="New Lead"
+      onAddClick={() => { setEditingLead(null); setDialogOpen(true); }}
+      headerActions={
+        <Button
+          variant="outline"
+          className="rounded-sm"
+          onClick={() => seedDemoLeadsMutation.mutate()}
+          disabled={seedDemoLeadsMutation.isPending}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          {seedDemoLeadsMutation.isPending ? "Adding…" : "Add 50 demo leads"}
+        </Button>
+      }
+      viewMode={viewMode}
+      onViewModeChange={(v) => v && setViewMode(v as "kanban" | "table")}
+      renderToolbar={() => leadsToolbar}
+      renderKanban={
+        <>
               {!isLoading && leads.length === 0 ? (
                 <LeadsEmptyState
                   hasActiveFilters={hasActiveFilters}
@@ -745,123 +664,30 @@ export default function Leads() {
                   onViewQuote={handleViewQuote}
                   onUnlinkQuote={handleUnlinkQuote}
                   selectedStatuses={statusFilter.length > 0 ? statusFilter : undefined}
+                  sortOption={sortOption}
+                  onSortOptionChange={(v) => setSortOption(v)}
                 />
               )}
-            </div>
-            {totalCount > 0 && (
-              <div className="flex items-center justify-between mt-section">
-                <div className="text-meta text-muted-foreground">
-                  Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
-                    Next
-                  </Button>
-                </div>
+          {totalCount > 0 && (
+            <div className="flex items-center justify-between mt-section">
+              <div className="text-meta text-muted-foreground">
+                Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
               </div>
-            )}
-          </TabsContent>
-          <TabsContent value="table" className="mt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <LeadFilters
-                search={searchInput}
-                onSearchChange={handleSearchChange}
-                statusFilter={statusFilter}
-                onStatusFilterChange={handleStatusFilterChange}
-                sourceFilter={sourceFilter}
-                onSourceFilterChange={handleSourceFilterChange}
-                assigneeFilter={assigneeFilter}
-                onAssigneeFilterChange={handleAssigneeFilterChange}
-                teamMembers={teamMembers}
-              />
-              <Button variant="outline" size="sm" onClick={() => setSaveViewDialogOpen(true)} disabled={saveAsNewViewPending} className="shrink-0">
-                <BookmarkPlus className="h-4 w-4 mr-1" />
-                Save preferences
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleResetPreferences} disabled={resetPending} className="shrink-0">
-                <RotateCcw className="h-4 w-4 mr-1" />
-                Reset to default
-              </Button>
-              {savedViews.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
-                      Saved views ({savedViews.length})
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[200px]">
-                    {savedViews.map((v) => {
-                      const displayName = v.view_name === "default" ? "Default" : v.view_name;
-                      return (
-                        <Fragment key={v.id}>
-                          <DropdownMenuItem onSelect={() => applyView(v.filters as Record<string, string>)}>
-                            {displayName}
-                          </DropdownMenuItem>
-                          <DropdownMenuSub>
-                            <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
-                              Manage "{displayName}"
-                            </DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                              <DropdownMenuItem
-                                onSelect={(e) => {
-                                  e.preventDefault();
-                                  setRenameViewId(v.id);
-                                  setRenameViewName(displayName);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onSelect={async (e) => {
-                                  e.preventDefault();
-                                  try {
-                                    await deleteView(v.id);
-                                    toast.success("View deleted");
-                                  } catch {
-                                    toast.error("Failed to delete view");
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuSubContent>
-                          </DropdownMenuSub>
-                        </Fragment>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              <Select
-                value=""
-                onValueChange={(v) => {
-                  if (v === "my") {
-                    setAssigneeFilter(user?.id ?? "all");
-                    setPage(0);
-                  } else if (v === "unassigned") {
-                    setAssigneeFilter("unassigned");
-                    setPage(0);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-[160px] rounded-sm shrink-0">
-                  <LayoutList className="h-4 w-4 mr-1" />
-                  <SelectValue placeholder="Quick views" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="my">My pipeline</SelectItem>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
+                  Next
+                </Button>
+              </div>
             </div>
-            <div className="mt-4">
-              {isLoading && leads.length === 0 ? (
+          )}
+        </>
+      }
+      renderTable={
+        <>
+          {isLoading && leads.length === 0 ? (
                 <LeadsTableSkeleton />
               ) : !isLoading && leads.length === 0 ? (
                 <LeadsEmptyState
@@ -923,29 +749,30 @@ export default function Leads() {
                     leadQuotes={leadQuotes}
                     onViewQuote={handleViewQuote}
                     onUnlinkQuote={handleUnlinkQuote}
+                    sortOption={sortOption}
+                    onSortOptionChange={(v) => setSortOption(v)}
                   />
                 </>
               )}
-            </div>
-            {totalCount > 0 && (
-              <div className="flex items-center justify-between mt-section">
-                <div className="text-meta text-muted-foreground">
-                  Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
-                    Next
-                  </Button>
-                </div>
+          {totalCount > 0 && (
+            <div className="flex items-center justify-between mt-section">
+              <div className="text-meta text-muted-foreground">
+                Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        <LeadDialog
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages - 1 || isLoading}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      }
+    >
+      <LeadDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           lead={editingLead}
@@ -1019,32 +846,6 @@ export default function Leads() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={!!renameViewId} onOpenChange={(open) => !open && setRenameViewId(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Rename view</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-2 py-2">
-              <Label htmlFor="rename-view-name">View name</Label>
-              <Input
-                id="rename-view-name"
-                value={renameViewName}
-                onChange={(e) => setRenameViewName(e.target.value)}
-                placeholder="View name"
-                onKeyDown={(e) => e.key === "Enter" && handleRenameView()}
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setRenameViewId(null); setRenameViewName(""); }}>
-                Cancel
-              </Button>
-              <Button onClick={handleRenameView} disabled={!renameViewName.trim()}>
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </DashboardLayout>
+    </EntityPageShell>
   );
 }

@@ -1,20 +1,12 @@
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { format } from "date-fns";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable, type DataTableColumn } from "@/components/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -24,304 +16,351 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Edit, MoreHorizontal, FileText, Phone, Mail, ArrowUpDown, ArrowUp, ArrowDown, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Edit, MoreHorizontal, FileText, Phone, Mail, Eye, Loader2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import type { Database } from "@/integrations/supabase/types";
+import type { CrmTeamMember } from "@/hooks/useCrmTeam";
+import { getSourceConfig } from "@/utils/sourceIcons";
+import {
+  sortLeads,
+  parseSortOption,
+  toSortOption,
+  type SortField,
+  type SortDirection,
+  type SortOption,
+} from "@/utils/leadSort";
+import { StatusPill, LEAD_STATUS_OPTIONS } from "./StatusPill";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
 type Quote = Database["public"]["Tables"]["quotes"]["Row"];
+type InlineEditField = "customer_name" | "customer_phone" | "customer_email";
 
 interface LeadTableProps {
   leads: Lead[];
+  teamMembers?: CrmTeamMember[];
   onEdit: (lead: Lead) => void;
+  onViewLead?: (lead: Lead) => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
+  onAssigneeChange?: (leadId: string, userId: string | null) => void;
+  onInlineUpdate?: (leadId: string, field: InlineEditField, value: string | null) => void;
+  savingCell?: { leadId: string; field: string } | null;
+  selectedLeadIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
   onCreateQuote?: (lead: Lead) => void;
   leadQuotes?: Record<string, Quote>;
   onViewQuote?: (leadId: string) => void;
   onUnlinkQuote?: (leadId: string) => void;
+  /** Sort controlled from toolbar */
+  sortOption: SortOption;
+  onSortOptionChange: (value: SortOption) => void;
 }
 
-type SortField = "customer_name" | "source" | "status" | "meeting_date" | "created_at";
-type SortDirection = "asc" | "desc";
+export function LeadTable({
+  leads,
+  teamMembers = [],
+  onEdit,
+  onViewLead,
+  onStatusChange,
+  onAssigneeChange,
+  onInlineUpdate,
+  savingCell,
+  selectedLeadIds = new Set(),
+  onSelectionChange,
+  onCreateQuote,
+  leadQuotes = {},
+  onViewQuote,
+  onUnlinkQuote,
+  sortOption,
+  onSortOptionChange,
+}: LeadTableProps) {
+  const { field: sortField, direction: sortDirection } = parseSortOption(sortOption);
+  const [editingCell, setEditingCell] = useState<{ leadId: string; field: InlineEditField } | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-const sourceLabels: Record<string, { label: string; icon: string }> = {
-  instagram: { label: "Instagram", icon: "📷" },
-  website: { label: "Website", icon: "🌐" },
-  architects: { label: "Architects", icon: "🏛️" },
-  organic: { label: "Organic", icon: "🌱" },
-  facebook: { label: "Facebook", icon: "📘" },
-};
+  useEffect(() => {
+    if (editingCell) inputRef.current?.focus();
+  }, [editingCell]);
 
-const statusOptions: { value: LeadStatus; label: string; color: string; order: number }[] = [
-  { value: "new", label: "0 - New", color: "bg-blue-500", order: 0 },
-  { value: "in_process", label: "1 - In Process", color: "bg-yellow-500", order: 1 },
-  { value: "meeting_scheduled", label: "2 - Meeting Scheduled", color: "bg-purple-500", order: 2 },
-  { value: "meeting_done", label: "2.5 - Meeting Done", color: "bg-indigo-500", order: 3 },
-  { value: "waiting_for_approval", label: "3 - Waiting for Approval", color: "bg-orange-500", order: 4 },
-  { value: "done", label: "4 - Done", color: "bg-green-500", order: 5 },
-  { value: "not_done", label: "Not Done", color: "bg-red-500", order: 6 },
-];
+  const handleStartEdit = useCallback((lead: Lead, field: InlineEditField) => {
+    const val = lead[field];
+    setEditingCell({ leadId: lead.id, field });
+    setEditValue(typeof val === "string" ? val : "");
+  }, []);
 
-export function LeadTable({ leads, onEdit, onStatusChange, onCreateQuote, leadQuotes = {}, onViewQuote, onUnlinkQuote }: LeadTableProps) {
-  const [sortField, setSortField] = useState<SortField>("created_at");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const handleCommitEdit = useCallback(() => {
+    if (!editingCell || !onInlineUpdate) return;
+    const trimmed = editValue.trim();
+    onInlineUpdate(editingCell.leadId, editingCell.field, trimmed || null);
+    setEditingCell(null);
+  }, [editingCell, editValue, onInlineUpdate]);
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, leadId: string, field: InlineEditField) => {
+    if (e.key === "Enter") { e.preventDefault(); handleCommitEdit(); }
+    if (e.key === "Escape") { setEditingCell(null); setEditValue(""); }
+  }, [handleCommitEdit]);
+
+  const handleHeaderSort = (field: string) => {
+    const f = field as SortField;
+    if (sortField === f) {
+      onSortOptionChange(toSortOption(f, sortDirection === "asc" ? "desc" : "asc"));
     } else {
-      setSortField(field);
-      setSortDirection("asc");
+      onSortOptionChange(toSortOption(f, "asc"));
     }
   };
 
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="h-4 w-4 ml-1" />;
-    }
-    return sortDirection === "asc" 
-      ? <ArrowUp className="h-4 w-4 ml-1" />
-      : <ArrowDown className="h-4 w-4 ml-1" />;
-  };
-
-  const sortedLeads = [...leads].sort((a, b) => {
-    let comparison = 0;
-
-    switch (sortField) {
-      case "customer_name":
-        comparison = a.customer_name.localeCompare(b.customer_name);
-        break;
-      case "source":
-        comparison = a.source.localeCompare(b.source);
-        break;
-      case "status":
-        const aOrder = statusOptions.find(s => s.value === a.status)?.order ?? 0;
-        const bOrder = statusOptions.find(s => s.value === b.status)?.order ?? 0;
-        comparison = aOrder - bOrder;
-        break;
-      case "meeting_date":
-        const aDate = a.meeting_date ? new Date(a.meeting_date).getTime() : 0;
-        const bDate = b.meeting_date ? new Date(b.meeting_date).getTime() : 0;
-        comparison = aDate - bDate;
-        break;
-      case "created_at":
-        comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        break;
-    }
-
-    return sortDirection === "asc" ? comparison : -comparison;
-  });
-
-  const getStatusBadge = (status: LeadStatus) => {
-    const statusOption = statusOptions.find(s => s.value === status);
-    return (
-      <Badge variant="outline" className="whitespace-nowrap">
-        <span className={`w-2 h-2 rounded-full ${statusOption?.color} mr-2`} />
-        {statusOption?.label || status}
-      </Badge>
-    );
-  };
-
-  const canCreateQuote = (lead: Lead) => 
+  const sortedLeads = sortLeads(leads, sortField, sortDirection, LEAD_STATUS_OPTIONS);
+  const canCreateQuote = (lead: Lead) =>
     !["done", "not_done", "waiting_for_approval"].includes(lead.status) && !leadQuotes[lead.id];
 
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 h-8 hover:bg-transparent"
-                onClick={() => handleSort("customer_name")}
-              >
-                Customer
-                {getSortIcon("customer_name")}
-              </Button>
-            </TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 h-8 hover:bg-transparent"
-                onClick={() => handleSort("source")}
-              >
-                Source
-                {getSortIcon("source")}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 h-8 hover:bg-transparent"
-                onClick={() => handleSort("status")}
-              >
-                Status
-                {getSortIcon("status")}
-              </Button>
-            </TableHead>
-            <TableHead>Quote</TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 h-8 hover:bg-transparent"
-                onClick={() => handleSort("meeting_date")}
-              >
-                Meeting Date
-                {getSortIcon("meeting_date")}
-              </Button>
-            </TableHead>
-            <TableHead>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="-ml-3 h-8 hover:bg-transparent"
-                onClick={() => handleSort("created_at")}
-              >
-                Created
-                {getSortIcon("created_at")}
-              </Button>
-            </TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedLeads.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                No leads found
-              </TableCell>
-            </TableRow>
+  const columns: DataTableColumn<Lead>[] = useMemo(() => [
+    {
+      id: "customer_name",
+      header: "Customer",
+      sortable: true,
+      sortKey: "customer_name",
+      minWidth: "160px",
+      render: (lead) => {
+        if (onInlineUpdate && editingCell?.leadId === lead.id && editingCell?.field === "customer_name") {
+          return (
+            <div className="flex items-center gap-1">
+              <Input
+                ref={inputRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleCommitEdit}
+                onKeyDown={(e) => handleKeyDown(e, lead.id, "customer_name")}
+                className="h-8 text-body rounded-sm"
+              />
+              {savingCell?.leadId === lead.id && savingCell?.field === "customer_name" && (
+                <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+              )}
+            </div>
+          );
+        }
+        return (
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className={`${onInlineUpdate || onViewLead ? "cursor-pointer rounded px-1 -mx-1 hover:bg-muted/80 min-h-[32px] flex flex-col justify-center" : ""} ${onViewLead ? "hover:underline" : ""}`}
+                  onClick={onInlineUpdate ? () => handleStartEdit(lead, "customer_name") : onViewLead ? () => onViewLead(lead) : undefined}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{lead.customer_name}</span>
+                  </div>
+                  {lead.customer_address && (
+                    <div className="text-meta text-muted-foreground">{lead.customer_address}</div>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top">{onViewLead ? "View lead" : "Click to edit"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
+    },
+    {
+      id: "contact",
+      header: "Contact",
+      render: (lead) => (
+        <div className="flex flex-col gap-1">
+          {onInlineUpdate && editingCell?.leadId === lead.id && editingCell?.field === "customer_phone" ? (
+            <div className="flex items-center gap-1">
+              <Phone className="h-3 w-3 shrink-0" />
+              <Input
+                ref={inputRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleCommitEdit}
+                onKeyDown={(e) => handleKeyDown(e, lead.id, "customer_phone")}
+                className="h-8 text-body"
+                dir="ltr"
+              />
+            </div>
           ) : (
-            sortedLeads.map((lead) => {
-              const quote = leadQuotes[lead.id];
-              return (
-                <TableRow key={lead.id}>
-                  <TableCell>
-                    <div className="font-medium">{lead.customer_name}</div>
-                    {lead.customer_address && (
-                      <div className="text-xs text-muted-foreground">{lead.customer_address}</div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {lead.customer_phone && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-3 w-3" />
-                          <span dir="ltr">{lead.customer_phone}</span>
-                          <a
-                            href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            💬
-                          </a>
-                        </div>
-                      )}
-                      {lead.customer_email && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          <span dir="ltr">{lead.customer_email}</span>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      <span className="flex items-center gap-1">
-                        <span>{sourceLabels[lead.source]?.icon || "📌"}</span>
-                        <span>{sourceLabels[lead.source]?.label || lead.source}</span>
-                      </span>
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={lead.status}
-                      onValueChange={(value: LeadStatus) => onStatusChange(lead.id, value)}
-                    >
-                      <SelectTrigger className="w-[180px] h-8">
-                        <SelectValue>
-                          {getStatusBadge(lead.status)}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statusOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <span className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${option.color}`} />
-                              {option.label}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {quote ? (
-                      <div className="flex items-center gap-1">
-                        <Badge variant="secondary" className="font-mono text-xs">
-                          {quote.quote_number}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => onViewQuote?.(lead.id)}
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {lead.meeting_date ? (
-                      <span className="text-sm">
-                        {format(new Date(lead.meeting_date), "dd/MM/yyyy")}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(lead.created_at), "dd/MM/yyyy")}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(lead)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        {onCreateQuote && canCreateQuote(lead) && (
-                          <DropdownMenuItem onClick={() => onCreateQuote(lead)}>
-                            <FileText className="h-4 w-4 mr-2" />
-                            Create Quote
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })
+            <div
+              className={onInlineUpdate ? "flex items-center gap-2 text-body cursor-pointer rounded px-1 -mx-1 hover:bg-muted/80 min-h-[32px]" : "flex items-center gap-2 text-body"}
+              onClick={onInlineUpdate ? () => handleStartEdit(lead, "customer_phone") : undefined}
+            >
+              {lead.customer_phone ? (
+                <>
+                  <Phone className="h-3 w-3 shrink-0" />
+                  <span dir="ltr">{lead.customer_phone}</span>
+                  <a href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700" onClick={(e) => e.stopPropagation()}>💬</a>
+                </>
+              ) : (
+                <span className="text-muted-foreground italic">{onInlineUpdate ? "Add phone" : "—"}</span>
+              )}
+            </div>
           )}
-        </TableBody>
-      </Table>
-    </div>
+          {onInlineUpdate && editingCell?.leadId === lead.id && editingCell?.field === "customer_email" ? (
+            <div className="flex items-center gap-1">
+              <Mail className="h-3 w-3 shrink-0" />
+              <Input
+                ref={inputRef}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleCommitEdit}
+                onKeyDown={(e) => handleKeyDown(e, lead.id, "customer_email")}
+                className="h-8 text-body"
+                dir="ltr"
+              />
+            </div>
+          ) : (
+            <div
+              className={onInlineUpdate ? "flex items-center gap-2 text-body text-muted-foreground cursor-pointer rounded px-1 -mx-1 hover:bg-muted/80 min-h-[32px]" : "flex items-center gap-2 text-body text-muted-foreground"}
+              onClick={onInlineUpdate ? () => handleStartEdit(lead, "customer_email") : undefined}
+            >
+              {lead.customer_email ? (
+                <><Mail className="h-3 w-3 shrink-0" /><span dir="ltr">{lead.customer_email}</span></>
+              ) : (
+                <span className={onInlineUpdate ? "italic" : ""}>{onInlineUpdate ? "Add email" : "—"}</span>
+              )}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: "source",
+      header: "Source",
+      sortable: true,
+      sortKey: "source",
+      render: (lead) => {
+        const { label, Icon } = getSourceConfig(lead.source);
+        return (
+          <Badge variant="outline">
+            <span className="flex items-center gap-1"><Icon className="h-3 w-3" /><span>{label}</span></span>
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "status",
+      header: "Status",
+      sortable: true,
+      sortKey: "status",
+      render: (lead) => <StatusPill leadId={lead.id} status={lead.status} onStatusChange={onStatusChange} />,
+    },
+    {
+      id: "assigned_to",
+      header: "Assigned to",
+      render: (lead) =>
+        onAssigneeChange && teamMembers.length > 0 ? (
+          <div className="flex items-center gap-1 min-w-[140px]">
+            <Select
+              value={lead.assigned_to ?? "unassigned"}
+              onValueChange={(v) => onAssigneeChange(lead.id, v === "unassigned" ? null : v)}
+              disabled={savingCell?.leadId === lead.id && savingCell?.field === "assigned_to"}
+            >
+              <SelectTrigger className="h-8 text-body rounded-sm"><SelectValue placeholder="Assign..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {teamMembers.map((m) => (
+                  <SelectItem key={m.user_id} value={m.user_id}>{m.full_name || m.email || m.user_id}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {savingCell?.leadId === lead.id && savingCell?.field === "assigned_to" && (
+              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+            )}
+          </div>
+        ) : (
+          lead.assigned_to ? (teamMembers.find((m) => m.user_id === lead.assigned_to)?.full_name || "—") : "—"
+        ),
+    },
+    {
+      id: "quote",
+      header: "Quote",
+      render: (lead) => {
+        const quote = leadQuotes[lead.id];
+        return quote ? (
+          <button type="button" onClick={() => onViewQuote?.(lead.id)} className="text-left hover:underline font-mono text-sm">
+            {quote.quote_number} ₪{quote.total.toLocaleString()}
+          </button>
+        ) : (
+          <span className="text-muted-foreground text-sm">None</span>
+        );
+      },
+    },
+    {
+      id: "meeting_date",
+      header: "Meeting Date",
+      sortable: true,
+      sortKey: "meeting_date",
+      render: (lead) => lead.meeting_date ? format(new Date(lead.meeting_date), "dd/MM/yyyy") : "—",
+    },
+    {
+      id: "created_at",
+      header: "Created",
+      sortable: true,
+      sortKey: "created_at",
+      render: (lead) => <span className="text-sm text-muted-foreground">{format(new Date(lead.created_at), "dd/MM/yyyy")}</span>,
+    },
+    {
+      id: "days_since_created",
+      header: "Days",
+      sortable: true,
+      sortKey: "days_since_created",
+      render: (lead) => (
+        <span className="text-sm text-muted-foreground">
+          {Math.floor((Date.now() - new Date(lead.created_at).getTime()) / 86400000)}
+        </span>
+      ),
+    },
+  ], [editingCell, editValue, savingCell, leadQuotes, teamMembers, onInlineUpdate, onViewLead, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
+
+  return (
+    <DataTable<Lead>
+      columns={columns}
+      data={sortedLeads}
+      getRowId={(l) => l.id}
+      emptyMessage="No leads found"
+      sortField={sortField}
+      sortDirection={sortDirection}
+      onHeaderSort={handleHeaderSort}
+      enableSelection={!!onSelectionChange}
+      selectedIds={selectedLeadIds}
+      onSelectionChange={onSelectionChange}
+      renderActions={(lead) => {
+        const quote = leadQuotes[lead.id];
+        return (
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-9 w-9 min-w-[44px] min-h-[44px] md:h-8 md:w-8" onClick={() => onEdit(lead)} aria-label="Edit lead">
+              <Edit className="h-4 w-4" />
+            </Button>
+            {onCreateQuote && canCreateQuote(lead) && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onCreateQuote(lead)} aria-label="Create quote">
+                <FileText className="h-4 w-4" />
+              </Button>
+            )}
+            {quote && onViewQuote && (
+              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100" onClick={() => onViewQuote(lead.id)} aria-label="View quote">
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(lead)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
+                {onCreateQuote && canCreateQuote(lead) && (
+                  <DropdownMenuItem onClick={() => onCreateQuote(lead)}><FileText className="h-4 w-4 mr-2" />Create Quote</DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      }}
+    />
   );
 }
