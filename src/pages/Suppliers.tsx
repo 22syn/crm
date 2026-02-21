@@ -64,11 +64,11 @@ export default function Suppliers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast({ title: "הספק נוצר בהצלחה" });
+      toast({ title: "Supplier created successfully" });
       setDialogOpen(false);
     },
     onError: () => {
-      toast({ title: "שגיאה ביצירת הספק", variant: "destructive" });
+      toast({ title: "Error creating supplier", variant: "destructive" });
     },
   });
 
@@ -79,12 +79,12 @@ export default function Suppliers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast({ title: "הספק עודכן בהצלחה" });
+      toast({ title: "Supplier updated successfully" });
       setDialogOpen(false);
       setSelectedSupplier(null);
     },
     onError: () => {
-      toast({ title: "שגיאה בעדכון הספק", variant: "destructive" });
+      toast({ title: "Error updating supplier", variant: "destructive" });
     },
   });
 
@@ -95,10 +95,10 @@ export default function Suppliers() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      toast({ title: "הספק נמחק בהצלחה" });
+      toast({ title: "Supplier deleted successfully" });
     },
     onError: () => {
-      toast({ title: "שגיאה במחיקת הספק", variant: "destructive" });
+      toast({ title: "Error deleting supplier", variant: "destructive" });
     },
   });
 
@@ -116,7 +116,7 @@ export default function Suppliers() {
   };
 
   const handleDelete = (supplier: Supplier) => {
-    if (confirm(`האם אתה בטוח שברצונך למחוק את הספק "${supplier.name}"?`)) {
+    if (confirm(`Are you sure you want to delete supplier "${supplier.name}"?`)) {
       deleteMutation.mutate(supplier.id);
     }
   };

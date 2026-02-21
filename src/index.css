@@ -144,6 +144,17 @@
     font-weight: 500;
   }
 
+  /* Kanban grid - responsive column width for mobile */
+  .kanban-grid {
+    grid-template-columns: repeat(var(--col-count, 8), minmax(220px, 1fr));
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (min-width: 768px) {
+    .kanban-grid {
+      grid-template-columns: repeat(var(--col-count, 8), minmax(280px, 1fr));
+    }
+  }
+
   /* Respect reduced motion for all animations */
   @media (prefers-reduced-motion: reduce) {
     *,

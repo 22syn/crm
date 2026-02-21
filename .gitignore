@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Maestro AI
+.agent/
+
+# Git worktrees
+.worktrees
+
+# Supabase CLI temp
+supabase/.temp/

@@ -20,7 +20,13 @@ import { toast } from "sonner";
 import { useTablePreferences } from "@/hooks/useTablePreferences";
 import type { EntityViewMode } from "@/components/entity-page";
 
-type DealStage = "proposal" | "negotiation" | "contract_sent" | "closed_won" | "closed_lost";
+type DealStage =
+  | "quote_approved"
+  | "in_production"
+  | "ready_for_delivery"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 interface Deal {
   id: string;

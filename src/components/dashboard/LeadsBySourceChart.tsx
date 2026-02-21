@@ -4,15 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
 const SOURCE_LABELS: Record<string, string> = {
-  whatsapp: "וואטסאפ",
-  manual: "ידני",
-  walkin: "נכנס לחנות",
-  website: "אתר",
-  referral: "הפניה",
-  instagram: "אינסטגרם",
-  campaign: "קמפיין",
-  architects: "אדריכלים",
-  facebook: "פייסבוק",
+  whatsapp: "WhatsApp",
+  manual: "Manual",
+  walkin: "Walk-in",
+  website: "Website",
+  referral: "Referral",
+  instagram: "Instagram",
+  campaign: "Campaign",
+  architects: "Architects",
+  facebook: "Facebook",
 };
 
 const COLORS = [
@@ -27,11 +27,19 @@ const COLORS = [
   "hsl(220 70% 55%)", // facebook blue
 ];
 
-export function LeadsBySourceChart() {
+interface LeadsBySourceChartProps {
+  assignedTo?: string | null;
+}
+
+export function LeadsBySourceChart({ assignedTo }: LeadsBySourceChartProps = {}) {
   const { data: chartData } = useQuery({
-    queryKey: ["leads-by-source"],
+    queryKey: ["leads-by-source", assignedTo],
     queryFn: async () => {
-      const { data } = await supabase.from("leads").select("source");
+      let q = supabase.from("leads").select("source");
+      if (assignedTo) {
+        q = q.eq("assigned_to", assignedTo);
+      }
+      const { data } = await q;
       if (!data) return [];
 
       const counts: Record<string, number> = {};
@@ -51,10 +59,10 @@ export function LeadsBySourceChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>לידים לפי מקור</CardTitle>
+          <CardTitle>Leads by Source</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px]">
-          <p className="text-muted-foreground">אין נתונים להצגה</p>
+          <p className="text-muted-foreground">No data to display</p>
         </CardContent>
       </Card>
     );
@@ -63,7 +71,7 @@ export function LeadsBySourceChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>לידים לפי מקור</CardTitle>
+        <CardTitle>Leads by Source</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -84,7 +92,7 @@ export function LeadsBySourceChart() {
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value: number) => [`${value} לידים`, ""]}
+              formatter={(value: number) => [`${value} leads`, ""]}
               contentStyle={{ 
                 backgroundColor: "hsl(var(--card))",
                 borderColor: "hsl(var(--border))",

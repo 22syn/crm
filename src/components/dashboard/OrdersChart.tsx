@@ -1,21 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { subMonths, format, startOfMonth } from "date-fns";
-import { he } from "date-fns/locale";
 
-export function OrdersChart() {
+interface OrdersChartProps {
+  assignedTo?: string | null;
+}
+
+export function OrdersChart({ assignedTo }: OrdersChartProps = {}) {
+  const navigate = useNavigate();
   const { data: chartData } = useQuery({
-    queryKey: ["deals-by-month"],
+    queryKey: ["deals-by-month", assignedTo],
     queryFn: async () => {
       const now = new Date();
       const sixMonthsAgo = subMonths(startOfMonth(now), 5);
 
-      const { data } = await supabase
+      let q = supabase
         .from("deals")
         .select("created_at, amount, stage")
         .gte("created_at", sixMonthsAgo.toISOString());
+      if (assignedTo) {
+        q = q.eq("assigned_to", assignedTo);
+      }
+      const { data } = await q;
 
       if (!data) return [];
 
@@ -33,16 +43,16 @@ export function OrdersChart() {
         if (monthlyData[monthKey]) {
           monthlyData[monthKey].count += 1;
           // Only count won deals for revenue
-          if (deal.stage === "closed_won") {
+          if (deal.stage === "delivered") {
             monthlyData[monthKey].revenue += Number(deal.amount);
           }
         }
       });
 
       return Object.entries(monthlyData).map(([month, data]) => ({
-        month: format(new Date(month + "-01"), "MMM", { locale: he }),
-        עסקאות: data.count,
-        הכנסות: data.revenue,
+        month: format(new Date(month + "-01"), "MMM"),
+        Deals: data.count,
+        Revenue: data.revenue,
       }));
     },
   });
@@ -51,10 +61,13 @@ export function OrdersChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>עסקאות לפי חודש</CardTitle>
+          <CardTitle>Deals by Month</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-[300px]">
-          <p className="text-muted-foreground">אין נתונים להצגה</p>
+        <CardContent className="flex flex-col items-center justify-center h-[300px] gap-4">
+          <p className="text-muted-foreground">No data to display</p>
+          <Button variant="outline" size="sm" onClick={() => navigate("/deals")}>
+            Create your first deal
+          </Button>
         </CardContent>
       </Card>
     );
@@ -63,7 +76,7 @@ export function OrdersChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>עסקאות לפי חודש</CardTitle>
+        <CardTitle>Deals by Month</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -81,7 +94,7 @@ export function OrdersChart() {
             />
             <Tooltip
               formatter={(value: number, name: string) => [
-                name === "הכנסות" ? `₪${value.toLocaleString()}` : value,
+                name === "Revenue" ? `₪${value.toLocaleString()}` : value,
                 name
               ]}
               contentStyle={{ 
@@ -91,7 +104,7 @@ export function OrdersChart() {
               }}
             />
             <Bar 
-              dataKey="עסקאות" 
+              dataKey="Deals" 
               fill="hsl(var(--primary))" 
               radius={[4, 4, 0, 0]}
             />

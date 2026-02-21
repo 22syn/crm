@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
-import { QuoteCard } from "@/components/quotes/QuoteCard";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
+import { QuoteKanban } from "@/components/quotes/QuoteKanban";
+import { QuoteFilters } from "@/components/quotes/QuoteFilters";
+import { QuoteTable } from "@/components/quotes/QuoteTable";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Loader2, Archive } from "lucide-react";
+import { Plus, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Quotes() {
@@ -175,7 +176,7 @@ export default function Quotes() {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       
-      let message = "Quote approved successfully";
+      let message = "Contract approved successfully";
       if (result.customerId) {
         message += " - Customer created";
       }
@@ -185,7 +186,26 @@ export default function Quotes() {
       toast.success(message);
     },
     onError: (error) => {
-      toast.error("Error approving quote: " + error.message);
+      toast.error("Error approving contract: " + error.message);
+    },
+  });
+
+  const updateQuoteStatusMutation = useMutation({
+    mutationFn: async ({ quoteId, status }: { quoteId: string; status: string }) => {
+      const { error } = await supabase
+        .from("quotes")
+        .update({ status })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["archived-quotes"] });
+      queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
+      toast.success("Contract updated");
+    },
+    onError: (error) => {
+      toast.error("Error updating contract: " + error.message);
     },
   });
 
@@ -211,14 +231,43 @@ export default function Quotes() {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["archived-quotes"] });
       queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
-      toast.success("Quote deleted successfully");
+      toast.success("Contract deleted successfully");
       setDeleteDialogOpen(false);
       setQuoteToDelete(null);
     },
     onError: (error) => {
-      toast.error("Error deleting quote: " + error.message);
+      toast.error("Error deleting contract: " + error.message);
     },
   });
+
+  const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
+
+  const getFilteredQuotes = () => {
+    let list: any[];
+    if (statusFilter === "all") list = quotes;
+    else if (statusFilter === "draft") list = draftQuotes;
+    else if (statusFilter === "sent") list = sentQuotes;
+    else if (statusFilter === "approved") list = approvedQuotes;
+    else list = archivedQuotes;
+
+    if (!search.trim()) return list;
+    const q = search.trim().toLowerCase();
+    return list.filter(
+      (x: any) =>
+        (x.customer_name || "").toLowerCase().includes(q) ||
+        (x.quote_number || "").toLowerCase().includes(q)
+    );
+  };
+
+  const getTableHandlers = () => {
+    const base = { onView: handleViewQuote, onDelete: handleDeleteQuote };
+    if (statusFilter === "all") return { ...base, onEdit: handleEditQuote, onApprove: handleApproveQuote };
+    if (statusFilter === "sent") return { ...base, onEdit: handleEditQuote, onApprove: handleApproveQuote };
+    if (statusFilter === "draft") return { ...base, onEdit: handleEditQuote };
+    return base;
+  };
 
   const draftQuotes = quotes.filter(q => q.status === "draft");
   const sentQuotes = quotes.filter(q => q.status === "sent");
@@ -251,170 +300,124 @@ export default function Quotes() {
     setDeleteDialogOpen(true);
   };
 
+  const handleQuoteStatusChange = (quoteId: string, newStatus: string) => {
+    const quote = quotes.find((q) => q.id === quoteId);
+    if (!quote) return;
+    if (newStatus === "approved") {
+      handleApproveQuote(quote);
+    } else {
+      updateQuoteStatusMutation.mutate({ quoteId, status: newStatus });
+    }
+  };
+
   const confirmDelete = () => {
     if (quoteToDelete) {
       deleteQuoteMutation.mutate(quoteToDelete.id);
     }
   };
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Quotes</h1>
-            <p className="text-muted-foreground">Manage and create customer quotes</p>
-          </div>
-          <Button onClick={() => setBuilderOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Quote
-          </Button>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : quotes.length === 0 && archivedQuotes.length === 0 ? (
+  if (quotes.length === 0 && archivedQuotes.length === 0 && !isLoading) {
+    return (
+      <EntityPageShell
+        title="Contracts"
+        subtitle="Manage and create customer contracts"
+        addButtonText="New Contract"
+        onAddClick={() => setBuilderOpen(true)}
+        viewMode="kanban"
+        onViewModeChange={() => {}}
+        renderKanban={null}
+        renderTable={null}
+        isEmpty
+        renderEmptyState={
           <div className="text-center py-12">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No Quotes</h3>
-            <p className="text-muted-foreground mt-1">Create your first quote</p>
+            <h3 className="text-lg font-medium">No Contracts</h3>
+            <p className="text-muted-foreground mt-1">Create your first contract</p>
             <Button className="mt-4" onClick={() => setBuilderOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Quote
+              Create Contract
             </Button>
           </div>
-        ) : (
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList>
-              <TabsTrigger value="all">All ({quotes.length})</TabsTrigger>
-              <TabsTrigger value="draft">Drafts ({draftQuotes.length})</TabsTrigger>
-              <TabsTrigger value="sent">Sent ({sentQuotes.length})</TabsTrigger>
-              <TabsTrigger value="approved">Approved ({approvedQuotes.length})</TabsTrigger>
-              {archivedQuotes.length > 0 && (
-                <TabsTrigger value="archived">
-                  <Archive className="h-4 w-4 mr-1" />
-                  Archived ({archivedQuotes.length})
-                </TabsTrigger>
-              )}
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {quotes.map((quote) => (
-                  <QuoteCard 
-                    key={quote.id} 
-                    quote={quote}
-                    onView={handleViewQuote}
-                    onConvertToOrder={handleApproveQuote}
-                    onEdit={handleEditQuote}
-                    onDelete={handleDeleteQuote}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="draft" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {draftQuotes.map((quote) => (
-                  <QuoteCard 
-                    key={quote.id} 
-                    quote={quote} 
-                    onView={handleViewQuote}
-                    onEdit={handleEditQuote}
-                    onDelete={handleDeleteQuote}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="sent" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sentQuotes.map((quote) => (
-                  <QuoteCard 
-                    key={quote.id} 
-                    quote={quote}
-                    onView={handleViewQuote}
-                    onConvertToOrder={handleApproveQuote}
-                    onEdit={handleEditQuote}
-                    onDelete={handleDeleteQuote}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="approved" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {approvedQuotes.map((quote) => (
-                  <QuoteCard 
-                    key={quote.id} 
-                    quote={quote} 
-                    onView={handleViewQuote}
-                    onDelete={handleDeleteQuote}
-                  />
-                ))}
-              </div>
-            </TabsContent>
+        }
+      />
+    );
+  }
 
-            {archivedQuotes.length > 0 && (
-              <TabsContent value="archived" className="mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {archivedQuotes.map((quote) => (
-                    <QuoteCard 
-                      key={quote.id} 
-                      quote={quote} 
-                      onView={handleViewQuote}
-                      onDelete={handleDeleteQuote}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
-            )}
-          </Tabs>
-        )}
-
-        <QuoteBuilder 
-          open={builderOpen} 
-          onOpenChange={setBuilderOpen}
+  return (
+    <EntityPageShell
+      title="Contracts"
+      subtitle="Manage and create customer contracts"
+      addButtonText="New Contract"
+      onAddClick={() => setBuilderOpen(true)}
+      viewMode={viewMode}
+      onViewModeChange={(m) => m !== "report" && setViewMode(m)}
+      renderKanban={
+        <QuoteKanban
+          quotes={getFilteredQuotes()}
+          isLoading={isLoading}
+          onView={handleViewQuote}
+          onEdit={handleEditQuote}
+          onStatusChange={handleQuoteStatusChange}
         />
-
-        {selectedQuote && (
-          <QuotePreview
-            open={previewOpen}
-            onOpenChange={setPreviewOpen}
-            customerName={selectedQuote.customer_name}
-            quoteNumber={selectedQuote.quote_number}
-            items={quoteItems}
-            subtotal={selectedQuote.subtotal}
-            discount={selectedQuote.discount || 0}
-            tax={selectedQuote.tax || 0}
-            total={selectedQuote.total}
-            validUntil={selectedQuote.valid_until ? new Date(selectedQuote.valid_until) : undefined}
-            notes={selectedQuote.notes}
+      }
+      renderTable={
+        <QuoteTable
+          quotes={getFilteredQuotes()}
+          onView={handleViewQuote}
+          onEdit={getTableHandlers().onEdit}
+          onApprove={getTableHandlers().onApprove}
+          onDelete={handleDeleteQuote}
+        />
+      }
+      renderToolbar={() => (
+        <EntityToolbar>
+          <QuoteFilters
+            search={search}
+            onSearchChange={setSearch}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            archivedCount={archivedQuotes.length}
           />
-        )}
+        </EntityToolbar>
+      )}
+    >
+      <QuoteBuilder open={builderOpen} onOpenChange={setBuilderOpen} />
 
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Quote</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete quote {quoteToDelete?.quote_number}? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={confirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
-    </DashboardLayout>
+      {selectedQuote && (
+        <QuotePreview
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          customerName={selectedQuote.customer_name}
+          quoteNumber={selectedQuote.quote_number}
+          items={quoteItems}
+          subtotal={selectedQuote.subtotal}
+          discount={selectedQuote.discount || 0}
+          tax={selectedQuote.tax || 0}
+          total={selectedQuote.total}
+          validUntil={selectedQuote.valid_until ? new Date(selectedQuote.valid_until) : undefined}
+          notes={selectedQuote.notes}
+        />
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contract</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete contract {quoteToDelete?.quote_number}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </EntityPageShell>
   );
 }

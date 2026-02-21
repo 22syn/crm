@@ -28,40 +28,40 @@ interface Automation {
 const automations: Automation[] = [
   {
     id: "1",
-    name: "שליחת הצעת מחיר במייל",
-    description: "שליחת הצעת מחיר אוטומטית ללקוח בלחיצת כפתור",
-    trigger: "לחיצה על 'שלח הצעה'",
-    action: "שליחת מייל עם PDF של ההצעה",
+    name: "Send quote by email",
+    description: "Automatically send a quote to the customer when clicking 'Send quote'",
+    trigger: "Click on 'Send quote'",
+    action: "Send email with PDF of the quote",
     status: "active",
     type: "webhook",
     icon: Mail,
   },
   {
     id: "2",
-    name: "קליטת לידים מהאתר",
-    description: "קליטה אוטומטית של לידים שממלאים טופס באתר",
-    trigger: "מילוי טופס יצירת קשר באתר",
-    action: "יצירת ליד חדש במערכת",
+    name: "Capture leads from website",
+    description: "Automatically capture leads who fill out the contact form on the website",
+    trigger: "Contact form submission on website",
+    action: "Create new lead in system",
     status: "active",
     type: "webhook",
     icon: Globe,
   },
   {
     id: "3",
-    name: "ארכיון הצעות מחיר",
-    description: "העברה אוטומטית לארכיון של הצעות מחיר שלא משויכות יותר מ-14 ימים",
-    trigger: "הצעה ללא שיוך מעל 14 ימים",
-    action: "העברת ההצעה לארכיון",
+    name: "Archive old quotes",
+    description: "Automatically move unassigned quotes older than 14 days to archive",
+    trigger: "Quote unassigned for more than 14 days",
+    action: "Move quote to archive",
     status: "active",
     type: "scheduled",
     icon: Archive,
   },
   {
     id: "4",
-    name: "הזמנה לספקים בוואטסאפ",
-    description: "יצירת הודעת וואטסאפ אוטומטית לספקים עם פרטי ההזמנה",
-    trigger: "אישור הצעת מחיר",
-    action: "יצירת קישור וואטסאפ עם סיכום ההזמנה",
+    name: "WhatsApp supplier booking",
+    description: "Create automatic WhatsApp message to suppliers with order details",
+    trigger: "Quote approval",
+    action: "Create WhatsApp link with order summary",
     status: "active",
     type: "system",
     icon: MessageSquare,
@@ -95,7 +95,7 @@ const AutomationCard = ({ automation }: { automation: Automation }) => {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={automation.status === "active" ? "default" : "secondary"}>
-              {automation.status === "active" ? "פעיל" : "כבוי"}
+              {automation.status === "active" ? "Active" : "Inactive"}
             </Badge>
           </div>
         </div>
@@ -103,11 +103,11 @@ const AutomationCard = ({ automation }: { automation: Automation }) => {
       <CardContent className="space-y-3">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">טריגר</p>
+            <p className="text-muted-foreground text-xs">Trigger</p>
             <p className="font-medium">{automation.trigger}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">פעולה</p>
+            <p className="text-muted-foreground text-xs">Action</p>
             <p className="font-medium">{automation.action}</p>
           </div>
         </div>
@@ -122,13 +122,13 @@ const AutomationCard = ({ automation }: { automation: Automation }) => {
             {automation.type === "scheduled" && (
               <Badge variant="outline" className="text-xs">
                 <Clock className="h-3 w-3 mr-1" />
-                מתוזמן
+                Scheduled
               </Badge>
             )}
             {automation.type === "system" && (
               <Badge variant="outline" className="text-xs">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                מערכת
+                System
               </Badge>
             )}
           </div>
@@ -151,15 +151,15 @@ const Automations = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">אוטומציות</h1>
+            <h1 className="text-3xl font-bold">Automations</h1>
             <p className="text-muted-foreground mt-1">
-              צפייה בכל האוטומציות הפעילות במערכת
+              View all active automations in the system
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-sm py-1 px-3">
               <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
-              {activeCount} אוטומציות פעילות
+              {activeCount} active automations
             </Badge>
           </div>
         </div>
@@ -174,7 +174,7 @@ const Automations = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{activeCount}</p>
-                  <p className="text-sm text-muted-foreground">אוטומציות פעילות</p>
+                  <p className="text-sm text-muted-foreground">Active automations</p>
                 </div>
               </div>
             </CardContent>
@@ -200,7 +200,7 @@ const Automations = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">1</p>
-                  <p className="text-sm text-muted-foreground">משימות מתוזמנות</p>
+                  <p className="text-sm text-muted-foreground">Scheduled tasks</p>
                 </div>
               </div>
             </CardContent>
@@ -220,10 +220,10 @@ const Automations = () => {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="space-y-1">
-                <p className="font-medium">מידע על האוטומציות</p>
+                <p className="font-medium">About automations</p>
                 <p className="text-sm text-muted-foreground">
-                  האוטומציות במערכת פועלות ברקע ומבצעות פעולות אוטומטיות בהתאם לטריגרים מוגדרים.
-                  לבקשת שינויים או הוספת אוטומציות חדשות, פנה למנהל המערכת.
+                  Automations run in the background and perform actions based on defined triggers.
+                  To request changes or add new automations, contact the system administrator.
                 </p>
               </div>
             </div>

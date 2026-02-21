@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, Handshake } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { he } from "date-fns/locale";
 
 interface ActivityItem {
   id: string;
@@ -12,26 +11,38 @@ interface ActivityItem {
   timestamp: Date;
 }
 
-export function ActivityFeed() {
+interface ActivityFeedProps {
+  assignedTo?: string | null;
+}
+
+export function ActivityFeed({ assignedTo }: ActivityFeedProps = {}) {
   const { data: activities } = useQuery({
-    queryKey: ["recent-activity"],
+    queryKey: ["recent-activity", assignedTo],
     queryFn: async () => {
+      let leadsQuery = supabase
+        .from("leads")
+        .select("id, customer_name, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (assignedTo) {
+        leadsQuery = leadsQuery.eq("assigned_to", assignedTo);
+      }
+      let dealsQuery = supabase
+        .from("deals")
+        .select("id, title, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (assignedTo) {
+        dealsQuery = dealsQuery.eq("assigned_to", assignedTo);
+      }
       const [leadsRes, quotesRes, dealsRes] = await Promise.all([
-        supabase
-          .from("leads")
-          .select("id, customer_name, created_at")
-          .order("created_at", { ascending: false })
-          .limit(5),
+        leadsQuery,
         supabase
           .from("quotes")
           .select("id, customer_name, quote_number, created_at")
           .order("created_at", { ascending: false })
           .limit(5),
-        supabase
-          .from("deals")
-          .select("id, title, created_at")
-          .order("created_at", { ascending: false })
-          .limit(5),
+        dealsQuery,
       ]);
 
       const items: ActivityItem[] = [];
@@ -40,7 +51,7 @@ export function ActivityFeed() {
         items.push({
           id: lead.id,
           type: "lead",
-          title: `ליד חדש: ${lead.customer_name}`,
+          title: `New lead: ${lead.customer_name}`,
           timestamp: new Date(lead.created_at),
         });
       });
@@ -49,7 +60,7 @@ export function ActivityFeed() {
         items.push({
           id: quote.id,
           type: "quote",
-          title: `הצעת מחיר ${quote.quote_number} ל${quote.customer_name}`,
+          title: `Quote ${quote.quote_number} for ${quote.customer_name}`,
           timestamp: new Date(quote.created_at),
         });
       });
@@ -58,7 +69,7 @@ export function ActivityFeed() {
         items.push({
           id: deal.id,
           type: "deal",
-          title: `עסקה חדשה: ${deal.title}`,
+          title: `New deal: ${deal.title}`,
           timestamp: new Date(deal.created_at),
         });
       });
@@ -84,12 +95,12 @@ export function ActivityFeed() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>פעילות אחרונה</CardTitle>
+        <CardTitle>Recent activity</CardTitle>
       </CardHeader>
       <CardContent>
         {!activities || activities.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            עדיין אין פעילות להצגה
+            No activity yet
           </p>
         ) : (
           <div className="space-y-4">
@@ -99,7 +110,7 @@ export function ActivityFeed() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{activity.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(activity.timestamp, { addSuffix: true, locale: he })}
+                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                   </p>
                 </div>
               </div>

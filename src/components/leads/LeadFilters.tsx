@@ -67,8 +67,8 @@ export function LeadFilters({
       : `${statusFilter.length} statuses`;
 
   return (
-    <div className="flex flex-col sm:flex-row gap-tight">
-      <div className="relative flex-1 max-w-sm">
+    <div className="flex flex-col sm:flex-row gap-tight w-full">
+      <div className="relative flex-1 min-w-0 w-full sm:max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by name, email, phone..."

@@ -53,6 +53,10 @@ function getDateRange(range: TimeRange): { start: Date; end: Date } {
   switch (range) {
     case "week":
       return { start: startOfWeek(now), end: endOfWeek(now) };
+    case "last_week": {
+      const lastWeek = subWeeks(now, 1);
+      return { start: startOfWeek(lastWeek), end: endOfWeek(lastWeek) };
+    }
     case "month":
       return { start: startOfMonth(now), end: endOfMonth(now) };
     case "quarter":
@@ -66,6 +70,8 @@ function getPreviousRange(range: TimeRange): { start: Date; end: Date } {
   switch (range) {
     case "week":
       return { start: startOfWeek(subWeeks(now, 1)), end: endOfWeek(subWeeks(now, 1)) };
+    case "last_week":
+      return { start: startOfWeek(subWeeks(now, 2)), end: endOfWeek(subWeeks(now, 2)) };
     case "month":
       return { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) };
     case "quarter":
@@ -128,14 +134,14 @@ export function StatsCards({ timeRange, role, userId }: StatsCardsProps) {
       ).length;
       const openQuotes = quotes.filter(q => ["draft", "sent"].includes(q.status)).length;
       const totalRevenue = deals
-        .filter(d => d.stage === "closed_won")
+        .filter(d => d.stage === "delivered")
         .reduce((sum, d) => sum + Number(d.amount), 0);
 
       const doneLeads = leads.filter(l => l.status === "done").length;
       const closedLeads = leads.filter(l => ["done", "not_done"].includes(l.status)).length;
       const conversionRate = closedLeads > 0 ? Math.round((doneLeads / closedLeads) * 100) : 0;
 
-      const activeDeals = deals.filter(d => !["closed_won", "closed_lost"].includes(d.stage)).length;
+      const activeDeals = deals.filter(d => !["delivered", "cancelled"].includes(d.stage)).length;
 
       const currDeals = currDealsResult.count || 0;
       const prevDeals = prevDealsResult.count || 0;
@@ -156,7 +162,10 @@ export function StatsCards({ timeRange, role, userId }: StatsCardsProps) {
     },
   });
 
-  const periodLabel = timeRange === "week" ? "This Week" : timeRange === "quarter" ? "This Quarter" : "This Month";
+  const periodLabel =
+    timeRange === "week" ? "This Week" :
+    timeRange === "last_week" ? "Last Week" :
+    timeRange === "quarter" ? "This Quarter" : "This Month";
 
   const statCards = [
     {
@@ -176,17 +185,17 @@ export function StatsCards({ timeRange, role, userId }: StatsCardsProps) {
       trend: null as number | null,
     },
     {
-      title: "Open Quotes",
+      title: "Open Contracts",
       value: stats?.openQuotes ?? 0,
       description: "Awaiting approval",
       icon: FileText,
-      href: "/quotes",
+      href: "/contracts",
       trend: null as number | null,
     },
     {
       title: `Deals ${periodLabel}`,
       value: stats?.currDeals ?? 0,
-      description: `vs previous ${timeRange}`,
+      description: timeRange === "last_week" ? "vs week before" : `vs previous ${timeRange}`,
       icon: Handshake,
       href: "/deals",
       trend: stats?.dealsTrend ?? null,

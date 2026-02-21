@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 
 const dealSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  stage: z.enum(["proposal", "negotiation", "contract_sent", "closed_won", "closed_lost"]),
+  stage: z.enum(["quote_approved", "in_production", "ready_for_delivery", "shipped", "delivered", "cancelled"]),
   amount: z.coerce.number().min(0, "Amount cannot be negative"),
   expected_close_date: z.date().nullable(),
   probability: z.number().min(0).max(100),
@@ -69,11 +69,12 @@ interface DealDialogProps {
 }
 
 const STAGES = [
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "contract_sent", label: "Contract Sent" },
-  { value: "closed_won", label: "Closed Won" },
-  { value: "closed_lost", label: "Closed Lost" },
+  { value: "quote_approved", label: "Quote Approved" },
+  { value: "in_production", label: "In Production" },
+  { value: "ready_for_delivery", label: "Ready for Delivery" },
+  { value: "shipped", label: "Shipped" },
+  { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 export function DealDialog({ open, onOpenChange, deal, onSubmit, isLoading }: DealDialogProps) {
@@ -81,7 +82,7 @@ export function DealDialog({ open, onOpenChange, deal, onSubmit, isLoading }: De
     resolver: zodResolver(dealSchema),
     defaultValues: {
       title: "",
-      stage: "proposal",
+      stage: "quote_approved",
       amount: 0,
       expected_close_date: null,
       probability: 50,
@@ -116,7 +117,7 @@ export function DealDialog({ open, onOpenChange, deal, onSubmit, isLoading }: De
     } else {
       form.reset({
         title: "",
-        stage: "proposal",
+        stage: "quote_approved",
         amount: 0,
         expected_close_date: null,
         probability: 50,

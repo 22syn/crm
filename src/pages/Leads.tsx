@@ -450,10 +450,10 @@ export default function Leads() {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      toast.success("Quote unlinked from lead");
+      toast.success("Contract unlinked from lead");
     },
     onError: (error) => {
-      toast.error("Failed to unlink quote: " + error.message);
+      toast.error("Failed to unlink contract: " + error.message);
     },
   });
 
@@ -469,10 +469,10 @@ export default function Leads() {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.invalidateQueries({ queryKey: ["lead-quotes"] });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
-      toast.success("Quote associated with lead");
+      toast.success("Contract associated with lead");
     },
     onError: (error) => {
-      toast.error("Failed to associate quote: " + error.message);
+      toast.error("Failed to associate contract: " + error.message);
     },
   });
 
@@ -575,7 +575,7 @@ export default function Leads() {
 
   const sortSelect = (
     <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
-      <SelectTrigger className="w-[220px] h-8 rounded-sm shrink-0">
+      <SelectTrigger className="min-w-[140px] sm:w-[220px] h-8 rounded-sm shrink-0">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -629,12 +629,13 @@ export default function Leads() {
       headerActions={
         <Button
           variant="outline"
-          className="rounded-sm"
+          className="rounded-sm shrink-0 text-sm"
           onClick={() => seedDemoLeadsMutation.mutate()}
           disabled={seedDemoLeadsMutation.isPending}
         >
-          <Sparkles className="h-4 w-4 mr-2" />
-          {seedDemoLeadsMutation.isPending ? "Adding…" : "Add 50 demo leads"}
+          <Sparkles className="h-4 w-4 mr-2 shrink-0" />
+          <span className="hidden sm:inline">{seedDemoLeadsMutation.isPending ? "Adding…" : "Add 50 demo leads"}</span>
+          <span className="sm:hidden">{seedDemoLeadsMutation.isPending ? "…" : "Demo"}</span>
         </Button>
       }
       viewMode={viewMode}
@@ -669,11 +670,11 @@ export default function Leads() {
                 />
               )}
           {totalCount > 0 && (
-            <div className="flex items-center justify-between mt-section">
-              <div className="text-meta text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-section">
+              <div className="text-meta text-muted-foreground shrink-0">
                 Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
                   Previous
                 </Button>
@@ -701,10 +702,10 @@ export default function Leads() {
               ) : (
                 <>
                   {selectedLeadIds.size > 0 && (
-                    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-3 rounded-sm border bg-card px-4 py-2 mb-4 shadow-sm">
-                      <span className="text-body font-medium">{selectedLeadIds.size} selected</span>
+                    <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 sm:gap-3 rounded-sm border bg-card px-3 sm:px-4 py-2 mb-4 shadow-sm">
+                      <span className="text-body font-medium shrink-0">{selectedLeadIds.size} selected</span>
                       <Select onValueChange={(v) => handleBulkStatusChange(v as Lead["status"])}>
-                        <SelectTrigger className="w-[200px] h-8">
+                        <SelectTrigger className="min-w-[120px] sm:w-[200px] h-8 shrink-0">
                           <SelectValue placeholder="Change status..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -716,7 +717,7 @@ export default function Leads() {
                         </SelectContent>
                       </Select>
                       <Select onValueChange={(v) => handleBulkAssign(v === "unassigned" ? null : v)}>
-                        <SelectTrigger className="w-[200px] h-8">
+                        <SelectTrigger className="min-w-[120px] sm:w-[200px] h-8 shrink-0">
                           <SelectValue placeholder="Assign to..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -755,11 +756,11 @@ export default function Leads() {
                 </>
               )}
           {totalCount > 0 && (
-            <div className="flex items-center justify-between mt-section">
-              <div className="text-meta text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-section">
+              <div className="text-meta text-muted-foreground shrink-0">
                 Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || isLoading}>
                   Previous
                 </Button>

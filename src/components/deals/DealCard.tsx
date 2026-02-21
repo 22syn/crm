@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, Pencil, User } from "lucide-react";
+import { Calendar, DollarSign, GripVertical, Pencil, User } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
@@ -46,22 +46,31 @@ export function DealCard({ deal, onEdit }: DealCardProps) {
     id: deal.id,
   });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-  };
+  const style: React.CSSProperties = isDragging
+    ? {
+        transform: CSS.Translate.toString(transform),
+        opacity: 0.5,
+      }
+    : {};
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      {...listeners}
-      {...attributes}
-      className="w-full flex-shrink-0 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow"
+      className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-sm cursor-grab active:cursor-grabbing transition-shadow duration-200 ease-out shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-card motion-reduce:transition-none"
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium text-sm line-clamp-2">{deal.title}</h3>
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+            <h3 className="font-medium text-sm line-clamp-2">{deal.title}</h3>
+          </div>
           <Button
             variant="ghost"
             size="icon"

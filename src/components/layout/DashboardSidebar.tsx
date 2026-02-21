@@ -11,6 +11,9 @@ import {
   SidebarMenuButton,
   SidebarHeader,
   SidebarFooter,
+  SidebarRail,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -18,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -42,7 +46,7 @@ const primaryItems = [
 
 const menuItems = [
   { title: "Leads", url: "/leads", icon: Users },
-  { title: "Quotes", url: "/quotes", icon: FileText },
+  { title: "Contracts", url: "/contracts", icon: FileText },
   { title: "Deals", url: "/deals", icon: Handshake },
   { title: "Designs", url: "/design-requests", icon: Palette },
 ];
@@ -59,14 +63,19 @@ const adminItems = [
 export function DashboardSidebar() {
   const location = useLocation();
   const { user, role, signOut } = useAuth();
+  const { state } = useSidebar();
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="flex flex-col items-center w-full">
-            <span className="text-xl font-bold tracking-tight text-sidebar-foreground">Hadarya CRM</span>
-            <span className="text-[10px] tracking-[0.2em] text-sidebar-foreground/60 uppercase">Premium Management</span>
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2"
+        >
+          <div className="flex flex-col items-center w-full min-w-0 group-data-[collapsible=icon]:items-center">
+            <span className="text-xl font-bold tracking-tight text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">Hadarya CRM</span>
+            <LayoutDashboard className="h-5 w-5 shrink-0 text-sidebar-foreground hidden group-data-[collapsible=icon]:block" />
+            <span className="text-[10px] tracking-[0.2em] text-sidebar-foreground/60 uppercase group-data-[collapsible=icon]:hidden">Premium Management</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -77,7 +86,7 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {primaryItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
                     <Link to={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -89,12 +98,15 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="flex items-center justify-between gap-2">
+            <span>Menu</span>
+            <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:hidden" />
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
                     <Link to={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
@@ -113,7 +125,7 @@ export function DashboardSidebar() {
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                    <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
                       <Link to={item.url}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
@@ -129,20 +141,30 @@ export function DashboardSidebar() {
 
       <SidebarFooter className="border-t p-2">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start gap-2 px-2">
-              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                <User className="h-4 w-4" />
-              </div>
-              <div className="flex flex-col items-start text-sm">
-                <span className="font-medium truncate max-w-[140px]">
-                  {user?.email}
-                </span>
-                <span className="text-xs text-muted-foreground capitalize">{role}</span>
-              </div>
-              <ChevronUp className="ml-auto h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:w-8"
+                >
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <div className="flex flex-col items-start text-sm min-w-0 group-data-[collapsible=icon]:hidden">
+                    <span className="font-medium truncate max-w-[140px]">
+                      {user?.email}
+                    </span>
+                    <span className="text-xs text-muted-foreground capitalize">{role}</span>
+                  </div>
+                  <ChevronUp className="ml-auto h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right" align="center" hidden={state !== "collapsed"}>
+              {user?.email}
+            </TooltipContent>
+          </Tooltip>
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -151,6 +173,7 @@ export function DashboardSidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }

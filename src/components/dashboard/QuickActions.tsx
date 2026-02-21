@@ -9,7 +9,7 @@ export function QuickActions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>פעולות מהירות</CardTitle>
+        <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <Button 
@@ -18,15 +18,15 @@ export function QuickActions() {
           onClick={() => navigate("/leads")}
         >
           <Plus className="h-4 w-4 mr-2" />
-          ליד חדש
+          New Lead
         </Button>
         <Button 
           className="w-full justify-start" 
           variant="outline"
-          onClick={() => navigate("/quotes")}
+          onClick={() => navigate("/contracts")}
         >
           <FileText className="h-4 w-4 mr-2" />
-          הצעת מחיר חדשה
+          New Quote
         </Button>
         <Button 
           className="w-full justify-start" 
@@ -34,7 +34,7 @@ export function QuickActions() {
           onClick={() => navigate("/leads?filter=no-meeting")}
         >
           <AlertCircle className="h-4 w-4 mr-2" />
-          לידים לטיפול
+          Leads to Follow Up
         </Button>
       </CardContent>
     </Card>

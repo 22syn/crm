@@ -246,7 +246,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
 
         if (response.error) {
           console.error("Email send error:", response.error);
-          toast.warning("Quote saved, but email failed to send");
+          toast.warning("Contract saved, but email failed to send");
           return quote;
         }
       }
@@ -264,12 +264,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     onSuccess: (quote, sendEmail) => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
-      toast.success(sendEmail ? "Quote saved and sent!" : "Quote saved as draft");
+      toast.success(sendEmail ? "Contract saved and sent!" : "Contract saved as draft");
       resetForm();
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("Error saving quote: " + error.message);
+      toast.error("Error saving contract: " + error.message);
     },
     onSettled: () => {
       setIsSending(false);
@@ -312,7 +312,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     if (!customerPhone) return "";
     const phone = customerPhone.replace(/\D/g, "");
     const message = encodeURIComponent(
-      `Hello ${customerName}, please find your quote for ₪${total.toFixed(2)}. For more details, please contact us.`
+      `Hello ${customerName}, please find your contract for ₪${total.toFixed(2)}. For more details, please contact us.`
     );
     return `https://wa.me/${phone}?text=${message}`;
   };
@@ -321,7 +321,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Create Quote {lead && `for ${lead.customer_name}`}</DialogTitle>
+          <DialogTitle>Create Contract {lead && `for ${lead.customer_name}`}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -405,7 +405,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             </ScrollArea>
           </div>
 
-          {/* Quote Details */}
+          {/* Contract Details */}
           <div className="flex flex-col min-h-0">
             <div className="space-y-3 mb-4">
               <div className="grid grid-cols-2 gap-2">
@@ -445,11 +445,11 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
               </div>
             </div>
 
-            <Label className="mb-2">Quote Items</Label>
+            <Label className="mb-2">Contract Items</Label>
             <ScrollArea className="flex-1 border rounded-md p-2 min-h-[150px]">
               {items.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>Click on a product to add to quote</p>
+                  <p>Click on a product to add to contract</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -577,7 +577,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Additional notes for the quote..."
+                placeholder="Additional notes for the contract..."
                 className="h-16"
               />
             </div>

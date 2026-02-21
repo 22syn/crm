@@ -70,11 +70,11 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-users"] });
-      toast.success("הרשאה הוקצתה בהצלחה");
+      toast.success("Permission assigned successfully");
       setNewUserEmail("");
     },
     onError: (error) => {
-      toast.error("שגיאה בהקצאת הרשאה: " + error.message);
+      toast.error("Error assigning permission: " + error.message);
     },
   });
 
@@ -85,20 +85,20 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-users"] });
-      toast.success("הרשאה הוסרה בהצלחה");
+      toast.success("Permission removed successfully");
     },
     onError: (error) => {
-      toast.error("שגיאה בהסרת הרשאה: " + error.message);
+      toast.error("Error removing permission: " + error.message);
     },
   });
 
   if (role !== "admin") {
     return (
       <DashboardLayout>
-        <div className="text-center py-12" dir="rtl">
-          <h1 className="text-2xl font-bold">אין גישה</h1>
+        <div className="text-center py-12" >
+          <h1 className="text-2xl font-bold">Access denied</h1>
           <p className="text-muted-foreground mt-2">
-            רק מנהלים יכולים לגשת להגדרות.
+            Only admins can access settings.
           </p>
         </div>
       </DashboardLayout>
@@ -107,39 +107,39 @@ export default function Settings() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6" dir="rtl">
+      <div className="space-y-6 p-6" >
         <div>
-          <h1 className="text-3xl font-bold">הגדרות</h1>
-          <p className="text-muted-foreground">ניהול הגדרות המערכת והצוות</p>
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">Manage system and team settings</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>חברי צוות</CardTitle>
+            <CardTitle>Team members</CardTitle>
             <CardDescription>
-              ניהול גישה למערכת והרשאות.
+              Manage system access and permissions.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex gap-4 items-end">
               <div className="flex-1 space-y-2">
-                <Label htmlFor="user-email">אימייל משתמש</Label>
+                <Label htmlFor="user-email">User email</Label>
                 <Input
                   id="user-email"
-                  placeholder="הכנס אימייל של משתמש שנרשם למערכת"
+                  placeholder="Enter email of a user registered in the system"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                 />
               </div>
               <div className="w-32 space-y-2">
-                <Label>תפקיד</Label>
+                <Label>Role</Label>
                 <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as "admin" | "sales")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">מנהל</SelectItem>
-                    <SelectItem value="sales">מכירות</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -152,7 +152,7 @@ export default function Settings() {
                     .limit(1);
 
                   if (!profiles?.length) {
-                    toast.error("משתמש לא נמצא. המשתמש צריך להירשם קודם.");
+                    toast.error("User not found. The user must sign up first.");
                     return;
                   }
 
@@ -168,17 +168,17 @@ export default function Settings() {
                 ) : (
                   <UserPlus className="h-4 w-4 ml-2" />
                 )}
-                הוסף
+                Add
               </Button>
             </div>
 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-right">שם</TableHead>
-                  <TableHead className="text-right">אימייל</TableHead>
-                  <TableHead className="text-right">תפקיד</TableHead>
-                  <TableHead className="text-right">נוסף</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Added</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -192,7 +192,7 @@ export default function Settings() {
                 ) : users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      אין חברי צוות עדיין
+                      No team members yet
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -202,11 +202,11 @@ export default function Settings() {
                       <TableCell>{user.profile?.email || "—"}</TableCell>
                       <TableCell>
                         <Badge variant={user.role === "admin" ? "default" : "secondary"}>
-                          {user.role === "admin" ? "מנהל" : "מכירות"}
+                          {user.role === "admin" ? "Admin" : "Sales"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(user.created_at).toLocaleDateString("he-IL")}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -228,9 +228,9 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>אינטגרציות</CardTitle>
+            <CardTitle>Integrations</CardTitle>
             <CardDescription>
-              חיבור שירותים חיצוניים למערכת.
+              Connect external services to the system.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -238,37 +238,37 @@ export default function Settings() {
               <div>
                 <h3 className="font-medium">Shopify</h3>
                 <p className="text-sm text-muted-foreground">
-                  סנכרון מוצרים והזמנות מחנות Shopify
+                  Sync products and orders from Shopify store
                 </p>
               </div>
-              <Badge>מחובר</Badge>
+              <Badge>Connected</Badge>
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <h3 className="font-medium">Green Invoice</h3>
                 <p className="text-sm text-muted-foreground">
-                  הפקת חשבוניות מס ישראליות
+                  Generate Israeli tax invoices
                 </p>
               </div>
-              <Badge variant="outline">בקרוב</Badge>
+              <Badge variant="outline">Coming soon</Badge>
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
-                <h3 className="font-medium">Resend (אימייל)</h3>
+                <h3 className="font-medium">Resend (Email)</h3>
                 <p className="text-sm text-muted-foreground">
-                  שליחת הצעות מחיר ועדכונים במייל
+                  Send quotes and updates by email
                 </p>
               </div>
-              <Badge>מחובר</Badge>
+              <Badge>Connected</Badge>
             </div>
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div>
                 <h3 className="font-medium">WhatsApp</h3>
                 <p className="text-sm text-muted-foreground">
-                  שליחת הודעות ללקוחות דרך וואטסאפ
+                  Send messages to customers via WhatsApp
                 </p>
               </div>
-              <Badge>פעיל (קישורים ידניים)</Badge>
+              <Badge>Active (manual links)</Badge>
             </div>
           </CardContent>
         </Card>

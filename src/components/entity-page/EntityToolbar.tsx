@@ -96,15 +96,15 @@ export function EntityToolbar({
   const showViews = quickViews.length > 0 || showSavedViews;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 gap-y-3">
       {/* Group 1: Filters */}
-      <div className="flex flex-wrap items-center gap-2 pr-2 mr-2 border-r border-muted/50">
+      <div className="flex flex-wrap items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
         {children}
       </div>
 
       {/* Group 2: Views */}
       {showViews && (
-        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50">
+        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
@@ -170,24 +170,25 @@ export function EntityToolbar({
 
       {/* Group 3: Sort */}
       {renderSort && (
-        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50">
+        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
           {renderSort}
         </div>
       )}
 
       {/* Group 4: Save / Reset */}
       {(onSaveView || onReset) && (
-        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50">
+        <div className="flex flex-wrap items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
           {onSaveView && (
             <Button
               variant="outline"
               size="sm"
               onClick={onSaveView}
               disabled={savePending}
-              className="shrink-0 rounded-sm"
+              className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
             >
-              <BookmarkPlus className="h-4 w-4 mr-1" />
-              Save preferences
+              <BookmarkPlus className="h-4 w-4 mr-1 shrink-0" />
+              <span className="hidden md:inline">Save preferences</span>
+              <span className="md:hidden">Save</span>
             </Button>
           )}
           {onReset && (
@@ -196,10 +197,11 @@ export function EntityToolbar({
               size="sm"
               onClick={onReset}
               disabled={resetPending}
-              className="shrink-0 rounded-sm"
+              className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
             >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Reset to default
+              <RotateCcw className="h-4 w-4 mr-1 shrink-0" />
+              <span className="hidden md:inline">Reset to default</span>
+              <span className="md:hidden">Reset</span>
             </Button>
           )}
         </div>
@@ -212,9 +214,9 @@ export function EntityToolbar({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="shrink-0 rounded-sm"
+            className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
           >
-            <X className="h-4 w-4 mr-1" />
+            <X className="h-4 w-4 mr-1 max-md:mr-0" />
             Clear filters
           </Button>
         </div>

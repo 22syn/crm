@@ -34,6 +34,7 @@ function DashboardContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="week">This Week</SelectItem>
+            <SelectItem value="last_week">Last Week</SelectItem>
             <SelectItem value="month">This Month</SelectItem>
             <SelectItem value="quarter">This Quarter</SelectItem>
           </SelectContent>

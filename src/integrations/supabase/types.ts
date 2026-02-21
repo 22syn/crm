@@ -242,6 +242,38 @@ export type Database = {
           },
         ]
       }
+      lead_comments: {
+        Row: {
+          id: string
+          lead_id: string
+          user_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lead_id: string
+          user_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lead_id?: string
+          user_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_comments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           created_at: string
@@ -513,6 +545,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_table_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          page_key: string
+          view_name: string
+          filters: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          page_key: string
+          view_name: string
+          filters?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          page_key?: string
+          view_name?: string
+          filters?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -531,11 +590,12 @@ export type Database = {
       app_role: "admin" | "sales"
       customer_status: "new" | "in_progress" | "closed" | "returning"
       deal_stage:
-        | "proposal"
-        | "negotiation"
-        | "contract_sent"
-        | "closed_won"
-        | "closed_lost"
+        | "quote_approved"
+        | "in_production"
+        | "ready_for_delivery"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
       document_type: "quote" | "invoice" | "receipt"
       lead_source:
         | "instagram"
@@ -691,11 +751,12 @@ export const Constants = {
       app_role: ["admin", "sales"],
       customer_status: ["new", "in_progress", "closed", "returning"],
       deal_stage: [
-        "proposal",
-        "negotiation",
-        "contract_sent",
-        "closed_won",
-        "closed_lost",
+        "quote_approved",
+        "in_production",
+        "ready_for_delivery",
+        "shipped",
+        "delivered",
+        "cancelled",
       ],
       document_type: ["quote", "invoice", "receipt"],
       lead_source: [

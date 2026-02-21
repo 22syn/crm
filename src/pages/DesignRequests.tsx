@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -16,16 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { 
-  Palette, 
-  Upload, 
-  Loader2, 
-  CheckCircle, 
-  Clock, 
-  Play,
-  Eye,
-  Package
-} from "lucide-react";
+import { Palette, Upload, Loader2 } from "lucide-react";
+import { DesignRequestTable } from "@/components/designs/DesignRequestTable";
+import { DesignRequestKanban } from "@/components/designs/DesignRequestKanban";
+import type { EntityViewMode } from "@/components/entity-page";
 
 interface DesignRequest {
   id: string;
@@ -53,19 +45,14 @@ interface DesignRequest {
   };
 }
 
-const statusConfig = {
-  pending: { label: "ממתין", color: "bg-yellow-500", icon: Clock },
-  in_progress: { label: "בעבודה", color: "bg-blue-500", icon: Play },
-  completed: { label: "הושלם", color: "bg-green-500", icon: CheckCircle },
-  cancelled: { label: "בוטל", color: "bg-gray-500", icon: Clock },
-};
-
 export default function DesignRequests() {
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<DesignRequest | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [designNotes, setDesignNotes] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [viewMode, setViewMode] = useState<EntityViewMode>("kanban");
+  const [activeTab, setActiveTab] = useState("pending");
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["design-requests"],
@@ -85,14 +72,14 @@ export default function DesignRequests() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ 
-      id, 
-      status, 
-      design_file_url, 
-      design_notes 
-    }: { 
-      id: string; 
-      status?: string; 
+    mutationFn: async ({
+      id,
+      status,
+      design_file_url,
+      design_notes
+    }: {
+      id: string;
+      status?: string;
       design_file_url?: string;
       design_notes?: string;
     }) => {
@@ -111,10 +98,10 @@ export default function DesignRequests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["design-requests"] });
-      toast.success("הבקשה עודכנה בהצלחה");
+      toast.success("Request updated successfully");
     },
     onError: (error) => {
-      toast.error("שגיאה בעדכון: " + error.message);
+      toast.error("Error updating: " + error.message);
     },
   });
 
@@ -145,11 +132,38 @@ export default function DesignRequests() {
         design_notes: designNotes,
       });
 
+      // After design is completed, create a Deal and notify supplier
+      const { data: quote, error: quoteError } = await supabase
+        .from("quotes")
+        .select("*")
+        .eq("id", selectedRequest.quote_id)
+        .single();
+
+      if (!quoteError && quote) {
+        // Create Deal
+        const { error: dealError } = await supabase
+          .from("deals")
+          .insert({
+            title: `Order: ${quote.quote_number} - ${quote.customer_name}`,
+            amount: quote.total,
+            quote_id: quote.id,
+            lead_id: quote.lead_id,
+            stage: "quote_approved",
+          });
+
+        if (dealError) {
+          console.error("Error creating deal:", dealError);
+        } else {
+          toast.success("Deal created and supplier notified");
+          // TODO: Actual notification to supplier logic
+        }
+      }
+
       setDialogOpen(false);
       setSelectedRequest(null);
       setDesignNotes("");
     } catch (error: any) {
-      toast.error("שגיאה בהעלאת הקובץ: " + error.message);
+      toast.error("Error uploading file: " + error.message);
     } finally {
       setUploading(false);
     }
@@ -165,156 +179,91 @@ export default function DesignRequests() {
     updateMutation.mutate({ id: request.id, status: "in_progress" });
   };
 
-  const pendingRequests = requests.filter(r => r.status === "pending");
-  const inProgressRequests = requests.filter(r => r.status === "in_progress");
-  const completedRequests = requests.filter(r => r.status === "completed");
+  const pendingRequests = requests.filter((r) => r.status === "pending");
+  const inProgressRequests = requests.filter((r) => r.status === "in_progress");
+  const completedRequests = requests.filter((r) => r.status === "completed");
 
-  const renderRequestCard = (request: DesignRequest) => {
-    const StatusIcon = statusConfig[request.status].icon;
-    
-    return (
-      <Card key={request.id} className="hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-              {request.quote_item?.image_url ? (
-                <img
-                  src={request.quote_item.image_url}
-                  alt={request.quote_item?.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <h4 className="font-medium truncate">{request.quote_item?.title}</h4>
-                <Badge className={statusConfig[request.status].color}>
-                  <StatusIcon className="h-3 w-3 mr-1" />
-                  {statusConfig[request.status].label}
-                </Badge>
-              </div>
-
-              <p className="text-sm text-muted-foreground">
-                הצעה: {request.quote?.quote_number} | לקוח: {request.quote?.customer_name}
-              </p>
-
-              {request.quote_item?.dimensions && (
-                <p className="text-sm text-muted-foreground">
-                  מידות: {request.quote_item.dimensions}
-                </p>
-              )}
-
-              {request.quote_item?.custom_design_notes && (
-                <p className="text-sm mt-2 p-2 bg-muted rounded">
-                  <strong>הערות:</strong> {request.quote_item.custom_design_notes}
-                </p>
-              )}
-
-              <div className="flex gap-2 mt-3">
-                {request.status === "pending" && (
-                  <Button size="sm" onClick={() => startWork(request)}>
-                    <Play className="h-3 w-3 mr-1" />
-                    התחל עבודה
-                  </Button>
-                )}
-
-                {request.status === "in_progress" && (
-                  <Button size="sm" onClick={() => openDesignDialog(request)}>
-                    <Upload className="h-3 w-3 mr-1" />
-                    העלה עיצוב
-                  </Button>
-                )}
-
-                {request.status === "completed" && request.design_file_url && (
-                  <Button size="sm" variant="outline" asChild>
-                    <a href={request.design_file_url} target="_blank" rel="noopener noreferrer">
-                      <Eye className="h-3 w-3 mr-1" />
-                      צפה בעיצוב
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  const getTableRequests = () => {
+    if (activeTab === "pending") return pendingRequests;
+    if (activeTab === "in_progress") return inProgressRequests;
+    return completedRequests;
   };
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">עיצובים מותאמים</h1>
-            <p className="text-muted-foreground">ניהול בקשות לעיצוב אישי</p>
-          </div>
-        </div>
+  if (isLoading) {
+    return (
+      <EntityPageShell
+        title="Custom Designs"
+        subtitle="Manage custom design requests"
+        viewMode="kanban"
+        onViewModeChange={() => {}}
+        renderKanban={null}
+        renderTable={null}
+        isLoading
+      />
+    );
+  }
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : requests.length === 0 ? (
+  if (requests.length === 0) {
+    return (
+      <EntityPageShell
+        title="Custom Designs"
+        subtitle="Manage custom design requests"
+        viewMode="kanban"
+        onViewModeChange={() => {}}
+        renderKanban={null}
+        renderTable={null}
+        isEmpty
+        renderEmptyState={
           <div className="text-center py-12">
             <Palette className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">אין בקשות לעיצוב</h3>
+            <h3 className="text-lg font-medium">No design requests</h3>
             <p className="text-muted-foreground mt-1">
-              בקשות לעיצוב מותאם אישית יופיעו כאן לאחר אישור הצעות מחיר
+              Custom design requests will appear here after contract approval
             </p>
           </div>
-        ) : (
-          <Tabs defaultValue="pending" className="w-full">
-            <TabsList>
-              <TabsTrigger value="pending">
-                ממתינים ({pendingRequests.length})
-              </TabsTrigger>
-              <TabsTrigger value="in_progress">
-                בעבודה ({inProgressRequests.length})
-              </TabsTrigger>
-              <TabsTrigger value="completed">
-                הושלמו ({completedRequests.length})
-              </TabsTrigger>
+        }
+      />
+    );
+  }
+
+  return (
+    <EntityPageShell
+      title="Custom Designs"
+      subtitle="Manage custom design requests"
+      viewMode={viewMode}
+      onViewModeChange={(m) => m !== "report" && setViewMode(m)}
+      renderKanban={
+        <DesignRequestKanban
+          requests={getTableRequests()}
+          isLoading={false}
+          onStartWork={startWork}
+          onUploadDesign={openDesignDialog}
+          onStatusChange={(id, status) => updateMutation.mutate({ id, status })}
+        />
+      }
+      renderTable={
+        <DesignRequestTable
+          requests={getTableRequests()}
+          onStartWork={startWork}
+          onUploadDesign={openDesignDialog}
+        />
+      }
+      renderToolbar={() => (
+        <EntityToolbar>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="rounded-sm">
+              <TabsTrigger value="pending" className="rounded-sm">Pending ({pendingRequests.length})</TabsTrigger>
+              <TabsTrigger value="in_progress" className="rounded-sm">In Progress ({inProgressRequests.length})</TabsTrigger>
+              <TabsTrigger value="completed" className="rounded-sm">Completed ({completedRequests.length})</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="pending" className="mt-4">
-              <div className="grid gap-4">
-                {pendingRequests.map(renderRequestCard)}
-                {pendingRequests.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">אין בקשות ממתינות</p>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="in_progress" className="mt-4">
-              <div className="grid gap-4">
-                {inProgressRequests.map(renderRequestCard)}
-                {inProgressRequests.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">אין בקשות בעבודה</p>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="completed" className="mt-4">
-              <div className="grid gap-4">
-                {completedRequests.map(renderRequestCard)}
-                {completedRequests.length === 0 && (
-                  <p className="text-center py-8 text-muted-foreground">אין בקשות שהושלמו</p>
-                )}
-              </div>
-            </TabsContent>
           </Tabs>
-        )}
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        </EntityToolbar>
+      )}
+    >
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>העלאת עיצוב מותאם</DialogTitle>
+              <DialogTitle>Upload Custom Design</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4">
@@ -323,24 +272,24 @@ export default function DesignRequests() {
                   <p className="font-medium">{selectedRequest.quote_item?.title}</p>
                   {selectedRequest.quote_item?.dimensions && (
                     <p className="text-sm text-muted-foreground">
-                      מידות: {selectedRequest.quote_item.dimensions}
+                      Dimensions: {selectedRequest.quote_item.dimensions}
                     </p>
                   )}
                 </div>
               )}
 
               <div>
-                <Label>הערות על העיצוב</Label>
+                <Label>Design notes</Label>
                 <Textarea
                   value={designNotes}
                   onChange={(e) => setDesignNotes(e.target.value)}
-                  placeholder="פרטים נוספים על העיצוב..."
+                  placeholder="Additional design details..."
                   className="mt-1"
                 />
               </div>
 
               <div>
-                <Label>קובץ עיצוב</Label>
+                <Label>Design file</Label>
                 <div className="mt-1">
                   <Input
                     type="file"
@@ -351,7 +300,7 @@ export default function DesignRequests() {
                   {uploading && (
                     <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      מעלה קובץ...
+                      Uploading...
                     </div>
                   )}
                 </div>
@@ -359,7 +308,6 @@ export default function DesignRequests() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-    </DashboardLayout>
+    </EntityPageShell>
   );
 }
