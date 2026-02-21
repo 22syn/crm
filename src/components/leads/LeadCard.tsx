@@ -1,56 +1,62 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye } from "lucide-react";
+import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye, User, Flame, Thermometer, Snowflake, Clock, Banknote } from "lucide-react";
+import { getLeadPriority, getDaysSinceTouch, getStalenessLevel, type LeadPriority } from "@/utils/leadScore";
+import { getSourceConfig } from "@/utils/sourceIcons";
 import type { Database } from "@/integrations/supabase/types";
+import type { CrmTeamMember } from "@/hooks/useCrmTeam";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
-const sourceLabels: Record<string, { label: string; icon: string }> = {
-  instagram: { label: "Instagram", icon: "📷" },
-  website: { label: "Website", icon: "🌐" },
-  architects: { label: "Architects", icon: "🏛️" },
-  organic: { label: "Organic", icon: "🌱" },
-  facebook: { label: "Facebook", icon: "📘" },
+const PRIORITY_CONFIG: Record<LeadPriority, { label: string; icon: typeof Flame; className: string }> = {
+  hot: { label: "Hot", icon: Flame, className: "bg-red-500/15 text-red-600 border-red-500/30 dark:text-red-400" },
+  warm: { label: "Warm", icon: Thermometer, className: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400" },
+  cold: { label: "Cold", icon: Snowflake, className: "bg-slate-500/15 text-slate-600 border-slate-500/30 dark:text-slate-400" },
 };
 
 interface LeadCardProps {
   lead: Lead;
+  teamMembers?: CrmTeamMember[];
   onEdit: (lead: Lead) => void;
+  onViewLead?: (lead: Lead) => void;
   onCreateQuote?: (lead: Lead) => void;
   quote?: Quote;
   onViewQuote?: (leadId: string) => void;
   onUnlinkQuote?: (leadId: string) => void;
 }
 
-export function LeadCard({ lead, onEdit, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: lead.id });
+export function LeadCard({ lead, teamMembers = [], onEdit, onViewLead, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: lead.id,
+  });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
+  // Only apply transform when dragging to avoid layout/overlap issues when idle
+  const style: React.CSSProperties = isDragging
+    ? {
+        transform: CSS.Translate.toString(transform),
+        opacity: 0.5,
+      }
+    : {};
 
   // Hide create quote button for done/not_done/waiting_for_approval statuses or if quote exists
   const canCreateQuote = !["done", "not_done", "waiting_for_approval"].includes(lead.status) && !quote;
+
+  const priority = getLeadPriority(lead);
+  const daysSinceTouch = getDaysSinceTouch(lead);
+  const staleness = getStalenessLevel(lead);
+  const priorityConfig = PRIORITY_CONFIG[priority];
+  const PriorityIcon = priorityConfig.icon;
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+      className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-sm cursor-grab active:cursor-grabbing transition-shadow duration-200 ease-out hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-card motion-reduce:transition-none"
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -63,7 +69,17 @@ export function LeadCard({ lead, onEdit, onCreateQuote, quote, onViewQuote, onUn
               <GripVertical className="h-4 w-4" />
             </div>
             <CardTitle className="text-sm font-medium">
-              {lead.customer_name}
+              {onViewLead ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onViewLead(lead); }}
+                  className="text-left hover:underline focus:underline focus:outline-none"
+                >
+                  {lead.customer_name}
+                </button>
+              ) : (
+                lead.customer_name
+              )}
             </CardTitle>
           </div>
           <Button
@@ -75,14 +91,43 @@ export function LeadCard({ lead, onEdit, onCreateQuote, quote, onViewQuote, onUn
             <Edit className="h-3 w-3" />
           </Button>
         </div>
-        <Badge variant="outline" className="w-fit text-xs ml-6">
-          <span className="flex items-center gap-1">
-            <span>{sourceLabels[lead.source]?.icon || "📌"}</span>
-            <span>{sourceLabels[lead.source]?.label || lead.source}</span>
-          </span>
-        </Badge>
+        <div className="flex flex-wrap gap-1.5 ml-6">
+          <Badge variant="outline" className={`w-fit text-xs ${priorityConfig.className}`}>
+            <PriorityIcon className="h-3 w-3 mr-1" />
+            {priorityConfig.label}
+          </Badge>
+          <Badge variant="outline" className="w-fit text-xs">
+            {(() => {
+              const { label, Icon } = getSourceConfig(lead.source);
+              return (
+                <span className="flex items-center gap-1">
+                  <Icon className="h-3 w-3" />
+                  <span>{label}</span>
+                </span>
+              );
+            })()}
+          </Badge>
+          {staleness !== "fresh" && daysSinceTouch > 0 && (
+            <Badge variant="outline" className="w-fit text-xs text-muted-foreground">
+              <Clock className="h-3 w-3 mr-1" />
+              {daysSinceTouch}d
+            </Badge>
+          )}
+        </div>
+        {lead.assigned_to && (
+          <div className="flex items-center gap-1 text-meta text-muted-foreground mt-1 ml-6">
+            <User className="h-3 w-3" />
+            <span>{teamMembers.find((m) => m.user_id === lead.assigned_to)?.full_name || teamMembers.find((m) => m.user_id === lead.assigned_to)?.email || "Assigned"}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="pt-0 space-y-2">
+        {quote && (
+          <div className="flex items-center gap-2 text-xs font-medium text-accent-action">
+            <Banknote className="h-3 w-3" />
+            <span>₪{quote.total.toLocaleString("he-IL")}</span>
+          </div>
+        )}
         {lead.meeting_date && (
           <div className="flex items-center gap-2 text-xs text-primary font-medium">
             <Calendar className="h-3 w-3" />
