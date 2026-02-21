@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hadarya Design System - Elegant Furniture CRM */
+/* Hadarya Design System - Production Company (Clean Creative) */
 
 @layer base {
   :root {
@@ -65,61 +65,61 @@
     --space-block: 1rem;     /* 16px - standard padding */
     --space-tight: 0.5rem;   /* 8px - tight groupings */
 
-    /* Sidebar - Elegant Dark */
-    --sidebar-background: 30 12% 22%;
-    --sidebar-foreground: 40 15% 92%;
-    --sidebar-primary: 35 20% 85%;
-    --sidebar-primary-foreground: 30 12% 22%;
-    --sidebar-accent: 30 10% 28%;
-    --sidebar-accent-foreground: 40 15% 92%;
-    --sidebar-border: 30 10% 30%;
-    --sidebar-ring: 35 20% 85%;
+    /* Sidebar - Cool dark */
+    --sidebar-background: 220 15% 18%;
+    --sidebar-foreground: 220 15% 92%;
+    --sidebar-primary: 220 15% 85%;
+    --sidebar-primary-foreground: 220 15% 18%;
+    --sidebar-accent: 220 12% 25%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 220 12% 25%;
+    --sidebar-ring: 220 15% 85%;
   }
 
   .dark {
-    --background: 30 12% 12%;
-    --foreground: 40 15% 92%;
+    --background: 220 15% 10%;
+    --foreground: 220 15% 92%;
 
-    --card: 30 10% 15%;
-    --card-foreground: 40 15% 92%;
+    --card: 220 15% 14%;
+    --card-foreground: 220 15% 92%;
 
-    --popover: 30 10% 15%;
-    --popover-foreground: 40 15% 92%;
+    --popover: 220 15% 14%;
+    --popover-foreground: 220 15% 92%;
 
-    --primary: 35 20% 85%;
-    --primary-foreground: 30 12% 15%;
+    --primary: 220 15% 90%;
+    --primary-foreground: 220 15% 10%;
 
-    --secondary: 30 10% 22%;
-    --secondary-foreground: 40 15% 92%;
+    --secondary: 220 12% 22%;
+    --secondary-foreground: 220 15% 92%;
 
-    --muted: 30 10% 20%;
-    --muted-foreground: 35 15% 60%;
+    --muted: 220 12% 20%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 30 10% 25%;
-    --accent-foreground: 40 15% 92%;
+    --accent: 220 12% 25%;
+    --accent-foreground: 220 15% 92%;
 
     --destructive: 0 55% 45%;
-    --destructive-foreground: 40 15% 92%;
+    --destructive-foreground: 220 15% 92%;
 
-    --border: 30 10% 25%;
-    --input: 30 10% 25%;
-    --ring: 35 20% 75%;
+    --border: 220 12% 25%;
+    --input: 220 12% 25%;
+    --ring: 220 15% 75%;
 
-    --accent-action: 168 45% 45%;
+    --accent-action: 262 55% 60%;
     --accent-action-foreground: 0 0% 100%;
     --success: 142 65% 48%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 55%;
     --warning-foreground: 0 0% 10%;
 
-    --sidebar-background: 30 12% 10%;
-    --sidebar-foreground: 40 15% 92%;
-    --sidebar-primary: 35 20% 85%;
-    --sidebar-primary-foreground: 30 12% 10%;
-    --sidebar-accent: 30 10% 18%;
-    --sidebar-accent-foreground: 40 15% 92%;
-    --sidebar-border: 30 10% 18%;
-    --sidebar-ring: 35 20% 85%;
+    --sidebar-background: 220 15% 8%;
+    --sidebar-foreground: 220 15% 92%;
+    --sidebar-primary: 220 15% 85%;
+    --sidebar-primary-foreground: 220 15% 8%;
+    --sidebar-accent: 220 12% 18%;
+    --sidebar-accent-foreground: 220 15% 92%;
+    --sidebar-border: 220 12% 18%;
+    --sidebar-ring: 220 15% 85%;
   }
 }
 
@@ -131,7 +131,7 @@
   body {
     @apply text-foreground;
     font-family: 'Heebo', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(40 18% 95%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 15% 94%) 100%);
     min-height: 100vh;
   }
 
