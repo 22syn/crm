@@ -57,7 +57,7 @@ export function DealCard({ deal, onEdit }: DealCardProps) {
       style={style}
       {...listeners}
       {...attributes}
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+      className="w-full flex-shrink-0 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow"
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-start justify-between gap-2">
@@ -96,7 +96,7 @@ export function DealCard({ deal, onEdit }: DealCardProps) {
         )}
 
         <Badge className={`text-xs ${getProbabilityColor(deal.probability)}`}>
-          {deal.probability ?? 50}% סיכוי
+          {deal.probability ?? 50}% chance
         </Badge>
       </CardContent>
     </Card>
