@@ -575,7 +575,7 @@ export default function Leads() {
 
   const sortSelect = (
     <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
-      <SelectTrigger className="min-w-[140px] sm:w-[220px] h-8 rounded-sm shrink-0">
+      <SelectTrigger className="min-w-[140px] sm:w-[220px] h-9 rounded-md shrink-0">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -605,6 +605,34 @@ export default function Leads() {
       renderSort={sortSelect}
       hasFilters={hasActiveFilters}
       onClearFilters={handleClearFilters}
+      renderMobileSearch={
+        <LeadFilters
+          variant="searchOnly"
+          search={searchInput}
+          onSearchChange={handleSearchChange}
+          statusFilter={statusFilter}
+          onStatusFilterChange={handleStatusFilterChange}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={handleSourceFilterChange}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={handleAssigneeFilterChange}
+          teamMembers={teamMembers}
+        />
+      }
+      renderMobileFilters={
+        <LeadFilters
+          variant="filtersOnly"
+          search={searchInput}
+          onSearchChange={handleSearchChange}
+          statusFilter={statusFilter}
+          onStatusFilterChange={handleStatusFilterChange}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={handleSourceFilterChange}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={handleAssigneeFilterChange}
+          teamMembers={teamMembers}
+        />
+      }
     >
       <LeadFilters
         search={searchInput}
