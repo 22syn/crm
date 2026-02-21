@@ -17,9 +17,16 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookmarkPlus, RotateCcw, Pencil, Trash2, X } from "lucide-react";
+import { BookmarkPlus, RotateCcw, Pencil, Trash2, X, SlidersHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
 export interface SavedView {
@@ -66,6 +73,11 @@ export interface EntityToolbarProps {
 
   /** Extra content (e.g. Quick views Select) - optional, deprecated in favor of quickViews */
   renderExtra?: ReactNode;
+
+  /** Mobile: Search slot (e.g. LeadFilters variant="searchOnly") */
+  renderMobileSearch?: ReactNode;
+  /** Mobile: Filters slot for Sheet (e.g. LeadFilters variant="filtersOnly") */
+  renderMobileFilters?: ReactNode;
 }
 
 export function EntityToolbar({
@@ -83,6 +95,8 @@ export function EntityToolbar({
   hasFilters = false,
   onClearFilters,
   renderExtra,
+  renderMobileSearch,
+  renderMobileFilters,
 }: EntityToolbarProps) {
   const [renameViewId, setRenameViewId] = useState<string | null>(null);
   const [renameViewName, setRenameViewName] = useState("");
@@ -95,22 +109,38 @@ export function EntityToolbar({
 
   const showViews = quickViews.length > 0 || showSavedViews;
 
-  return (
-    <div className="flex flex-wrap items-center gap-2 gap-y-3">
-      {/* Group 1: Filters */}
-      <div className="flex flex-wrap items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
-        {children}
-      </div>
+  const Divider = () => (
+    <div className="w-px h-5 bg-border/60 shrink-0 mx-1.5" aria-hidden />
+  );
 
-      {/* Group 2: Views */}
-      {showViews && (
-        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="shrink-0 rounded-sm">
-                {showSavedViews ? `Views (${savedViews.length})` : "Views"}
-              </Button>
-            </DropdownMenuTrigger>
+  const VerticalDivider = () => (
+    <div className="h-px w-full bg-border/60 shrink-0 my-2" aria-hidden />
+  );
+
+  const useMobileLayout = renderMobileSearch != null && renderMobileFilters != null;
+  const sheetSide =
+    typeof document !== "undefined" && document.documentElement.dir === "rtl"
+      ? "left"
+      : "right";
+
+  const desktopToolbar = (
+    <div className="flex flex-nowrap items-center gap-0 overflow-x-auto">
+        {/* Group 1: Filters */}
+        <div className="flex items-center gap-2 shrink-0 pr-1">
+          {children}
+        </div>
+
+        {/* Group 2: Views */}
+        {showViews && (
+          <>
+            <Divider />
+            <div className="flex items-center gap-2 shrink-0 px-1.5">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="shrink-0 h-9 rounded-md font-normal">
+                    {showSavedViews ? `Views (${savedViews.length})` : "Views"}
+                  </Button>
+                </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[200px]">
               {quickViews.map((qv) => (
                 <DropdownMenuItem key={qv.value} onSelect={qv.onSelect}>
@@ -164,66 +194,240 @@ export function EntityToolbar({
                   );
                 })}
             </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
+              </DropdownMenu>
+            </div>
+          </>
+        )}
 
-      {/* Group 3: Sort */}
-      {renderSort && (
-        <div className="flex items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
-          {renderSort}
-        </div>
-      )}
+        {/* Group 3: Sort */}
+        {renderSort && (
+          <>
+            <Divider />
+            <div className="flex items-center gap-2 shrink-0 px-1.5">
+              {renderSort}
+            </div>
+          </>
+        )}
 
-      {/* Group 4: Save / Reset */}
-      {(onSaveView || onReset) && (
-        <div className="flex flex-wrap items-center gap-2 pr-2 mr-2 border-r border-muted/50 max-md:border-r-0 max-md:pr-0 max-md:mr-0">
-          {onSaveView && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onSaveView}
-              disabled={savePending}
-              className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
-            >
-              <BookmarkPlus className="h-4 w-4 mr-1 shrink-0" />
-              <span className="hidden md:inline">Save preferences</span>
-              <span className="md:hidden">Save</span>
-            </Button>
-          )}
-          {onReset && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onReset}
-              disabled={resetPending}
-              className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
-            >
-              <RotateCcw className="h-4 w-4 mr-1 shrink-0" />
-              <span className="hidden md:inline">Reset to default</span>
-              <span className="md:hidden">Reset</span>
-            </Button>
-          )}
-        </div>
-      )}
+        {/* Group 4: Save / Reset */}
+        {(onSaveView || onReset) && (
+          <>
+            <Divider />
+            <div className="flex items-center gap-1.5 shrink-0 px-1.5">
+              {onSaveView && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onSaveView}
+                  disabled={savePending}
+                  className="shrink-0 h-9 rounded-md"
+                >
+                  <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline">Save preferences</span>
+                  <span className="sm:hidden">Save</span>
+                </Button>
+              )}
+              {onReset && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onReset}
+                  disabled={resetPending}
+                  className="shrink-0 h-9 rounded-md"
+                >
+                  <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
+                  <span className="hidden sm:inline">Reset to default</span>
+                  <span className="sm:hidden">Reset</span>
+                </Button>
+              )}
+            </div>
+          </>
+        )}
 
-      {/* Group 5: Clear filters */}
-      {hasFilters && onClearFilters && (
-        <div className="flex items-center gap-2">
+        {/* Group 5: Clear filters */}
+        {hasFilters && onClearFilters && (
+          <>
+            <Divider />
+            <div className="flex items-center shrink-0 pl-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearFilters}
+                className="shrink-0 h-9 rounded-md text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4 mr-1.5 shrink-0" />
+                Clear filters
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Legacy: renderExtra (for backward compat during migration) */}
+        {renderExtra && (
+          <>
+            <Divider />
+            <div className="shrink-0 pl-1.5">{renderExtra}</div>
+          </>
+        )}
+      </div>
+  );
+
+  const mobileToolbar = useMobileLayout ? (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 min-w-0">{renderMobileSearch}</div>
+      <Sheet>
+        <SheetTrigger asChild>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={onClearFilters}
-            className="shrink-0 rounded-sm max-md:text-xs max-md:px-2"
+            className="shrink-0 h-9 rounded-md font-normal gap-1.5"
           >
-            <X className="h-4 w-4 mr-1 max-md:mr-0" />
-            Clear filters
+            <SlidersHorizontal className="h-4 w-4 shrink-0" />
+            Filters
+            {hasFilters && (
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/10 px-1.5 text-xs font-medium text-primary">
+                •
+              </span>
+            )}
           </Button>
-        </div>
-      )}
+        </SheetTrigger>
+        <SheetContent side={sheetSide as "left" | "right"} className="w-full max-w-sm overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Filters</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 flex flex-col gap-4">
+            {renderMobileFilters}
+            {(showViews || renderSort || onSaveView || onReset || (hasFilters && onClearFilters)) && (
+              <>
+                <VerticalDivider />
+                {showViews && (
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium">Views</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full justify-between h-9 rounded-md font-normal">
+                          {showSavedViews ? `Views (${savedViews.length})` : "Views"}
+                          <span className="sr-only">Open</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="min-w-[200px]">
+                        {quickViews.map((qv) => (
+                          <DropdownMenuItem key={qv.value} onSelect={qv.onSelect}>
+                            {qv.label}
+                          </DropdownMenuItem>
+                        ))}
+                        {quickViews.length > 0 && showSavedViews && <DropdownMenuSeparator />}
+                        {showSavedViews &&
+                          savedViews.map((v) => {
+                            const displayName = v.view_name === "default" ? "Default" : v.view_name;
+                            return (
+                              <Fragment key={v.id}>
+                                <DropdownMenuItem
+                                  onSelect={() => onApplyView!(v.filters as Record<string, string>)}
+                                >
+                                  {displayName}
+                                </DropdownMenuItem>
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
+                                    Manage "{displayName}"
+                                  </DropdownMenuSubTrigger>
+                                  <DropdownMenuSubContent>
+                                    <DropdownMenuItem
+                                      onSelect={(e) => {
+                                        e.preventDefault();
+                                        setRenameViewId(v.id);
+                                        setRenameViewName(displayName);
+                                      }}
+                                    >
+                                      <Pencil className="h-4 w-4 mr-2" />
+                                      Rename
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive"
+                                      onSelect={async (e) => {
+                                        e.preventDefault();
+                                        try {
+                                          await onDeleteView!(v.id);
+                                          toast.success("View deleted");
+                                        } catch {
+                                          toast.error("Failed to delete view");
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuSub>
+                              </Fragment>
+                            );
+                          })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+                {renderSort && (
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium">Sort</span>
+                    {renderSort}
+                  </div>
+                )}
+                {(onSaveView || onReset) && (
+                  <div className="flex gap-2">
+                    {onSaveView && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onSaveView}
+                        disabled={savePending}
+                        className="flex-1 h-9 rounded-md"
+                      >
+                        <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
+                        Save
+                      </Button>
+                    )}
+                    {onReset && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onReset}
+                        disabled={resetPending}
+                        className="flex-1 h-9 rounded-md"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
+                        Reset
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {hasFilters && onClearFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onClearFilters}
+                    className="w-full h-9 rounded-md text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4 mr-1.5 shrink-0" />
+                    Clear filters
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  ) : null;
 
-      {/* Legacy: renderExtra (for backward compat during migration) */}
-      {renderExtra}
+  return (
+    <div className="rounded-lg border border-border/60 bg-card/80 px-4 py-2.5">
+      {useMobileLayout && (
+        <>
+          <div className="md:hidden">{mobileToolbar}</div>
+          <div className="hidden md:block">{desktopToolbar}</div>
+        </>
+      )}
+      {!useMobileLayout && desktopToolbar}
 
       {renameViewId && onRenameView && (
         <Dialog
