@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Loader2, Plus, Phone, Mail, MapPin, User } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, Phone, Mail, MapPin, User, CreditCard } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type OpClient = Tables<"op_clients">;
@@ -20,7 +20,10 @@ type OpProject = Tables<"op_projects">;
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "טיוטה",
-  active: "פעיל",
+  waiting_for_approval: "ממתין לאישור",
+  planning: "תכנון",
+  execution: "ביצוע",
+  collection: "גבייה",
   completed: "הושלם",
   cancelled: "בוטל",
 };
@@ -103,6 +106,12 @@ export default function AdAgencyClientDetail() {
                   {client.contact_phone && ` • ${client.contact_phone}`}
                 </span>
               )}
+              {(client as { payment_terms?: string | null }).payment_terms && (
+                <span className="flex items-center gap-1">
+                  <CreditCard className="h-4 w-4" />
+                  תנאי תשלום: {(client as { payment_terms: string }).payment_terms}
+                </span>
+              )}
             </div>
             {client.notes && (
               <p className="mt-2 text-sm text-muted-foreground">{client.notes}</p>
@@ -131,8 +140,7 @@ export default function AdAgencyClientDetail() {
                   <TableRow>
                     <TableHead>שם פרויקט</TableHead>
                     <TableHead>סטטוס</TableHead>
-                    <TableHead>תקציב נדרש</TableHead>
-                    <TableHead>תקציב אושר</TableHead>
+                    <TableHead>צפי הכנסה</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -145,8 +153,7 @@ export default function AdAgencyClientDetail() {
                         </Link>
                       </TableCell>
                       <TableCell>{STATUS_LABELS[p.status] ?? p.status}</TableCell>
-                      <TableCell>{p.budget_required != null ? Number(p.budget_required).toLocaleString("he-IL") : "-"}</TableCell>
-                      <TableCell>{p.budget_approved != null ? Number(p.budget_approved).toLocaleString("he-IL") : "-"}</TableCell>
+                      <TableCell>{p.budget_approved != null ? `₪${Number(p.budget_approved).toLocaleString("he-IL")}` : "-"}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" asChild>
                           <Link to={`/ad-agency/projects/${p.id}`}>צפייה</Link>

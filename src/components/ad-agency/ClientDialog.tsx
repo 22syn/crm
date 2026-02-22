@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import type { Tables } from "@/integrations/supabase/types";
 
 type OpClient = Tables<"op_clients">;
@@ -23,7 +24,9 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
     contact_name: "",
     contact_phone: "",
     address: "",
+    payment_terms: "",
     notes: "",
+    is_active: true,
   });
 
   useEffect(() => {
@@ -35,7 +38,9 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
         contact_name: client.contact_name || "",
         contact_phone: client.contact_phone || "",
         address: client.address || "",
+        payment_terms: (client as { payment_terms?: string | null }).payment_terms || "",
         notes: client.notes || "",
+        is_active: client.is_active ?? true,
       });
     } else {
       setFormData({
@@ -45,14 +50,16 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
         contact_name: "",
         contact_phone: "",
         address: "",
+        payment_terms: "",
         notes: "",
+        is_active: true,
       });
     }
   }, [client, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave({ ...formData, is_active: formData.is_active });
   };
 
   return (
@@ -115,6 +122,15 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="payment_terms">תנאי תשלום</Label>
+            <Input
+              id="payment_terms"
+              value={formData.payment_terms}
+              onChange={(e) => setFormData((prev) => ({ ...prev, payment_terms: e.target.value }))}
+              placeholder="למשל: תוך 30 יום, מקדמה 50%"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="notes">הערות</Label>
             <Textarea
               id="notes"
@@ -123,6 +139,19 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
               rows={3}
             />
           </div>
+          {client && (
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label htmlFor="is_active">לקוח פעיל</Label>
+                <p className="text-sm text-muted-foreground">לקוחות לא פעילים לא יופיעו ב־dropdown של פרויקטים חדשים</p>
+              </div>
+              <Switch
+                id="is_active"
+                checked={formData.is_active}
+                onCheckedChange={(v) => setFormData((prev) => ({ ...prev, is_active: v }))}
+              />
+            </div>
+          )}
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               ביטול

@@ -14,7 +14,10 @@ interface ProjectWithClient {
 
 const stageColumns = [
   { id: "draft", label: "טיוטה", color: "bg-muted" },
-  { id: "active", label: "פעיל", color: "bg-green-500" },
+  { id: "waiting_for_approval", label: "ממתין לאישור", color: "bg-amber-500" },
+  { id: "planning", label: "תכנון", color: "bg-sky-500" },
+  { id: "execution", label: "ביצוע", color: "bg-green-500" },
+  { id: "collection", label: "גבייה", color: "bg-emerald-500" },
   { id: "completed", label: "הושלם", color: "bg-blue-500" },
   { id: "cancelled", label: "בוטל", color: "bg-destructive" },
 ];
@@ -23,10 +26,11 @@ interface ProjectKanbanProps {
   projects: ProjectWithClient[];
   isLoading: boolean;
   onEdit: (project: ProjectWithClient) => void;
+  onDelete: (project: ProjectWithClient) => void;
   onStageChange: (projectId: string, stage: string) => void;
 }
 
-export function ProjectKanban({ projects, isLoading, onEdit, onStageChange }: ProjectKanbanProps) {
+export function ProjectKanban({ projects, isLoading, onEdit, onDelete, onStageChange }: ProjectKanbanProps) {
   return (
     <EntityKanban<ProjectWithClient>
       columns={stageColumns}
@@ -34,7 +38,7 @@ export function ProjectKanban({ projects, isLoading, onEdit, onStageChange }: Pr
       getItemId={(p) => p.id}
       getStatus={(p) => p.status}
       onStatusChange={onStageChange}
-      renderCard={(project) => <ProjectCard project={project} onEdit={onEdit} />}
+      renderCard={(project) => <ProjectCard project={project} onEdit={onEdit} onDelete={onDelete} />}
       isLoading={isLoading}
       emptyLabel="אין פרויקטים"
     />

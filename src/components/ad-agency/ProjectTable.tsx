@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +29,10 @@ interface ProjectWithClient {
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "טיוטה",
-  active: "פעיל",
+  waiting_for_approval: "ממתין לאישור",
+  planning: "תכנון",
+  execution: "ביצוע",
+  collection: "גבייה",
   completed: "הושלם",
   cancelled: "בוטל",
 };
@@ -37,17 +40,17 @@ const STATUS_LABELS: Record<string, string> = {
 interface ProjectTableProps {
   projects: ProjectWithClient[];
   onEdit: (project: ProjectWithClient) => void;
+  onDelete: (project: ProjectWithClient) => void;
 }
 
-export function ProjectTable({ projects, onEdit }: ProjectTableProps) {
+export function ProjectTable({ projects, onEdit, onDelete }: ProjectTableProps) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>שם פרויקט</TableHead>
           <TableHead>לקוח</TableHead>
-          <TableHead>תקציב נדרש</TableHead>
-          <TableHead>תקציב אושר</TableHead>
+          <TableHead>צפי הכנסה</TableHead>
           <TableHead>סטטוס</TableHead>
           <TableHead className="w-12"></TableHead>
         </TableRow>
@@ -61,8 +64,7 @@ export function ProjectTable({ projects, onEdit }: ProjectTableProps) {
               </Link>
             </TableCell>
             <TableCell>{p.op_clients?.name ?? "-"}</TableCell>
-            <TableCell>{p.budget_required != null ? Number(p.budget_required).toLocaleString("he-IL") : "-"}</TableCell>
-            <TableCell>{p.budget_approved != null ? Number(p.budget_approved).toLocaleString("he-IL") : "-"}</TableCell>
+            <TableCell>{p.budget_approved != null ? `₪${Number(p.budget_approved).toLocaleString("he-IL")}` : "-"}</TableCell>
             <TableCell>{STATUS_LABELS[p.status] ?? p.status}</TableCell>
             <TableCell>
               <DropdownMenu>
@@ -75,6 +77,10 @@ export function ProjectTable({ projects, onEdit }: ProjectTableProps) {
                   <DropdownMenuItem onClick={() => onEdit(p)}>
                     <Pencil className="h-4 w-4 mr-2" />
                     עריכה
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(p)} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    מחיקה
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
