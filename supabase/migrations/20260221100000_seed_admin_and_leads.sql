@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 DO $$
 DECLARE
   v_user_id UUID;
-  v_encrypted_pw TEXT := crypt('K5991322h', gen_salt('bf'));
+  v_encrypted_pw TEXT := extensions.crypt('K5991322h', extensions.gen_salt('bf'));
   v_exists BOOLEAN;
 BEGIN
   SELECT id INTO v_user_id FROM auth.users WHERE email = 'kobihazout2@gmail.com' LIMIT 1;

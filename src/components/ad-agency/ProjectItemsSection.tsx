@@ -45,6 +45,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
+  const [days, setDays] = useState(1);
 
   const { data: items = [] } = useQuery({
     queryKey: ["op_items"],
@@ -60,7 +61,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("op_project_items")
-        .select("id, project_id, item_id, quantity, created_at")
+        .select("id, project_id, item_id, quantity, days, created_at")
         .eq("project_id", projectId);
       if (error) throw error;
       if (!rows?.length) return [];
@@ -80,8 +81,8 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
   });
 
   const addMutation = useMutation({
-    mutationFn: async ({ item_id, quantity }: { item_id: string; quantity: number }) => {
-      const { error } = await supabase.from("op_project_items").insert([{ project_id: projectId, item_id, quantity }]);
+    mutationFn: async ({ item_id, quantity, days }: { item_id: string; quantity: number; days: number }) => {
+      const { error } = await supabase.from("op_project_items").insert([{ project_id: projectId, item_id, quantity, days }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -90,6 +91,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
       setAddDialogOpen(false);
       setSelectedItemId("");
       setQuantity(1);
+      setDays(1);
     },
     onError: () => toast.error("שגיאה בהוספת פריט"),
   });
@@ -107,12 +109,13 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
 
   const totalItems = projectItems.reduce((sum, pi) => {
     const price = pi.op_items?.price ? Number(pi.op_items.price) : 0;
-    return sum + price * pi.quantity;
+    const d = pi.days != null ? Number(pi.days) : 1;
+    return sum + price * pi.quantity * d;
   }, 0);
 
   const handleAdd = () => {
     if (!selectedItemId) return;
-    addMutation.mutate({ item_id: selectedItemId, quantity });
+    addMutation.mutate({ item_id: selectedItemId, quantity, days });
   };
 
   return (
@@ -134,20 +137,23 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
             <TableRow>
               <TableHead>סוג</TableHead>
               <TableHead>כמות</TableHead>
-              <TableHead>מחיר ליחידה</TableHead>
+              <TableHead>ימים</TableHead>
+              <TableHead>מחיר ליום</TableHead>
               <TableHead>סך הכל</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {projectItems.map((pi) => {
-              const unitPrice = pi.op_items?.price ? Number(pi.op_items.price) : 0;
-              const rowTotal = unitPrice * pi.quantity;
+              const pricePerDay = pi.op_items?.price ? Number(pi.op_items.price) : 0;
+              const d = pi.days != null ? Number(pi.days) : 1;
+              const rowTotal = pricePerDay * pi.quantity * d;
               return (
                 <TableRow key={pi.id}>
                   <TableCell>{pi.op_items?.type ?? "-"}</TableCell>
                   <TableCell>{pi.quantity}</TableCell>
-                  <TableCell>₪{unitPrice.toLocaleString("he-IL")}</TableCell>
+                  <TableCell>{d}</TableCell>
+                  <TableCell>₪{pricePerDay.toLocaleString("he-IL")}</TableCell>
                   <TableCell>₪{rowTotal.toLocaleString("he-IL")}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => removeMutation.mutate(pi.id)}>
@@ -181,20 +187,32 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
                 <SelectContent>
                   {items.map((i) => (
                     <SelectItem key={i.id} value={i.id}>
-                      {i.type} – ₪{Number(i.price).toLocaleString("he-IL")}
+                      {i.type} – ₪{Number(i.price).toLocaleString("he-IL")}/יום
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>כמות</Label>
-              <Input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>כמות</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>מספר ימים</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  step="0.5"
+                  value={days}
+                  onChange={(e) => setDays(parseFloat(e.target.value) || 1)}
+                />
+              </div>
             </div>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setAddDialogOpen(false)}>

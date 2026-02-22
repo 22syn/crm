@@ -51,12 +51,13 @@ CREATE TABLE public.op_projects (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- op_project_items
+-- op_project_items (price per item = item.price per day × quantity × days)
 CREATE TABLE public.op_project_items (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.op_projects(id) ON DELETE CASCADE,
   item_id UUID NOT NULL REFERENCES public.op_items(id) ON DELETE RESTRICT,
   quantity INTEGER NOT NULL DEFAULT 1,
+  days NUMERIC NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
