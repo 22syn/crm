@@ -420,6 +420,7 @@ export type Database = {
           discount: number | null
           id: string
           lead_id: string | null
+          project_id: string | null
           notes: string | null
           quote_number: string
           status: string
@@ -441,6 +442,7 @@ export type Database = {
           discount?: number | null
           id?: string
           lead_id?: string | null
+          project_id?: string | null
           notes?: string | null
           quote_number: string
           status?: string
@@ -462,6 +464,7 @@ export type Database = {
           discount?: number | null
           id?: string
           lead_id?: string | null
+          project_id?: string | null
           notes?: string | null
           quote_number?: string
           status?: string
@@ -478,6 +481,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: true
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "op_projects"
             referencedColumns: ["id"]
           },
         ]
@@ -581,7 +591,9 @@ export type Database = {
           contact_name: string | null
           contact_phone: string | null
           address: string | null
+          payment_terms: string | null
           notes: string | null
+          is_active: boolean
           created_at: string
           updated_at: string
         }
@@ -593,7 +605,9 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           address?: string | null
+          payment_terms?: string | null
           notes?: string | null
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -605,7 +619,9 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           address?: string | null
+          payment_terms?: string | null
           notes?: string | null
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -845,7 +861,7 @@ export type Database = {
         | "waiting_for_approval"
         | "done"
         | "not_done"
-      op_project_status: "draft" | "active" | "completed" | "cancelled"
+      op_project_status: "draft" | "waiting_for_approval" | "planning" | "execution" | "collection" | "completed" | "cancelled"
       op_task_status: "todo" | "in_progress" | "done" | "cancelled"
       order_source: "shopify" | "crm"
       order_status:
@@ -1002,7 +1018,7 @@ export const Constants = {
         "organic",
         "facebook",
       ],
-      op_project_status: ["draft", "active", "completed", "cancelled"],
+      op_project_status: ["draft", "waiting_for_approval", "planning", "execution", "collection", "completed", "cancelled"],
       op_task_status: ["todo", "in_progress", "done", "cancelled"],
       lead_status: [
         "new",
