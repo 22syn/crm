@@ -572,6 +572,237 @@ export type Database = {
         }
         Relationships: []
       }
+      op_clients: {
+        Row: {
+          id: string
+          name: string
+          email: string | null
+          phone: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          address: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email?: string | null
+          phone?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          address?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string | null
+          phone?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          address?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      op_items: {
+        Row: {
+          id: string
+          type: string
+          price: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          type: string
+          price?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          type?: string
+          price?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      op_projects: {
+        Row: {
+          id: string
+          client_id: string
+          title: string
+          budget_required: number | null
+          budget_approved: number | null
+          status: Database["public"]["Enums"]["op_project_status"]
+          start_date: string | null
+          end_date: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          title: string
+          budget_required?: number | null
+          budget_approved?: number | null
+          status?: Database["public"]["Enums"]["op_project_status"]
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          title?: string
+          budget_required?: number | null
+          budget_approved?: number | null
+          status?: Database["public"]["Enums"]["op_project_status"]
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "op_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "op_clients"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      op_project_items: {
+        Row: {
+          id: string
+          project_id: string
+          item_id: string
+          quantity: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          item_id: string
+          quantity?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          item_id?: string
+          quantity?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "op_project_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "op_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "op_project_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "op_items"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      op_project_tasks: {
+        Row: {
+          id: string
+          project_id: string
+          title: string
+          status: Database["public"]["Enums"]["op_task_status"]
+          assigned_to: string | null
+          start_date: string | null
+          end_date: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          title: string
+          status?: Database["public"]["Enums"]["op_task_status"]
+          assigned_to?: string | null
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          title?: string
+          status?: Database["public"]["Enums"]["op_task_status"]
+          assigned_to?: string | null
+          start_date?: string | null
+          end_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "op_project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "op_projects"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      op_task_subtasks: {
+        Row: {
+          id: string
+          task_id: string
+          title: string
+          done: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          title: string
+          done?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          title?: string
+          done?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "op_task_subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "op_project_tasks"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -611,6 +842,8 @@ export type Database = {
         | "waiting_for_approval"
         | "done"
         | "not_done"
+      op_project_status: "draft" | "active" | "completed" | "cancelled"
+      op_task_status: "todo" | "in_progress" | "done" | "cancelled"
       order_source: "shopify" | "crm"
       order_status:
         | "pending"
@@ -766,6 +999,8 @@ export const Constants = {
         "organic",
         "facebook",
       ],
+      op_project_status: ["draft", "active", "completed", "cancelled"],
+      op_task_status: ["todo", "in_progress", "done", "cancelled"],
       lead_status: [
         "new",
         "in_process",
