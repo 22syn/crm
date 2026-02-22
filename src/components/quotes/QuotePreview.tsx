@@ -29,6 +29,7 @@ interface QuotePreviewProps {
   total: number;
   validUntil?: Date;
   notes?: string;
+  paymentTerms?: string;
 }
 
 export function QuotePreview({
@@ -44,6 +45,7 @@ export function QuotePreview({
   total,
   validUntil,
   notes,
+  paymentTerms,
 }: QuotePreviewProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,6 +126,12 @@ export function QuotePreview({
                 <span>₪{total.toFixed(2)}</span>
               </div>
             </div>
+
+            {paymentTerms && (
+              <p className="text-[#5a5347] mt-4 text-sm">
+                <strong className="text-[#3d3830]">תנאי תשלום:</strong> {paymentTerms}
+              </p>
+            )}
 
             {validUntil && (
               <p className="text-[#8a8279] mt-6 text-sm">

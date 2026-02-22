@@ -95,6 +95,16 @@ export default function Quotes() {
 
       if (quoteError) throw quoteError;
 
+      // If quote has a project (ad-agency), update project and skip lead/deal logic
+      if (quote.project_id) {
+        const { error: projectError } = await supabase
+          .from("op_projects")
+          .update({ status: "planning", budget_approved: quote.total })
+          .eq("id", quote.project_id);
+        if (projectError) throw projectError;
+        return { type: "project" };
+      }
+
       // If quote has a lead, convert lead to customer
       let customerId = null;
       if (quote.lead_id) {
@@ -175,7 +185,13 @@ export default function Quotes() {
       queryClient.invalidateQueries({ queryKey: ["design-requests"] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["op_projects"] });
+
+      if (result?.type === "project") {
+        toast.success("ההצעה אושרה והפרויקט עודכן");
+        return;
+      }
+
       let message = "Contract approved successfully";
       if (result.customerId) {
         message += " - Customer created";

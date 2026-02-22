@@ -47,7 +47,17 @@ export default function QuoteApprovalPage() {
 
       if (quoteError) throw quoteError;
 
-      // 2. Check if design is needed
+      // 2. If project quote, update project and return (no deal/design for ad-agency)
+      if (quote.project_id) {
+        const { error: projectError } = await supabase
+          .from("op_projects")
+          .update({ status: "planning", budget_approved: quote.total })
+          .eq("id", quote.project_id);
+        if (projectError) throw projectError;
+        return { type: "project" };
+      }
+
+      // 3. Check if design is needed (lead quotes only)
       const needsDesign = quote.quote_items.some((item: any) => item.requires_custom_design);
 
       if (needsDesign) {
@@ -91,8 +101,12 @@ export default function QuoteApprovalPage() {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
       queryClient.invalidateQueries({ queryKey: ["deals"] });
       queryClient.invalidateQueries({ queryKey: ["design-requests"] });
-      
-      if (data.type === "design") {
+      queryClient.invalidateQueries({ queryKey: ["op_projects"] });
+
+      if (data.type === "project") {
+        toast.success("ההצעה אושרה והפרויקט עודכן");
+        navigate("/ad-agency/projects");
+      } else if (data.type === "design") {
         toast.success("Contract approved and sent to designer");
         navigate("/design-requests");
       } else {
