@@ -37,6 +37,7 @@ import {
   Palette,
   UserCheck,
   Zap,
+  LayoutGrid,
 } from "lucide-react";
 
 /** Dashboard first—visible to all users. */
@@ -49,6 +50,14 @@ const menuItems = [
   { title: "Contracts", url: "/contracts", icon: FileText },
   { title: "Designs", url: "/design-requests", icon: Palette },
   { title: "Deals", url: "/deals", icon: Handshake },
+];
+
+/** משרד פרסום - visible to all CRM users */
+const adAgencyItems = [
+  { title: "דשבורד", url: "/ad-agency", icon: LayoutGrid },
+  { title: "לקוחות", url: "/ad-agency/clients", icon: Users },
+  { title: "פרויקטים", url: "/ad-agency/projects", icon: FileText },
+  { title: "פריטים", url: "/ad-agency/items", icon: Package },
 ];
 
 /** Admin section—excludes Dashboard (now in primary). */
@@ -107,6 +116,24 @@ export function DashboardSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-4">
+          <SidebarGroupLabel>משרד פרסום</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adAgencyItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location.pathname === item.url || (item.url !== "/ad-agency" && location.pathname.startsWith(item.url + "/"))} tooltip={item.title}>
                     <Link to={item.url}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>

@@ -18,6 +18,12 @@ import Customers from "./pages/Customers";
 import Automations from "./pages/Automations";
 import QuoteApproval from "./pages/QuoteApproval";
 import NotFound from "./pages/NotFound";
+import AdAgencyDashboard from "./pages/ad-agency/AdAgencyDashboard";
+import AdAgencyClients from "./pages/ad-agency/AdAgencyClients";
+import AdAgencyClientDetail from "./pages/ad-agency/AdAgencyClientDetail";
+import AdAgencyProjects from "./pages/ad-agency/AdAgencyProjects";
+import AdAgencyProjectDetail from "./pages/ad-agency/AdAgencyProjectDetail";
+import AdAgencyItems from "./pages/ad-agency/AdAgencyItems";
 import { GlobalCommandPalette } from "./components/GlobalCommandPalette";
 
 const queryClient = new QueryClient();
@@ -57,6 +63,12 @@ const App = () => (
             <Route path="/design-requests" element={<DesignRequests />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/automations" element={<Automations />} />
+            <Route path="/ad-agency" element={<AdAgencyDashboard />} />
+            <Route path="/ad-agency/clients" element={<AdAgencyClients />} />
+            <Route path="/ad-agency/clients/:id" element={<AdAgencyClientDetail />} />
+            <Route path="/ad-agency/projects" element={<AdAgencyProjects />} />
+            <Route path="/ad-agency/projects/:id" element={<AdAgencyProjectDetail />} />
+            <Route path="/ad-agency/items" element={<AdAgencyItems />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
