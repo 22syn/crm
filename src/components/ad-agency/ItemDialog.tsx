@@ -3,34 +3,51 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Tables } from "@/integrations/supabase/types";
 
 type OpItem = Tables<"op_items">;
+
+interface Section {
+  id: string;
+  name: string;
+  sort_order: number;
+}
 
 interface ItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item?: OpItem | null;
-  onSave: (data: { type: string; price: number }) => void;
+  sections?: Section[];
+  onSave: (data: { type: string; price: number; section_id?: string | null }) => void;
 }
 
-export function ItemDialog({ open, onOpenChange, item, onSave }: ItemDialogProps) {
+export function ItemDialog({ open, onOpenChange, item, sections = [], onSave }: ItemDialogProps) {
   const [type, setType] = useState("");
   const [price, setPrice] = useState<number>(0);
+  const [sectionId, setSectionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (item) {
       setType(item.type);
       setPrice(Number(item.price) ?? 0);
+      setSectionId((item as OpItem & { section_id?: string | null }).section_id ?? null);
     } else {
       setType("");
       setPrice(0);
+      setSectionId(null);
     }
   }, [item, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ type: type.trim(), price });
+    onSave({ type: type.trim(), price, section_id: sectionId || null });
   };
 
   return (
@@ -62,6 +79,24 @@ export function ItemDialog({ open, onOpenChange, item, onSave }: ItemDialogProps
               required
             />
           </div>
+          {sections.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="section">סקציה</Label>
+              <Select value={sectionId ?? "none"} onValueChange={(v) => setSectionId(v === "none" ? null : v)}>
+                <SelectTrigger id="section">
+                  <SelectValue placeholder="ללא סקציה" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">ללא סקציה</SelectItem>
+                  {sections.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               ביטול

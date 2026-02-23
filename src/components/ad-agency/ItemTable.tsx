@@ -12,20 +12,44 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type OpItem = Tables<"op_items">;
 
+interface Section {
+  id: string;
+  name: string;
+  sort_order: number;
+}
+
 interface ItemTableProps {
   items: OpItem[];
+  sections?: Section[];
   isAdmin: boolean;
   onEdit: (item: OpItem) => void;
   onDelete: (item: OpItem) => void;
   visibleColumnIds?: string[] | null;
 }
 
-export function ItemTable({ items, isAdmin, onEdit, onDelete, visibleColumnIds }: ItemTableProps) {
+export function ItemTable({ items, sections = [], isAdmin, onEdit, onDelete, visibleColumnIds }: ItemTableProps) {
   const [sortField, setSortField] = useState("type");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  const sectionMap = useMemo(() => new Map(sections.map((s) => [s.id, s.name])), [sections]);
+
   const columns: DataTableColumn<OpItem>[] = useMemo(
     () => [
+      ...(sections.length > 0
+        ? [
+            {
+              id: "section",
+              header: "סקציה",
+              sortable: true,
+              sortKey: "section_id",
+              minWidth: "140px",
+              render: (item: OpItem) => {
+                const sid = (item as OpItem & { section_id?: string | null }).section_id;
+                return sid ? sectionMap.get(sid) ?? "-" : "-";
+              },
+            } as DataTableColumn<OpItem>,
+          ]
+        : []),
       {
         id: "type",
         header: "סוג",
@@ -42,7 +66,7 @@ export function ItemTable({ items, isAdmin, onEdit, onDelete, visibleColumnIds }
         render: (item) => Number(item.price).toLocaleString("he-IL"),
       },
     ],
-    []
+    [sections.length, sectionMap]
   );
 
   const displayedColumns = useMemo(() => {
@@ -59,12 +83,20 @@ export function ItemTable({ items, isAdmin, onEdit, onDelete, visibleColumnIds }
         const bVal = Number(b.price) ?? 0;
         return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
       }
+      if (sortField === "section_id" || sortField === "section") {
+        const aSec = (a as OpItem & { section_id?: string | null }).section_id ?? "";
+        const bSec = (b as OpItem & { section_id?: string | null }).section_id ?? "";
+        const aName = sectionMap.get(aSec) ?? "";
+        const bName = sectionMap.get(bSec) ?? "";
+        const cmp = aName.localeCompare(bName, "he");
+        return sortDirection === "asc" ? cmp : -cmp;
+      }
       const aStr = (a.type ?? "").toLowerCase();
       const bStr = (b.type ?? "").toLowerCase();
       const cmp = aStr.localeCompare(bStr, "he");
       return sortDirection === "asc" ? cmp : -cmp;
     });
-  }, [items, sortField, sortDirection]);
+  }, [items, sortField, sortDirection, sectionMap]);
 
   const handleHeaderSort = (field: string) => {
     if (sortField === field) {

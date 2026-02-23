@@ -25,6 +25,15 @@ export default function AdAgencyItems() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<OpItem | null>(null);
 
+  const { data: sections = [] } = useQuery({
+    queryKey: ["op_budget_sections"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("op_budget_sections").select("*").order("sort_order");
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string; sort_order: number }[];
+    },
+  });
+
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["op_items"],
     queryFn: async () => {
@@ -35,7 +44,7 @@ export default function AdAgencyItems() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: { type: string; price: number }) => {
+    mutationFn: async (data: { type: string; price: number; section_id?: string | null }) => {
       const { error } = await supabase.from("op_items").insert([data]);
       if (error) throw error;
     },
@@ -50,7 +59,7 @@ export default function AdAgencyItems() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { type: string; price: number } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { type: string; price: number; section_id?: string | null } }) => {
       const { error } = await supabase.from("op_items").update(data).eq("id", id);
       if (error) throw error;
     },
@@ -79,7 +88,7 @@ export default function AdAgencyItems() {
     },
   });
 
-  const handleSave = (data: { type: string; price: number }) => {
+  const handleSave = (data: { type: string; price: number; section_id?: string | null }) => {
     if (selectedItem) {
       updateMutation.mutate({ id: selectedItem.id, data });
     } else {
@@ -114,6 +123,7 @@ export default function AdAgencyItems() {
     resetPending,
   } = useColumnVisibility("ad-agency-items");
   const ITEM_COLUMNS = [
+    { id: "section", header: "סקציה" },
     { id: "type", header: "סוג" },
     { id: "price", header: "מחיר (₪)" },
   ];
@@ -172,6 +182,7 @@ export default function AdAgencyItems() {
             ) : (
               <ItemTable
                 items={filteredItems}
+                sections={sections}
                 isAdmin={isAdmin}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -185,6 +196,7 @@ export default function AdAgencyItems() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           item={selectedItem}
+          sections={sections}
           onSave={handleSave}
         />
       </div>
