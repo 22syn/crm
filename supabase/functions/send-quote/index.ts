@@ -9,6 +9,15 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface QuoteItem {
   title: string;
   quantity: number;
@@ -20,7 +29,9 @@ interface SendQuoteRequest {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
+  customerAddress?: string;
   quoteNumber: string;
+  quoteDate?: string;
   items: QuoteItem[];
   subtotal: number;
   discount: number;
@@ -28,6 +39,8 @@ interface SendQuoteRequest {
   total: number;
   validUntil?: string;
   notes?: string;
+  paymentTerms?: string;
+  companyName?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -77,13 +90,19 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const data: SendQuoteRequest = await req.json();
-    
+    const companyName = data.companyName ?? "הר סיני הפקות";
+    const headerSubline = [data.quoteNumber, data.quoteDate ? new Date(data.quoteDate).toLocaleDateString("he-IL") : null]
+      .filter(Boolean)
+      .join(" / ");
+
+    const formatPrice = (n: number) => `₪${n.toFixed(2)}`;
+
     const itemsHtml = data.items.map(item => `
       <tr>
-        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; color: #5a5347;">${item.title}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: center; color: #5a5347;">${item.quantity}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: right; color: #5a5347;">₪${item.unit_price.toFixed(2)}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #e8e4de; text-align: right; color: #5a5347;">₪${item.total_price.toFixed(2)}</td>
+        <td style="padding: 12px 8px; border-top: 1px solid #2A2A2A; color: #B7B7B7; font-size: 11px; line-height: 1.6;">${escapeHtml(item.title)}</td>
+        <td style="padding: 12px 8px; border-top: 1px solid #2A2A2A; text-align: center; color: #B7B7B7; font-size: 11px;">${item.quantity}</td>
+        <td style="padding: 12px 8px; border-top: 1px solid #2A2A2A; text-align: right; color: #FFFFFF; font-size: 12px; font-weight: 500;"><span dir="ltr">${formatPrice(item.unit_price)}</span></td>
+        <td style="padding: 12px 8px; border-top: 1px solid #2A2A2A; text-align: right; color: #FFFFFF; font-size: 12px; font-weight: 500;"><span dir="ltr">${formatPrice(item.total_price)}</span></td>
       </tr>
     `).join('');
 
@@ -92,86 +111,78 @@ const handler = async (req: Request): Promise<Response> => {
       <html dir="rtl" lang="he">
       <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600&display=swap');
-          body { font-family: 'Heebo', Arial, sans-serif; line-height: 1.6; color: #5a5347; background: #f8f6f3; }
-          .container { max-width: 600px; margin: 0 auto; background: #f8f6f3; }
-          .header { background: #3d3830; color: #f8f6f3; padding: 40px 20px; text-align: center; }
-          .logo { font-size: 32px; font-weight: 300; letter-spacing: 8px; margin-bottom: 8px; }
-          .logo-sub { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; opacity: 0.7; }
-          .divider { width: 60px; height: 1px; background: #c4b8a8; margin: 20px auto; }
-          .content { padding: 40px 30px; }
-          table { width: 100%; border-collapse: collapse; margin: 25px 0; }
-          th { border-bottom: 2px solid #c4b8a8; padding: 12px; text-align: right; font-weight: 500; color: #3d3830; }
-          .totals { background: rgba(255,255,255,0.5); padding: 20px; border-radius: 4px; border: 1px solid #e8e4de; margin-top: 20px; }
-          .total-row { display: flex; justify-content: space-between; padding: 8px 0; color: #5a5347; }
-          .grand-total { font-size: 1.15rem; font-weight: 500; color: #3d3830; border-top: 2px solid #c4b8a8; padding-top: 12px; margin-top: 12px; }
-          .footer { text-align: center; padding: 30px; border-top: 1px solid #e8e4de; color: #8a8279; font-size: 0.875rem; }
-          .notes { background: #f0ebe3; padding: 15px; border-radius: 4px; border: 1px solid #e0d9ce; margin-top: 20px; }
+          @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&display=swap');
+          body { font-family: 'Heebo', Arial, sans-serif; margin: 0; padding: 0; background: #0F0F0F; color: #FFFFFF; line-height: 1.6; }
+          .doc { max-width: 720px; margin: 0 auto; padding: 28px 36px; }
+          .h1 { font-size: 24px; font-weight: 600; margin: 0; }
+          .h2 { font-size: 15px; font-weight: 500; margin: 0 0 12px 0; }
+          .body { font-size: 11px; color: #B7B7B7; line-height: 1.6; }
+          .divider { height: 1px; background: #2A2A2A; margin: 24px 0; }
+          .header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 24px; }
+          .price-cell { font-size: 12px; font-weight: 500; color: #FFFFFF; text-align: right; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          th { padding: 12px 8px; text-align: right; font-weight: 500; color: #FFFFFF; }
+          .summary-row { border-top: 1px solid #2A2A2A; padding: 12px 0 8px; font-size: 12px; font-weight: 500; color: #FFFFFF; display: flex; justify-content: space-between; }
+          .terms-text { font-size: 10.5px; line-height: 1.8; color: #B7B7B7; }
+          a { color: #FFFFFF; text-decoration: none; }
         </style>
       </head>
       <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">הדריה</div>
-            <div class="logo-sub">By Elle</div>
-            <div class="divider"></div>
-            <h1 style="margin: 0; font-size: 20px; font-weight: 300; letter-spacing: 2px;">הצעת מחיר</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.8; font-size: 14px;">${data.quoteNumber}</p>
+        <div class="doc">
+          <div class="header-row">
+            <div>
+              <h1 class="h1">הצעת מחיר.</h1>
+              ${headerSubline ? `<p class="body" style="margin-top: 4px;">${escapeHtml(String(headerSubline ?? ""))}</p>` : ""}
+            </div>
+            <div style="font-size: 14px; font-weight: 500;">${escapeHtml(companyName)}</div>
           </div>
-          
-          <div class="content">
-            <p>שלום ${data.customerName},</p>
-            <p>תודה על פנייתך! מצורפת הצעת המחיר שלך:</p>
-            
+          <div class="divider"></div>
+
+          <section style="margin-bottom: 24px;">
+            <h2 class="h2">תכולת עבודה.</h2>
+            <p class="body">${escapeHtml(data.customerName)}${data.customerAddress ? ` · ${escapeHtml(data.customerAddress)}` : ""}</p>
+            <p class="body" style="margin-top: 8px;">מצורפת הצעת המחיר להמשך.</p>
+          </section>
+          <div class="divider"></div>
+
+          <section style="margin-bottom: 24px;">
+            <h2 class="h2">תמחור.</h2>
             <table>
               <thead>
                 <tr>
                   <th style="text-align: right;">פריט</th>
                   <th style="text-align: center;">כמות</th>
                   <th style="text-align: right;">מחיר ליחידה</th>
-                  <th style="text-align: right;">סה"כ</th>
+                  <th style="text-align: right;">סה״כ</th>
                 </tr>
               </thead>
-              <tbody>
-                ${itemsHtml}
-              </tbody>
+              <tbody>${itemsHtml}</tbody>
             </table>
-            
-            <div class="totals">
-              <div class="total-row">
-                <span>סכום ביניים:</span>
-                <span>₪${data.subtotal.toFixed(2)}</span>
-              </div>
-              ${data.discount > 0 ? `
-              <div class="total-row" style="color: #6b8e6b;">
-                <span>הנחה:</span>
-                <span>-₪${data.discount.toFixed(2)}</span>
-              </div>
-              ` : ''}
-              ${data.tax > 0 ? `
-              <div class="total-row">
-                <span>מע"מ (17%):</span>
-                <span>₪${data.tax.toFixed(2)}</span>
-              </div>
-              ` : ''}
-              <div class="total-row grand-total">
-                <span>סה"כ לתשלום:</span>
-                <span>₪${data.total.toFixed(2)}</span>
-              </div>
+            <div class="summary-row">
+              <span>סה״כ לתשלום.</span>
+              <span dir="ltr">${formatPrice(data.total)}</span>
             </div>
-            
-            ${data.validUntil ? `<p style="color: #8a8279; margin-top: 25px; font-size: 14px;">הצעה זו בתוקף עד: ${new Date(data.validUntil).toLocaleDateString('he-IL')}</p>` : ''}
-            
-            ${data.notes ? `<div class="notes"><strong style="color: #3d3830;">הערות:</strong><br>${data.notes}</div>` : ''}
-            
-            <p style="margin-top: 30px;">לאישור ההצעה או לשאלות נוספות, אנא צרו קשר.</p>
-          </div>
-          
-          <div class="footer">
-            <p style="font-weight: 300; font-style: italic;">Because ordinary isn't an option</p>
-            <p style="margin-top: 8px; font-size: 12px;">democrm.com</p>
-          </div>
+          </section>
+
+          ${(data.paymentTerms || data.validUntil || data.notes) ? `
+          <div class="divider"></div>
+          <section style="margin-bottom: 24px;">
+            <h2 class="h2">תנאים.</h2>
+            <div class="terms-text">
+              ${data.paymentTerms ? `<p style="margin: 0;">${escapeHtml(data.paymentTerms ?? "")}</p>` : ""}
+              ${data.validUntil ? `<p style="margin: ${data.paymentTerms ? "8px" : "0"} 0 0 0;">תוקף עד: ${new Date(data.validUntil).toLocaleDateString("he-IL")}</p>` : ""}
+              ${data.notes ? `<p style="margin: ${(data.paymentTerms || data.validUntil) ? "8px" : "0"} 0 0 0;">${escapeHtml(data.notes ?? "")}</p>` : ""}
+            </div>
+          </section>
+          ` : ""}
+
+          <div class="divider"></div>
+          <footer>
+            <h2 class="h2">יצירת קשר.</h2>
+            <p class="body">${escapeHtml(companyName)}</p>
+          </footer>
         </div>
       </body>
       </html>
