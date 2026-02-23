@@ -25,7 +25,14 @@ export function ProjectDetailTabs({ project }: ProjectDetailTabsProps) {
         .from("op_project_items")
         .select("quantity, days, prep_days, extras, op_items(price)")
         .eq("project_id", project.id);
-      if (error) throw error;
+      if (error) {
+        const { data: fallback, error: err2 } = await supabase
+          .from("op_project_items")
+          .select("quantity, days, op_items(price)")
+          .eq("project_id", project.id);
+        if (err2) throw err2;
+        return (fallback ?? []).map((r) => ({ ...r, prep_days: 0, extras: 0 }));
+      }
       return rows as {
         quantity: number;
         days: number;
@@ -239,8 +246,10 @@ export function ProjectDetailTabs({ project }: ProjectDetailTabsProps) {
                     className="h-8 w-20"
                     defaultValue={productionFeePct}
                     onBlur={(e) => {
-                      const v = parseFloat(e.target.value) ?? 15;
-                      if (v !== productionFeePct) projectUpdateMutation.mutate({ production_fee_percent: v });
+                      const v = parseFloat(e.target.value);
+                      if (!Number.isNaN(v) && v !== productionFeePct) {
+                        projectUpdateMutation.mutate({ production_fee_percent: v });
+                      }
                     }}
                   />
                 </div>
