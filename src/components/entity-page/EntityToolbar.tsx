@@ -1,4 +1,5 @@
 import { Fragment, ReactNode, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -78,6 +79,9 @@ export interface EntityToolbarProps {
   renderMobileSearch?: ReactNode;
   /** Mobile: Filters slot for Sheet (e.g. LeadFilters variant="filtersOnly") */
   renderMobileFilters?: ReactNode;
+
+  /** Column visibility dropdown (e.g. Ad Agency tables) */
+  renderColumnVisibility?: ReactNode;
 }
 
 export function EntityToolbar({
@@ -97,9 +101,35 @@ export function EntityToolbar({
   renderExtra,
   renderMobileSearch,
   renderMobileFilters,
+  renderColumnVisibility,
 }: EntityToolbarProps) {
   const [renameViewId, setRenameViewId] = useState<string | null>(null);
   const [renameViewName, setRenameViewName] = useState("");
+  const { pathname } = useLocation();
+
+  const isRtl =
+    pathname.startsWith("/ad-agency") ||
+    (typeof document !== "undefined" && document.documentElement.dir === "rtl");
+  const t = {
+    views: isRtl ? "תצוגות" : "Views",
+    viewsCount: (n: number) => (isRtl ? `תצוגות (${n})` : `Views (${n})`),
+    filters: isRtl ? "סינון" : "Filters",
+    clearFilters: isRtl ? "נקה סינון" : "Clear filters",
+    savePreferences: isRtl ? "שמור תצוגה" : "Save preferences",
+    save: isRtl ? "שמור" : "Save",
+    reset: isRtl ? "איפוס" : "Reset",
+    resetToDefault: isRtl ? "איפוס לברירת מחדל" : "Reset to default",
+    rename: isRtl ? "שינוי שם" : "Rename",
+    delete: isRtl ? "מחיקה" : "Delete",
+    manage: (name: string) => (isRtl ? `נהל "${name}"` : `Manage "${name}"`),
+    renameView: isRtl ? "שינוי שם תצוגה" : "Rename view",
+    viewName: isRtl ? "שם תצוגה" : "View name",
+    cancel: isRtl ? "ביטול" : "Cancel",
+    sort: isRtl ? "מיון" : "Sort",
+    default: isRtl ? "ברירת מחדל" : "Default",
+    viewDeleted: isRtl ? "התצוגה נמחקה" : "View deleted",
+    deleteFailed: isRtl ? "שגיאה במחיקת תצוגה" : "Failed to delete view",
+  };
 
   const showSavedViews =
     savedViews.length > 0 &&
@@ -118,10 +148,7 @@ export function EntityToolbar({
   );
 
   const useMobileLayout = renderMobileSearch != null && renderMobileFilters != null;
-  const sheetSide =
-    typeof document !== "undefined" && document.documentElement.dir === "rtl"
-      ? "left"
-      : "right";
+  const sheetSide = isRtl ? "left" : "right";
 
   const desktopToolbar = (
     <div className="flex flex-nowrap items-center gap-0 overflow-x-auto">
@@ -138,7 +165,7 @@ export function EntityToolbar({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="shrink-0 h-9 rounded-md font-normal">
-                    {showSavedViews ? `Views (${savedViews.length})` : "Views"}
+                    {showSavedViews ? t.viewsCount(savedViews.length) : t.views}
                   </Button>
                 </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-[200px]">
@@ -150,7 +177,7 @@ export function EntityToolbar({
               {quickViews.length > 0 && showSavedViews && <DropdownMenuSeparator />}
               {showSavedViews &&
                 savedViews.map((v) => {
-                  const displayName = v.view_name === "default" ? "Default" : v.view_name;
+                  const displayName = v.view_name === "default" ? t.default : v.view_name;
                   return (
                     <Fragment key={v.id}>
                       <DropdownMenuItem
@@ -160,7 +187,7 @@ export function EntityToolbar({
                       </DropdownMenuItem>
                       <DropdownMenuSub>
                         <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
-                          Manage "{displayName}"
+                          {t.manage(displayName)}
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
                           <DropdownMenuItem
@@ -171,7 +198,7 @@ export function EntityToolbar({
                             }}
                           >
                             <Pencil className="h-4 w-4 mr-2" />
-                            Rename
+                            {t.rename}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
@@ -179,14 +206,14 @@ export function EntityToolbar({
                               e.preventDefault();
                               try {
                                 await onDeleteView!(v.id);
-                                toast.success("View deleted");
+                                toast.success(t.viewDeleted);
                               } catch {
-                                toast.error("Failed to delete view");
+                                toast.error(t.deleteFailed);
                               }
                             }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            {t.delete}
                           </DropdownMenuItem>
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
@@ -223,8 +250,8 @@ export function EntityToolbar({
                   className="shrink-0 h-9 rounded-md"
                 >
                   <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
-                  <span className="hidden sm:inline">Save preferences</span>
-                  <span className="sm:hidden">Save</span>
+                  <span className="hidden sm:inline">{t.savePreferences}</span>
+                  <span className="sm:hidden">{t.save}</span>
                 </Button>
               )}
               {onReset && (
@@ -236,8 +263,8 @@ export function EntityToolbar({
                   className="shrink-0 h-9 rounded-md"
                 >
                   <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
-                  <span className="hidden sm:inline">Reset to default</span>
-                  <span className="sm:hidden">Reset</span>
+                  <span className="hidden sm:inline">{t.resetToDefault}</span>
+                  <span className="sm:hidden">{t.reset}</span>
                 </Button>
               )}
             </div>
@@ -256,9 +283,17 @@ export function EntityToolbar({
                 className="shrink-0 h-9 rounded-md text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4 mr-1.5 shrink-0" />
-                Clear filters
+                {t.clearFilters}
               </Button>
             </div>
+          </>
+        )}
+
+        {/* Group: Column visibility */}
+        {renderColumnVisibility && (
+          <>
+            <Divider />
+            <div className="shrink-0 pl-1.5">{renderColumnVisibility}</div>
           </>
         )}
 
@@ -283,7 +318,7 @@ export function EntityToolbar({
             className="shrink-0 h-9 rounded-md font-normal gap-1.5"
           >
             <SlidersHorizontal className="h-4 w-4 shrink-0" />
-            Filters
+            {t.filters}
             {hasFilters && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/10 px-1.5 text-xs font-medium text-primary">
                 •
@@ -293,20 +328,20 @@ export function EntityToolbar({
         </SheetTrigger>
         <SheetContent side={sheetSide as "left" | "right"} className="w-full max-w-sm overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
+            <SheetTitle>{t.filters}</SheetTitle>
           </SheetHeader>
           <div className="mt-4 flex flex-col gap-4">
             {renderMobileFilters}
-            {(showViews || renderSort || onSaveView || onReset || (hasFilters && onClearFilters)) && (
+            {(showViews || renderSort || renderColumnVisibility || onSaveView || onReset || (hasFilters && onClearFilters)) && (
               <>
                 <VerticalDivider />
                 {showViews && (
                   <div className="space-y-2">
-                    <span className="text-sm font-medium">Views</span>
+                    <span className="text-sm font-medium">{t.views}</span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="w-full justify-between h-9 rounded-md font-normal">
-                          {showSavedViews ? `Views (${savedViews.length})` : "Views"}
+                          {showSavedViews ? t.viewsCount(savedViews.length) : t.views}
                           <span className="sr-only">Open</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -319,7 +354,7 @@ export function EntityToolbar({
                         {quickViews.length > 0 && showSavedViews && <DropdownMenuSeparator />}
                         {showSavedViews &&
                           savedViews.map((v) => {
-                            const displayName = v.view_name === "default" ? "Default" : v.view_name;
+                            const displayName = v.view_name === "default" ? t.default : v.view_name;
                             return (
                               <Fragment key={v.id}>
                                 <DropdownMenuItem
@@ -368,8 +403,14 @@ export function EntityToolbar({
                 )}
                 {renderSort && (
                   <div className="space-y-2">
-                    <span className="text-sm font-medium">Sort</span>
+                    <span className="text-sm font-medium">{t.sort}</span>
                     {renderSort}
+                  </div>
+                )}
+                {renderColumnVisibility && (
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium">{isRtl ? "עמודות" : "Columns"}</span>
+                    {renderColumnVisibility}
                   </div>
                 )}
                 {(onSaveView || onReset) && (
@@ -383,7 +424,7 @@ export function EntityToolbar({
                         className="flex-1 h-9 rounded-md"
                       >
                         <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
-                        Save
+                        {t.save}
                       </Button>
                     )}
                     {onReset && (
@@ -395,7 +436,7 @@ export function EntityToolbar({
                         className="flex-1 h-9 rounded-md"
                       >
                         <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
-                        Reset
+                        {t.reset}
                       </Button>
                     )}
                   </div>
@@ -408,7 +449,7 @@ export function EntityToolbar({
                     className="w-full h-9 rounded-md text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-4 w-4 mr-1.5 shrink-0" />
-                    Clear filters
+                    {t.clearFilters}
                   </Button>
                 )}
               </>
@@ -436,15 +477,15 @@ export function EntityToolbar({
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Rename view</DialogTitle>
+              <DialogTitle>{t.renameView}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-2 py-2">
-              <Label htmlFor="entity-rename-view-name">View name</Label>
+              <Label htmlFor="entity-rename-view-name">{t.viewName}</Label>
               <Input
                 id="entity-rename-view-name"
                 value={renameViewName}
                 onChange={(e) => setRenameViewName(e.target.value)}
-                placeholder="View name"
+                placeholder={t.viewName}
                 className="rounded-sm"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && renameViewId) {
@@ -465,7 +506,7 @@ export function EntityToolbar({
                 }}
                 className="rounded-sm"
               >
-                Cancel
+                {t.cancel}
               </Button>
               <Button
                 onClick={() => {
@@ -479,7 +520,7 @@ export function EntityToolbar({
                 disabled={!renameViewName.trim()}
                 className="rounded-sm"
               >
-                Save
+                {t.save}
               </Button>
             </DialogFooter>
           </DialogContent>
