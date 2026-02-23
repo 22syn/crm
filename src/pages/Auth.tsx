@@ -55,7 +55,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Demo CRM</CardTitle>
-          <CardDescription>Sign in to manage your leads and orders</CardDescription>
+          <CardDescription>Where leads become customers</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">

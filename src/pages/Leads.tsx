@@ -33,12 +33,10 @@ import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCrmTeam } from "@/hooks/useCrmTeam";
+import { escapeIlike } from "@/lib/escapeIlike";
 import { useTablePreferences } from "@/hooks/useTablePreferences";
 import { LEAD_STAGES } from "@/utils/leadStages";
-import {
-  SORT_OPTIONS,
-  type SortOption,
-} from "@/utils/leadSort";
+import type { SortOption } from "@/utils/leadSort";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
@@ -320,7 +318,8 @@ export default function Leads() {
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
       if (search) {
-        query = query.or(`customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+        const escaped = escapeIlike(search);
+        query = query.or(`customer_name.ilike.%${escaped}%,customer_email.ilike.%${escaped}%,customer_phone.ilike.%${escaped}%`);
       }
       if (noMeetingFilter) {
         // Leads without meeting scheduled (active statuses only)
@@ -573,21 +572,6 @@ export default function Leads() {
     associateQuoteMutation.mutate({ quoteId, leadId });
   };
 
-  const sortSelect = (
-    <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
-      <SelectTrigger className="min-w-[140px] sm:w-[220px] h-9 rounded-md shrink-0">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {SORT_OPTIONS.map((opt) => (
-          <SelectItem key={opt.value} value={opt.value}>
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-
   const leadsToolbar = (
     <EntityToolbar
       onSaveView={() => setSaveViewDialogOpen(true)}
@@ -602,7 +586,6 @@ export default function Leads() {
         { value: "my", label: "My pipeline", onSelect: () => { setAssigneeFilter(user?.id ?? "all"); setPage(0); } },
         { value: "unassigned", label: "Unassigned", onSelect: () => { setAssigneeFilter("unassigned"); setPage(0); } },
       ]}
-      renderSort={sortSelect}
       hasFilters={hasActiveFilters}
       onClearFilters={handleClearFilters}
       renderMobileSearch={
@@ -835,7 +818,9 @@ export default function Leads() {
             open={previewOpen}
             onOpenChange={setPreviewOpen}
             customerName={selectedQuote.customer_name}
+            customerAddress={selectedQuote.customer_address ?? undefined}
             quoteNumber={selectedQuote.quote_number}
+            quoteDate={selectedQuote.created_at ? new Date(selectedQuote.created_at) : undefined}
             items={quoteItems}
             subtotal={selectedQuote.subtotal}
             discount={selectedQuote.discount || 0}

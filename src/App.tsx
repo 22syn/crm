@@ -31,7 +31,15 @@ const AdAgencyProjectDetail = lazy(() => import("./pages/ad-agency/AdAgencyProje
 const AdAgencyTasks = lazy(() => import("./pages/ad-agency/AdAgencyTasks"));
 const AdAgencyItems = lazy(() => import("./pages/ad-agency/AdAgencyItems"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+  },
+});
 
 function RedirectToContractApproval() {
   const { id } = useParams<{ id: string }>();

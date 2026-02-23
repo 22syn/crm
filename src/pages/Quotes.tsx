@@ -259,6 +259,15 @@ export default function Quotes() {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [clientFilter, setClientFilter] = useState("all");
+
+  const allQuotesForFilters = [...quotes, ...archivedQuotes];
+  const yearOptions = [...new Set(allQuotesForFilters.map((q: any) => {
+    const d = q.created_at || q.archived_at;
+    return d ? new Date(d).getFullYear().toString() : null;
+  }).filter(Boolean))].sort((a, b) => (b as string).localeCompare(a as string)).map((y) => ({ value: y as string, label: y as string }));
+  const clientOptions = [...new Set(allQuotesForFilters.map((q: any) => (q.customer_name || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map((c) => ({ value: c, label: c }));
 
   const getFilteredQuotes = () => {
     let list: any[];
@@ -268,6 +277,15 @@ export default function Quotes() {
     else if (statusFilter === "approved") list = approvedQuotes;
     else list = archivedQuotes;
 
+    if (yearFilter !== "all") {
+      list = list.filter((x: any) => {
+        const d = x.created_at || x.archived_at;
+        return d && new Date(d).getFullYear().toString() === yearFilter;
+      });
+    }
+    if (clientFilter !== "all") {
+      list = list.filter((x: any) => (x.customer_name || "").trim() === clientFilter);
+    }
     if (!search.trim()) return list;
     const q = search.trim().toLowerCase();
     return list.filter(
@@ -394,6 +412,12 @@ export default function Quotes() {
               onSearchChange={setSearch}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
+              yearFilter={yearFilter}
+              onYearFilterChange={setYearFilter}
+              yearOptions={yearOptions}
+              clientFilter={clientFilter}
+              onClientFilterChange={setClientFilter}
+              clientOptions={clientOptions}
               archivedCount={archivedQuotes.length}
             />
           }
@@ -404,6 +428,12 @@ export default function Quotes() {
               onSearchChange={setSearch}
               statusFilter={statusFilter}
               onStatusFilterChange={setStatusFilter}
+              yearFilter={yearFilter}
+              onYearFilterChange={setYearFilter}
+              yearOptions={yearOptions}
+              clientFilter={clientFilter}
+              onClientFilterChange={setClientFilter}
+              clientOptions={clientOptions}
               archivedCount={archivedQuotes.length}
             />
           }
@@ -413,6 +443,12 @@ export default function Quotes() {
             onSearchChange={setSearch}
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
+            yearFilter={yearFilter}
+            onYearFilterChange={setYearFilter}
+            yearOptions={yearOptions}
+            clientFilter={clientFilter}
+            onClientFilterChange={setClientFilter}
+            clientOptions={clientOptions}
             archivedCount={archivedQuotes.length}
           />
         </EntityToolbar>
@@ -425,7 +461,9 @@ export default function Quotes() {
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           customerName={selectedQuote.customer_name}
+          customerAddress={selectedQuote.customer_address ?? undefined}
           quoteNumber={selectedQuote.quote_number}
+          quoteDate={selectedQuote.created_at ? new Date(selectedQuote.created_at) : undefined}
           items={quoteItems}
           subtotal={selectedQuote.subtotal}
           discount={selectedQuote.discount || 0}
