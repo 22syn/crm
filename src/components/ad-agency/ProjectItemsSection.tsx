@@ -17,15 +17,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, Save } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -36,6 +29,15 @@ interface ProjectItemWithDetails extends OpProjectItem {
   op_items: OpItem | null;
 }
 
+interface PendingItem {
+  tempId: string;
+  item_id: string;
+  quantity: number;
+  days: number;
+  prep_days: number;
+  extras: number;
+}
+
 interface ProjectItemsSectionProps {
   projectId: string;
 }
@@ -43,9 +45,7 @@ interface ProjectItemsSectionProps {
 export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
   const queryClient = useQueryClient();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
-  const [days, setDays] = useState(1);
+  const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
 
   const { data: items = [] } = useQuery({
     queryKey: ["op_items"],
@@ -61,7 +61,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from("op_project_items")
-        .select("id, project_id, item_id, quantity, days, created_at")
+        .select("id, project_id, item_id, quantity, days, prep_days, extras, created_at")
         .eq("project_id", projectId);
       if (error) throw error;
       if (!rows?.length) return [];
@@ -80,20 +80,27 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
     enabled: !!projectId,
   });
 
-  const addMutation = useMutation({
-    mutationFn: async ({ item_id, quantity, days }: { item_id: string; quantity: number; days: number }) => {
-      const { error } = await supabase.from("op_project_items").insert([{ project_id: projectId, item_id, quantity, days }]);
+  const saveAllMutation = useMutation({
+    mutationFn: async (toSave: PendingItem[]) => {
+      if (toSave.length === 0) return;
+      const rows = toSave.map((p) => ({
+        project_id: projectId,
+        item_id: p.item_id,
+        quantity: p.quantity,
+        days: p.days,
+        prep_days: p.prep_days ?? 0,
+        extras: p.extras ?? 0,
+      }));
+      const { error } = await supabase.from("op_project_items").insert(rows);
       if (error) throw error;
+      return toSave.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["op_project_items", projectId] });
-      toast.success("פריט נוסף");
-      setAddDialogOpen(false);
-      setSelectedItemId("");
-      setQuantity(1);
-      setDays(1);
+      toast.success(`${count} פריטים נשמרו`);
+      setPendingItems([]);
     },
-    onError: () => toast.error("שגיאה בהוספת פריט"),
+    onError: () => toast.error("שגיאה בשמירת פריטים"),
   });
 
   const removeMutation = useMutation({
@@ -107,29 +114,68 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
     },
   });
 
-  const totalItems = projectItems.reduce((sum, pi) => {
-    const price = pi.op_items?.price ? Number(pi.op_items.price) : 0;
-    const d = pi.days != null ? Number(pi.days) : 1;
-    return sum + price * pi.quantity * d;
-  }, 0);
+  const rowTotal = (price: number, qty: number, days: number, prepDays: number, extras: number) =>
+    price * qty * (days ?? 1) * (1 + (prepDays ?? 0)) + (extras ?? 0);
 
-  const handleAdd = () => {
-    if (!selectedItemId) return;
-    addMutation.mutate({ item_id: selectedItemId, quantity, days });
+  const totalItems =
+    projectItems.reduce((sum, pi) => {
+      const price = pi.op_items?.price ? Number(pi.op_items.price) : 0;
+      const d = pi.days != null ? Number(pi.days) : 1;
+      const prep = (pi as { prep_days?: number }).prep_days ?? 0;
+      const ext = (pi as { extras?: number }).extras ?? 0;
+      return sum + rowTotal(price, pi.quantity, d, prep, ext);
+    }, 0) +
+    pendingItems.reduce((sum, p) => {
+      const opItem = items.find((i) => i.id === p.item_id);
+      const price = opItem?.price ? Number(opItem.price) : 0;
+      return sum + rowTotal(price, p.quantity, p.days, p.prep_days, p.extras);
+    }, 0);
+
+  const handleAddItem = (itemId: string) => {
+    setPendingItems((prev) => [
+      ...prev,
+      { tempId: crypto.randomUUID(), item_id: itemId, quantity: 1, days: 1, prep_days: 0, extras: 0 },
+    ]);
   };
+
+  const removePendingItem = (tempId: string) => {
+    setPendingItems((prev) => prev.filter((p) => p.tempId !== tempId));
+  };
+
+  const updatePendingItem = (tempId: string, updates: Partial<Pick<PendingItem, "quantity" | "days" | "prep_days" | "extras">>) => {
+    setPendingItems((prev) =>
+      prev.map((p) => (p.tempId === tempId ? { ...p, ...updates } : p))
+    );
+  };
+
+  const itemsMap = new Map(items.map((i) => [i.id, i]));
+  const hasPending = pendingItems.length > 0;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="font-medium">פריטים בפרויקט</h3>
-        <Button size="sm" onClick={() => setAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          הוסף פריט
-        </Button>
+        <div className="flex gap-2">
+          {hasPending && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => saveAllMutation.mutate(pendingItems)}
+              disabled={saveAllMutation.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              שמור {pendingItems.length} פריטים
+            </Button>
+          )}
+          <Button size="sm" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            הוסף פריט
+          </Button>
+        </div>
       </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">טוען...</p>
-      ) : projectItems.length === 0 ? (
+      ) : projectItems.length === 0 && pendingItems.length === 0 ? (
         <p className="text-sm text-muted-foreground">אין פריטים. הוסף פריט מהקטלוג.</p>
       ) : (
         <Table>
@@ -138,6 +184,8 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
               <TableHead>סוג</TableHead>
               <TableHead>כמות</TableHead>
               <TableHead>ימים</TableHead>
+              <TableHead>ימי הכנות</TableHead>
+              <TableHead>תוספות</TableHead>
               <TableHead>מחיר ליום</TableHead>
               <TableHead>סך הכל</TableHead>
               <TableHead className="w-12"></TableHead>
@@ -147,16 +195,41 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
             {projectItems.map((pi) => {
               const pricePerDay = pi.op_items?.price ? Number(pi.op_items.price) : 0;
               const d = pi.days != null ? Number(pi.days) : 1;
-              const rowTotal = pricePerDay * pi.quantity * d;
+              const prep = (pi as { prep_days?: number }).prep_days ?? 0;
+              const ext = (pi as { extras?: number }).extras ?? 0;
+              const total = rowTotal(pricePerDay, pi.quantity, d, prep, ext);
               return (
                 <TableRow key={pi.id}>
                   <TableCell>{pi.op_items?.type ?? "-"}</TableCell>
                   <TableCell>{pi.quantity}</TableCell>
                   <TableCell>{d}</TableCell>
+                  <TableCell>{prep}</TableCell>
+                  <TableCell>₪{(ext || 0).toLocaleString("he-IL")}</TableCell>
                   <TableCell>₪{pricePerDay.toLocaleString("he-IL")}</TableCell>
-                  <TableCell>₪{rowTotal.toLocaleString("he-IL")}</TableCell>
+                  <TableCell>₪{total.toLocaleString("he-IL")}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={() => removeMutation.mutate(pi.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {pendingItems.map((p) => {
+              const opItem = itemsMap.get(p.item_id);
+              const pricePerDay = opItem?.price ? Number(opItem.price) : 0;
+              const total = rowTotal(pricePerDay, p.quantity, p.days, p.prep_days, p.extras);
+              return (
+                <TableRow key={p.tempId} className="bg-muted/30">
+                  <TableCell>{opItem?.type ?? "-"}</TableCell>
+                  <TableCell>{p.quantity}</TableCell>
+                  <TableCell>{p.days}</TableCell>
+                  <TableCell>{p.prep_days}</TableCell>
+                  <TableCell>₪{(p.extras || 0).toLocaleString("he-IL")}</TableCell>
+                  <TableCell>₪{pricePerDay.toLocaleString("he-IL")}</TableCell>
+                  <TableCell>₪{total.toLocaleString("he-IL")}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" onClick={() => removePendingItem(p.tempId)}>
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
@@ -166,61 +239,143 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
           </TableBody>
         </Table>
       )}
-      {projectItems.length > 0 && (
+      {(projectItems.length > 0 || pendingItems.length > 0) && (
         <p className="text-sm font-medium">
           סה״כ פריטים: ₪{totalItems.toLocaleString("he-IL")}
+          {hasPending && (
+            <span className="text-muted-foreground font-normal mr-2">
+              ({pendingItems.length} מחכים לשמירה)
+            </span>
+          )}
         </p>
       )}
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>הוסף פריט לפרויקט</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4 min-h-0 flex-1">
             <div className="space-y-2">
-              <Label>פריט</Label>
-              <Select value={selectedItemId} onValueChange={setSelectedItemId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="בחר פריט" />
-                </SelectTrigger>
-                <SelectContent>
+              <p className="text-sm text-muted-foreground">בחר פריט להוספה</p>
+              <ScrollArea className="h-[200px] rounded-md border">
+                <div className="p-2 space-y-0.5">
                   {items.map((i) => (
-                    <SelectItem key={i.id} value={i.id}>
-                      {i.type} – ₪{Number(i.price).toLocaleString("he-IL")}/יום
-                    </SelectItem>
+                    <div
+                      key={i.id}
+                      className="flex items-center justify-between gap-2 px-3 py-2 rounded-sm hover:bg-muted/50"
+                    >
+                      <span className="text-sm">
+                        {i.type} – ₪{Number(i.price).toLocaleString("he-IL")}/יום
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handleAddItem(i.id)}
+                        aria-label={`הוסף ${i.type}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                  {items.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-4 text-center">אין פריטים בקטלוג</p>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>כמות</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-                />
+            {pendingItems.length > 0 && (
+              <div className="space-y-2 border-t pt-4">
+                <p className="text-sm font-medium">פריטים שנוספו ({pendingItems.length})</p>
+                <ScrollArea className="h-[140px] rounded-md border">
+                  <div className="p-2 space-y-1">
+                    {pendingItems.map((p) => {
+                      const opItem = itemsMap.get(p.item_id);
+                      const pricePerDay = opItem?.price ? Number(opItem.price) : 0;
+                      const total = rowTotal(pricePerDay, p.quantity, p.days, p.prep_days, p.extras);
+                      return (
+                        <div
+                          key={p.tempId}
+                          className="flex items-center gap-2 px-3 py-2 rounded-sm bg-muted/50"
+                        >
+                          <span className="text-sm shrink-0 min-w-[80px]">{opItem?.type ?? "-"}</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            className="h-8 w-14 text-center"
+                            value={p.quantity}
+                            onChange={(e) =>
+                              updatePendingItem(p.tempId, {
+                                quantity: parseInt(e.target.value, 10) || 1,
+                              })
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="text-xs text-muted-foreground">×</span>
+                          <Input
+                            type="number"
+                            min={1}
+                            step="0.5"
+                            className="h-8 w-14 text-center"
+                            value={p.days}
+                            onChange={(e) =>
+                              updatePendingItem(p.tempId, {
+                                days: parseFloat(e.target.value) || 1,
+                              })
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="text-xs text-muted-foreground">יום</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.5"
+                            className="h-8 w-12 text-center"
+                            value={p.prep_days}
+                            onChange={(e) =>
+                              updatePendingItem(p.tempId, {
+                                prep_days: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="text-xs text-muted-foreground">ימי הכנה</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="1"
+                            className="h-8 w-16 text-center"
+                            value={p.extras}
+                            onChange={(e) =>
+                              updatePendingItem(p.tempId, {
+                                extras: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="text-xs text-muted-foreground">תוספות</span>
+                          <span className="text-sm font-medium flex-1 text-end">
+                            ₪{total.toLocaleString("he-IL")}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                            onClick={() => removePendingItem(p.tempId)}
+                            aria-label="הסר"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
-              <div className="space-y-2">
-                <Label>מספר ימים</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  step="0.5"
-                  value={days}
-                  onChange={(e) => setDays(parseFloat(e.target.value) || 1)}
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                ביטול
-              </Button>
-              <Button onClick={handleAdd} disabled={!selectedItemId}>
-                הוסף
-              </Button>
+            )}
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => setAddDialogOpen(false)}>סיום</Button>
             </div>
           </div>
         </DialogContent>
