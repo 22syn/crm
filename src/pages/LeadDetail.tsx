@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,11 +68,9 @@ export default function LeadDetail() {
   if (!id) return null;
   if (isLoading || !lead) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
@@ -81,8 +78,8 @@ export default function LeadDetail() {
   const assignee = teamMembers.find((m) => m.user_id === lead.assigned_to);
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <>
+    <div className="max-w-4xl mx-auto space-y-6">
         <Button variant="ghost" onClick={() => navigate("/leads")} className="gap-2 -ml-2">
           <ArrowLeft className="h-4 w-4" />
           Back to leads
@@ -202,6 +199,6 @@ export default function LeadDetail() {
         isLoading={updateMutation.isPending}
         teamMembers={teamMembers}
       />
-    </DashboardLayout>
+    </>
   );
 }

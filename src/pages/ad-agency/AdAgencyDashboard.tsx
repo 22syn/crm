@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DollarSign, TrendingUp, ListTodo, Loader2, Percent } from "lucide-react";
@@ -38,7 +37,10 @@ export default function AdAgencyDashboard() {
         .from("op_projects")
         .select("id, title, budget_approved, status, op_clients(name)")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[AdAgencyDashboard] op_projects:", error);
+        return [];
+      }
       return data as ProjectRow[];
     },
   });
@@ -49,7 +51,16 @@ export default function AdAgencyDashboard() {
       const { data, error } = await supabase
         .from("op_project_items")
         .select("project_id, quantity, days, prep_days, extras, op_items(price)");
-      if (error) throw error;
+      if (error) {
+        const { data: fallback, error: err2 } = await supabase
+          .from("op_project_items")
+          .select("project_id, quantity, days, op_items(price)");
+        if (err2) {
+          console.error("[AdAgencyDashboard] op_project_items:", err2);
+          return [];
+        }
+        return (fallback ?? []).map((r) => ({ ...r, prep_days: 0, extras: 0 })) as ProjectItemRow[];
+      }
       return data as ProjectItemRow[];
     },
   });
@@ -71,7 +82,10 @@ export default function AdAgencyDashboard() {
         .neq("status", "cancelled")
         .order("end_date", { ascending: true })
         .limit(10);
-      if (error) throw error;
+      if (error) {
+        console.error("[AdAgencyDashboard] op_project_tasks:", error);
+        return [];
+      }
       return data as { id: string; project_id: string; title: string; end_date: string | null; status: string }[];
     },
   });
@@ -120,8 +134,7 @@ export default function AdAgencyDashboard() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <h1 className="text-2xl font-bold">דשבורד משרד פרסום</h1>
         <p className="text-muted-foreground">סיכום פיננסי, פרויקטים פעילים וטיוטה, משימות קריטיות</p>
 
@@ -294,7 +307,6 @@ export default function AdAgencyDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

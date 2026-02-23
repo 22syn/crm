@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { LeadsBySourceChart } from "@/components/dashboard/LeadsBySourceChart";
 import { OrdersChart } from "@/components/dashboard/OrdersChart";
@@ -58,10 +57,8 @@ function DashboardContent() {
 
 export default function Dashboard() {
   return (
-    <DashboardLayout>
-      <DashboardProvider>
-        <DashboardContent />
-      </DashboardProvider>
-    </DashboardLayout>
+    <DashboardProvider>
+      <DashboardContent />
+    </DashboardProvider>
   );
 }

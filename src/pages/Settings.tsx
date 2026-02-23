@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,20 +93,17 @@ export default function Settings() {
 
   if (role !== "admin") {
     return (
-      <DashboardLayout>
-        <div className="text-center py-12">
+      <div className="text-center py-12">
           <h1 className="text-2xl font-bold hidden md:block">Access denied</h1>
           <p className="text-muted-foreground mt-2">
             Only admins can access settings.
           </p>
         </div>
-      </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6">
         <div className="hidden md:block">
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">Manage system and team settings</p>
@@ -272,7 +268,6 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

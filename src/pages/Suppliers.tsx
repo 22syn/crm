@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -130,8 +129,7 @@ export default function Suppliers() {
   const isAdmin = role === "admin";
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold">Suppliers</h1>
@@ -263,7 +261,6 @@ export default function Suppliers() {
           supplier={selectedSupplier}
           onSave={handleSave}
         />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

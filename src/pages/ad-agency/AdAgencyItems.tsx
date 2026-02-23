@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { EntityToolbar } from "@/components/entity-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,7 @@ export default function AdAgencyItems() {
     queryKey: ["op_budget_sections"],
     queryFn: async () => {
       const { data, error } = await supabase.from("op_budget_sections").select("*").order("sort_order");
-      if (error) throw error;
+      if (error) return []; // table may not exist if migration not run
       return (data ?? []) as { id: string; name: string; sort_order: number }[];
     },
   });
@@ -153,8 +152,7 @@ export default function AdAgencyItems() {
   );
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold">פריטים</h1>
@@ -199,7 +197,6 @@ export default function AdAgencyItems() {
           sections={sections}
           onSave={handleSave}
         />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

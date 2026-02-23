@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { EntityToolbar } from "@/components/entity-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -184,8 +183,7 @@ export default function AdAgencyClients() {
   );
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold">לקוחות</h1>
@@ -227,7 +225,6 @@ export default function AdAgencyClients() {
           client={selectedClient}
           onSave={handleSave}
         />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

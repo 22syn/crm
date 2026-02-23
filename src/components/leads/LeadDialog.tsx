@@ -47,6 +47,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Loader2, CalendarIcon, FileText, Eye, Unlink, AlertTriangle, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { escapeIlike } from "@/lib/escapeIlike";
 import type { Database } from "@/integrations/supabase/types";
 import type { CrmTeamMember } from "@/hooks/useCrmTeam";
 import { getSourceConfig } from "@/utils/sourceIcons";
@@ -213,7 +214,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
           .from("leads")
           .select("id, customer_name, customer_email, customer_phone")
           .not("customer_phone", "is", null)
-          .ilike("customer_phone", `%${digits}%`)
+          .ilike("customer_phone", `%${escapeIlike(digits)}%`)
           .limit(20);
         const match = (data ?? []).find(
           (row) => normalizePhone((row.customer_phone as string) ?? "") === digits

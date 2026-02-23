@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -158,28 +157,23 @@ export default function QuoteApprovalPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   if (!quote) {
     return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <h2 className="text-xl font-semibold">Contract not found</h2>
-          <Button className="mt-4" onClick={() => navigate("/contracts")}>Back to contracts</Button>
-        </div>
-      </DashboardLayout>
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold">Contract not found</h2>
+        <Button className="mt-4" onClick={() => navigate("/contracts")}>Back to contracts</Button>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <Button variant="ghost" onClick={() => navigate("/contracts")} className="gap-2">
             <ArrowRight className="h-4 w-4" />
@@ -246,7 +240,6 @@ export default function QuoteApprovalPage() {
               : " This contract will be converted directly to an order and sent to the supplier."}
           </p>
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

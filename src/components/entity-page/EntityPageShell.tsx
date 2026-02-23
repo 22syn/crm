@@ -1,5 +1,4 @@
 import { ReactNode } from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, LayoutGrid, List, BarChart3 } from "lucide-react";
@@ -31,6 +30,16 @@ export interface EntityPageShellProps {
   /** Optional toolbar (filters, tabs, etc.) — receives current viewMode. Shown above content for kanban/table. */
   renderToolbar?: (viewMode: EntityViewMode) => ReactNode;
 
+  /** Optional Kanban tab label (default: "Pipeline") */
+  kanbanTabLabel?: string;
+  /** Optional Table tab label (default: "Table") */
+  tableTabLabel?: string;
+  /** Optional Report tab label (default: "Report") */
+  reportTabLabel?: string;
+
+  /** Text direction: "rtl" for Hebrew/Arabic pages (e.g. ad-agency) */
+  dir?: "rtl" | "ltr";
+
   /** Show Report tab (e.g. Deals) */
   showReportTab?: boolean;
   /** Report tab content */
@@ -58,6 +67,10 @@ export function EntityPageShell({
   renderKanban,
   renderTable,
   renderToolbar,
+  kanbanTabLabel = "Pipeline",
+  tableTabLabel = "Table",
+  reportTabLabel = "Report",
+  dir,
   showReportTab,
   renderReport,
   isLoading,
@@ -72,8 +85,7 @@ export function EntityPageShell({
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-section min-w-0 overflow-x-hidden">
+    <div className="space-y-section min-w-0 overflow-x-hidden" dir={dir}>
         {/* Header — on mobile the breadcrumb bar already shows the page title (e.g. "Leads"), so we hide title/subtitle there to avoid duplication */}
         <div
           className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${!(headerActions || (addButtonText && onAddClick)) ? "hidden md:flex" : ""}`}
@@ -96,20 +108,20 @@ export function EntityPageShell({
         </div>
 
         {/* View toggle + Toolbar + Content — matches Leads */}
-        <Tabs value={viewMode} onValueChange={handleViewChange} className="w-full">
+        <Tabs value={viewMode} onValueChange={handleViewChange} className="w-full" dir={dir}>
           <TabsList className="w-full sm:w-auto justify-start">
             <TabsTrigger value="kanban" className="gap-2">
               <LayoutGrid className="h-4 w-4" />
-              Pipeline
+              {kanbanTabLabel}
             </TabsTrigger>
             <TabsTrigger value="table" className="gap-2">
               <List className="h-4 w-4" />
-              Table
+              {tableTabLabel}
             </TabsTrigger>
             {showReportTab && (
               <TabsTrigger value="report" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Report
+                {reportTabLabel}
               </TabsTrigger>
             )}
           </TabsList>
@@ -151,6 +163,5 @@ export function EntityPageShell({
 
         {children}
       </div>
-    </DashboardLayout>
   );
 }

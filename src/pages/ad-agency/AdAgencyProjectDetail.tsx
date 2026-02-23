@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { ProjectDetailTabs } from "@/components/ad-agency/ProjectDetailTabs";
 import { ProjectQuoteBuilder } from "@/components/ad-agency/ProjectQuoteBuilder";
@@ -45,7 +44,20 @@ export default function AdAgencyProjectDetail() {
         .from("op_project_items")
         .select("quantity, days, prep_days, extras, op_items(type, price, section_id)")
         .eq("project_id", id);
-      if (error) throw error;
+      if (error) {
+        // fallback when migration not run (prep_days, extras, section_id missing)
+        const { data: fallback, error: err2 } = await supabase
+          .from("op_project_items")
+          .select("quantity, days, op_items(type, price)")
+          .eq("project_id", id);
+        if (err2) throw err2;
+        return (fallback ?? []).map((r) => ({
+          ...r,
+          prep_days: 0,
+          extras: 0,
+          op_items: r.op_items ? { ...r.op_items, section_id: null } : null,
+        }));
+      }
       return rows as {
         quantity: number;
         days: number;
@@ -61,7 +73,7 @@ export default function AdAgencyProjectDetail() {
     queryKey: ["op_budget_sections"],
     queryFn: async () => {
       const { data, error } = await supabase.from("op_budget_sections").select("id, name").order("sort_order");
-      if (error) throw error;
+      if (error) return []; // table may not exist if migration not run
       return (data ?? []) as { id: string; name: string }[];
     },
     enabled: !!id && !!project,
@@ -135,17 +147,14 @@ export default function AdAgencyProjectDetail() {
   if (!id) return null;
   if (isLoading || !project) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
-    );
-  }
+          </div>
+      );
+    }
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/ad-agency/projects">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -180,7 +189,6 @@ export default function AdAgencyProjectDetail() {
           project={project}
           onSuccess={() => {}}
         />
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
