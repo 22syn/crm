@@ -2,27 +2,17 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { EntityToolbar } from "@/components/entity-page";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ItemDialog } from "@/components/ad-agency/ItemDialog";
+import { ItemFilters } from "@/components/ad-agency/ItemFilters";
+import { ItemTable } from "@/components/ad-agency/ItemTable";
+import { ColumnVisibilityDropdown } from "@/components/ad-agency/ColumnVisibilityDropdown";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type OpItem = Tables<"op_items">;
@@ -114,6 +104,43 @@ export default function AdAgencyItems() {
   );
 
   const isAdmin = role === "admin";
+  const hasActiveFilters = !!searchQuery.trim();
+  const handleClearFilters = () => setSearchQuery("");
+
+  const {
+    visibleColumnIds,
+    setVisibleColumns,
+    resetToDefault,
+    resetPending,
+  } = useColumnVisibility("ad-agency-items");
+  const ITEM_COLUMNS = [
+    { id: "type", header: "סוג" },
+    { id: "price", header: "מחיר (₪)" },
+  ];
+
+  const itemToolbar = (
+    <EntityToolbar
+      hasFilters={hasActiveFilters}
+      onClearFilters={handleClearFilters}
+      renderMobileSearch={
+        <ItemFilters variant="searchOnly" search={searchQuery} onSearchChange={setSearchQuery} />
+      }
+      renderMobileFilters={
+        <ItemFilters variant="filtersOnly" search={searchQuery} onSearchChange={setSearchQuery} />
+      }
+      renderColumnVisibility={
+        <ColumnVisibilityDropdown
+          allColumns={ITEM_COLUMNS}
+          visibleIds={visibleColumnIds}
+          onChange={setVisibleColumns}
+          onReset={resetToDefault}
+          resetPending={resetPending}
+        />
+      }
+    >
+      <ItemFilters search={searchQuery} onSearchChange={setSearchQuery} />
+    </EntityToolbar>
+  );
 
   return (
     <DashboardLayout>
@@ -129,20 +156,11 @@ export default function AdAgencyItems() {
           </Button>
         </div>
 
+        {itemToolbar}
+
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>רשימת פריטים</CardTitle>
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="חיפוש לפי סוג..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-9 w-64"
-                />
-              </div>
-            </div>
+            <CardTitle>רשימת פריטים</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -152,47 +170,13 @@ export default function AdAgencyItems() {
                 לא נמצאו פריטים
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>סוג</TableHead>
-                    <TableHead>מחיר (₪)</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.type}</TableCell>
-                      <TableCell>{Number(item.price).toLocaleString("he-IL")}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(item)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              עריכה
-                            </DropdownMenuItem>
-                            {isAdmin && (
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(item)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                מחיקה
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ItemTable
+                items={filteredItems}
+                isAdmin={isAdmin}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                visibleColumnIds={visibleColumnIds}
+              />
             )}
           </CardContent>
         </Card>
