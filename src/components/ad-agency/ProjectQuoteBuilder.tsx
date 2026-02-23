@@ -25,6 +25,8 @@ interface ProjectItemWithPrice {
   id: string;
   quantity: number;
   days: number;
+  prep_days?: number;
+  extras?: number;
   op_items: { type: string; price: number } | null;
 }
 
@@ -59,7 +61,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("op_project_items")
-        .select("id, quantity, days, op_items(type, price)")
+        .select("id, quantity, days, prep_days, extras, op_items(type, price)")
         .eq("project_id", project.id);
       if (error) throw error;
       return data as ProjectItemWithPrice[];
@@ -67,12 +69,17 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
     enabled: open && !!project.id,
   });
 
+  const rowTotal = (price: number, qty: number, days: number, prepDays: number, extras: number) =>
+    price * qty * (days ?? 1) * (1 + (prepDays ?? 0)) + (extras ?? 0);
+
   const quoteItems = projectItems.map((pi) => {
     const type = pi.op_items?.type ?? "פריט";
     const pricePerDay = pi.op_items?.price ? Number(pi.op_items.price) : 0;
     const d = pi.days ?? 1;
-    const unitPrice = pricePerDay * d;
-    const totalPrice = unitPrice * pi.quantity;
+    const prep = pi.prep_days ?? 0;
+    const ext = pi.extras ?? 0;
+    const totalPrice = rowTotal(pricePerDay, pi.quantity, d, prep, ext);
+    const unitPrice = pi.quantity > 0 ? totalPrice / pi.quantity : 0;
     return {
       title: d > 1 ? `${type} • ${d} ימים` : type,
       quantity: pi.quantity,
@@ -132,7 +139,9 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
             customerName: client.name,
             customerEmail: client.email,
             customerPhone: client.phone ?? undefined,
+            customerAddress: client.address ?? undefined,
             quoteNumber: (quote as { quote_number: string }).quote_number,
+            quoteDate: new Date().toISOString(),
             items: quoteItems,
             subtotal,
             discount,
@@ -140,6 +149,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
             total,
             validUntil: validUntil.toISOString(),
             notes: notes || undefined,
+            paymentTerms: (client as { payment_terms?: string | null })?.payment_terms ?? undefined,
           },
         });
         if (response.error) {
@@ -171,7 +181,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg" dir="rtl">
         <DialogHeader>
           <DialogTitle>בנה הצעת מחיר מפרויקט</DialogTitle>
         </DialogHeader>
@@ -217,7 +227,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setPreviewOpen(true)} disabled={!hasItems}>
-                  <Eye className="h-4 w-4 mr-2" />
+                  <Eye className="h-4 w-4 me-2" />
                   תצוגה מקדימה
                 </Button>
                 <Button
@@ -225,11 +235,11 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
                   onClick={() => saveMutation.mutate(false)}
                   disabled={saveMutation.isPending || !hasItems}
                 >
-                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Save className="h-4 w-4 me-2" />}
                   שמור כטיוטה
                 </Button>
                 <Button onClick={() => saveMutation.mutate(true)} disabled={saveMutation.isPending || !hasItems}>
-                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
                   שמור ושלוח במייל
                 </Button>
               </div>
@@ -244,6 +254,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
         customerName={client?.name ?? ""}
         customerAddress={client?.address ?? undefined}
         quoteNumber=""
+        quoteDate={new Date()}
         items={quoteItems}
         subtotal={subtotal}
         discount={discount}

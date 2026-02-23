@@ -21,10 +21,14 @@ type ProjectItemRow = {
   project_id: string;
   quantity: number;
   days: number;
+  prep_days?: number;
+  extras?: number;
   op_items: { price: number } | null;
 };
 
 const ACTIVE_STATUSES = ["planning", "execution", "collection"];
+/** Only projects with approved price proposals are included in financial metrics. */
+const APPROVED_STATUSES = ["planning", "execution", "collection", "completed"];
 
 export default function AdAgencyDashboard() {
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
@@ -44,11 +48,14 @@ export default function AdAgencyDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("op_project_items")
-        .select("project_id, quantity, days, op_items(price)");
+        .select("project_id, quantity, days, prep_days, extras, op_items(price)");
       if (error) throw error;
       return data as ProjectItemRow[];
     },
   });
+
+  const rowTotal = (price: number, qty: number, days: number, prepDays: number, extras: number) =>
+    price * qty * (days ?? 1) * (1 + (prepDays ?? 0)) + (extras ?? 0);
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ["op_project_tasks_due"],
@@ -69,17 +76,27 @@ export default function AdAgencyDashboard() {
     },
   });
 
+  const approvedProjectIds = useMemo(
+    () => new Set(projects.filter((p) => APPROVED_STATUSES.includes(p.status)).map((p) => p.id)),
+    [projects]
+  );
+
   const { projectExpensesMap, totalExpenses, totalRevenue, totalProfit, profitPct } = useMemo(() => {
     const expensesByProject = new Map<string, number>();
     let totalExp = 0;
     for (const pi of projectItems) {
+      if (!approvedProjectIds.has(pi.project_id)) continue;
       const price = pi.op_items?.price ? Number(pi.op_items.price) : 0;
       const d = pi.days ?? 1;
-      const rowTotal = price * pi.quantity * d;
-      expensesByProject.set(pi.project_id, (expensesByProject.get(pi.project_id) ?? 0) + rowTotal);
-      totalExp += rowTotal;
+      const prep = pi.prep_days ?? 0;
+      const ext = pi.extras ?? 0;
+      const tot = rowTotal(price, pi.quantity, d, prep, ext);
+      expensesByProject.set(pi.project_id, (expensesByProject.get(pi.project_id) ?? 0) + tot);
+      totalExp += tot;
     }
-    const totalRev = projects.reduce((s, p) => s + (p.budget_approved ?? 0), 0);
+    const totalRev = projects
+      .filter((p) => APPROVED_STATUSES.includes(p.status))
+      .reduce((s, p) => s + (p.budget_approved ?? 0), 0);
     const profit = totalRev - totalExp;
     const pct = totalRev > 0 ? (profit / totalRev) * 100 : null;
     return {
@@ -89,7 +106,7 @@ export default function AdAgencyDashboard() {
       totalProfit: profit,
       profitPct: pct,
     };
-  }, [projects, projectItems]);
+  }, [projects, projectItems, approvedProjectIds]);
 
   const activeProjects = projects.filter((p) => ACTIVE_STATUSES.includes(p.status)).slice(0, 8);
   const draftProjects = projects.filter((p) => p.status === "draft").slice(0, 8);
@@ -122,7 +139,7 @@ export default function AdAgencyDashboard() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          <Card title="סכום תקציבים שאושרו מפרויקטים שאינם בטיוטה (תכנון, ביצוע, גבייה, הושלם)">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">צפי הכנסה</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -263,7 +280,7 @@ export default function AdAgencyDashboard() {
               <ul className="space-y-2">
                 {tasks.map((t) => (
                   <li key={t.id} className="flex items-center gap-2">
-                    <Link to={`/ad-agency/projects/${t.project_id}`} className="text-sm hover:underline">
+                    <Link to={`/ad-agency/tasks?project=${t.project_id}`} className="text-sm hover:underline">
                       {t.title}
                     </Link>
                     {t.end_date && (
