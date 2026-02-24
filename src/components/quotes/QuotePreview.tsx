@@ -104,44 +104,33 @@ export function QuotePreview({
           {/* Document container: 680–760px, padding 28–36px */}
           <div className="px-7 py-7" style={{ padding: "28px 36px" }}>
             {/* Header */}
-            <header className="flex items-start justify-between gap-6" style={{ marginBottom: 24 }}>
+            <header className="flex items-start justify-between gap-6 pb-6" style={{ borderBottom: `2px solid ${tokens.stroke}` }}>
               <div className="text-start">
-                <h1
-                  className="font-semibold"
-                  style={{ fontSize: "24px", fontWeight: 600 }}
-                >
-                  הצעת מחיר.
+                <p className="text-sm font-medium" style={{ color: tokens.textMuted, marginBottom: 4 }}>
+                  {companyName}
+                </p>
+                <h1 style={{ fontSize: "22px", fontWeight: 600, color: tokens.text, letterSpacing: "-0.02em" }}>
+                  הצעת מחיר
                 </h1>
                 {headerSubline && (
-                  <p
-                    className="text-[#B7B7B7]"
-                    style={{ fontSize: "11px", lineHeight: 1.6, marginTop: 4 }}
-                  >
+                  <p style={{ fontSize: "12px", lineHeight: 1.5, marginTop: 6, color: tokens.textMuted }}>
                     {headerSubline}
                   </p>
                 )}
               </div>
-              <div
-                className="font-medium"
-                style={{ fontSize: "14px", color: tokens.text }}
-              >
-                {companyName}
-              </div>
             </header>
-
-            <div style={{ height: 1, backgroundColor: tokens.stroke, marginBottom: 24 }} />
 
             {/* תכולת עבודה. - intro + client */}
             <section style={{ marginBottom: 24 }}>
               <h2
                 className="font-medium"
-                style={{ fontSize: "15px", marginBottom: 12 }}
+                style={{ fontSize: "14px", fontWeight: 600, color: tokens.text, marginBottom: 12 }}
               >
-                תכולת עבודה.
+                תכולת עבודה
               </h2>
               <p
                 style={{
-                  fontSize: "11px",
+                  fontSize: "13px",
                   lineHeight: 1.6,
                   color: tokens.textMuted,
                 }}
@@ -151,7 +140,7 @@ export function QuotePreview({
               </p>
               <p
                 style={{
-                  fontSize: "11px",
+                  fontSize: "13px",
                   lineHeight: 1.6,
                   color: tokens.textMuted,
                   marginTop: 8,
@@ -167,34 +156,34 @@ export function QuotePreview({
             <section style={{ marginBottom: 24 }}>
               <h2
                 className="font-medium"
-                style={{ fontSize: "15px", marginBottom: 16 }}
+                style={{ fontSize: "14px", fontWeight: 600, color: tokens.text, marginBottom: 16 }}
               >
-                תמחור.
+                תמחור
               </h2>
-              <table className="w-full border-collapse" style={{ fontSize: "11px" }}>
+              <table className="w-full border-collapse" style={{ fontSize: "13px" }}>
                 <thead>
                   <tr>
                     <th
                       className="text-end font-medium py-3 pe-3 ps-2"
-                      style={{ color: tokens.text, fontSize: "11px" }}
+                      style={{ color: tokens.text, fontSize: "12px" }}
                     >
                       פריט
                     </th>
                     <th
                       className="text-center font-medium py-3 px-2"
-                      style={{ color: tokens.text, fontSize: "11px" }}
+                      style={{ color: tokens.text, fontSize: "12px" }}
                     >
                       כמות
                     </th>
                     <th
                       className="text-end font-medium py-3 px-2"
-                      style={{ color: tokens.text, fontSize: "11px" }}
+                      style={{ color: tokens.text, fontSize: "12px" }}
                     >
                       מחיר ליחידה
                     </th>
                     <th
                       className="text-end font-medium py-3 px-2"
-                      style={{ color: tokens.text, fontSize: "11px" }}
+                      style={{ color: tokens.text, fontSize: "12px" }}
                     >
                       סה״כ
                     </th>
@@ -287,13 +276,13 @@ export function QuotePreview({
                 <section style={{ marginBottom: 24 }}>
                   <h2
                     className="font-medium"
-                    style={{ fontSize: "15px", marginBottom: 12 }}
+                    style={{ fontSize: "14px", fontWeight: 600, color: tokens.text, marginBottom: 12 }}
                   >
-                    תנאים.
+                    תנאים
                   </h2>
                   <div
                     style={{
-                      fontSize: "10.5px",
+                      fontSize: "13px",
                       lineHeight: 1.8,
                       color: tokens.textMuted,
                     }}
@@ -317,9 +306,9 @@ export function QuotePreview({
             <footer>
               <h2
                 className="font-medium"
-                style={{ fontSize: "15px", marginBottom: 12 }}
+                style={{ fontSize: "14px", fontWeight: 600, color: tokens.text, marginBottom: 12 }}
               >
-                יצירת קשר.
+                יצירת קשר
               </h2>
               <ul
                 className="list-none p-0 m-0 space-y-1"
