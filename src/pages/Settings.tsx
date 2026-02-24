@@ -62,6 +62,24 @@ export default function Settings() {
 
   const addRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: "admin" | "sales" }) => {
+      const modules: Array<{ module: string; role: string }> =
+        role === "admin"
+          ? [
+              { module: "leads", role: "admin" },
+              { module: "ad_agency", role: "admin" },
+              { module: "system", role: "admin" },
+            ]
+          : [
+              { module: "leads", role: "user" },
+              { module: "ad_agency", role: "user" },
+            ];
+      for (const m of modules) {
+        const { error } = await supabase.from("user_module_roles").upsert(
+          { user_id: userId, module: m.module, role: m.role },
+          { onConflict: "user_id,module" }
+        );
+        if (error) throw error;
+      }
       const { error } = await supabase.from("user_roles").insert({
         user_id: userId,
         role,
@@ -80,6 +98,18 @@ export default function Settings() {
 
   const removeRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
+      const { data: row } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("id", roleId)
+        .single();
+      if (row?.user_id) {
+        const { error } = await supabase
+          .from("user_module_roles")
+          .delete()
+          .eq("user_id", row.user_id);
+        if (error) throw error;
+      }
       const { error } = await supabase.from("user_roles").delete().eq("id", roleId);
       if (error) throw error;
     },
