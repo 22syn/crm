@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Plus, Minus, Trash2, Save } from "lucide-react";
+import { Plus, Minus, Trash2, Save, Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -45,7 +45,12 @@ interface ProjectItemsSectionProps {
 export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
   const queryClient = useQueryClient();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
+
+  useEffect(() => {
+    if (!addDialogOpen) setSearchQuery("");
+  }, [addDialogOpen]);
 
   const { data: items = [] } = useQuery({
     queryKey: ["op_items"],
@@ -167,6 +172,11 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
     );
   };
 
+  const filteredItems = items.filter((i) =>
+    searchQuery.trim() === ""
+      ? true
+      : i.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const itemsMap = new Map(items.map((i) => [i.id, i]));
   const hasPending = pendingItems.length > 0;
 
