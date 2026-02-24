@@ -1,56 +1,103 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+
+export type Module = "leads" | "ad_agency" | "system";
+export type ModuleRole = "admin" | "user";
 
 type UserRole = "admin" | "sales" | null;
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
+  /** @deprecated Use canAccessModule / isModuleAdmin instead. Kept for backward compat. */
   role: UserRole;
+  moduleRoles: Partial<Record<Module, ModuleRole>>;
+  superAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
+  canAccessModule: (module: Module) => boolean;
+  isModuleAdmin: (module: Module) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function deriveRole(
+  superAdmin: boolean,
+  moduleRoles: Partial<Record<Module, ModuleRole>>
+): UserRole {
+  if (superAdmin) return "admin";
+  const modules = Object.values(moduleRoles);
+  if (modules.length === 0) return null;
+  const hasAdmin = modules.some((r) => r === "admin");
+  return hasAdmin ? "admin" : "sales";
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<UserRole>(null);
+  const [moduleRoles, setModuleRoles] = useState<Partial<Record<Module, ModuleRole>>>({});
+  const [superAdmin, setSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const role = useMemo(
+    () => deriveRole(superAdmin, moduleRoles),
+    [superAdmin, moduleRoles]
+  );
+
+  const canAccessModule = (module: Module) =>
+    superAdmin || module in moduleRoles;
+
+  const isModuleAdmin = (module: Module) =>
+    superAdmin || moduleRoles[module] === "admin";
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch user role - using setTimeout to avoid Supabase auth deadlock
           setTimeout(async () => {
-            const { data: roles } = await supabase
-              .from("user_roles")
-              .select("role")
-              .eq("user_id", session.user.id)
-              .limit(1);
+            try {
+              const [profileRes, rolesRes] = await Promise.all([
+                supabase
+                  .from("profiles")
+                  .select("super_admin")
+                  .eq("user_id", session.user.id)
+                  .single(),
+                supabase
+                  .from("user_module_roles")
+                  .select("module, role")
+                  .eq("user_id", session.user.id),
+              ]);
 
-            if (roles && roles.length > 0) {
-              setRole(roles[0].role as UserRole);
-            } else {
-              setRole(null);
+              const prof = profileRes.data;
+              const roles = rolesRes.data ?? [];
+              setSuperAdmin(prof?.super_admin ?? false);
+
+              const map: Partial<Record<Module, ModuleRole>> = {};
+              for (const r of roles) {
+                if (r.module && r.role && ["leads", "ad_agency", "system"].includes(r.module)) {
+                  map[r.module as Module] = r.role as ModuleRole;
+                }
+              }
+              setModuleRoles(map);
+            } catch {
+              setSuperAdmin(false);
+              setModuleRoles({});
+            } finally {
+              setLoading(false);
             }
-            setLoading(false);
           }, 0);
         } else {
-          setRole(null);
+          setModuleRoles({});
+          setSuperAdmin(false);
           setLoading(false);
         }
       }
     );
 
-    // THEN get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -66,11 +113,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
-    setRole(null);
+    setModuleRoles({});
+    setSuperAdmin(false);
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, loading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        role,
+        moduleRoles,
+        superAdmin,
+        loading,
+        signOut,
+        canAccessModule,
+        isModuleAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -17,7 +17,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type OpClient = Tables<"op_clients">;
 
 export default function AdAgencyClients() {
-  const { role } = useAuth();
+  const { isModuleAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,7 +116,7 @@ export default function AdAgencyClients() {
     return matchSearch && matchActive;
   });
 
-  const isAdmin = role === "admin";
+  const isAdmin = isModuleAdmin("ad_agency");
   const hasActiveFilters = !!searchQuery.trim() || activeFilter !== "all";
   const handleClearFilters = () => {
     setSearchQuery("");

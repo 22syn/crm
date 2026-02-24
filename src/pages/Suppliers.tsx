@@ -35,7 +35,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function Suppliers() {
-  const { role } = useAuth();
+  const { isModuleAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,7 +126,7 @@ export default function Suppliers() {
     supplier.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isAdmin = role === "admin";
+  const isAdmin = isModuleAdmin("system");
 
   return (
     <div className="p-6 space-y-6">

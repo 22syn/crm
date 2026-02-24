@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -38,41 +39,85 @@ import {
   UserCheck,
   Zap,
   LayoutGrid,
+  ListTodo,
+  Receipt,
 } from "lucide-react";
 
-/** Dashboard first—visible to all users. */
+/** Dashboard first—leads module */
 const primaryItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "leads" as const },
 ];
 
 const menuItems = [
-  { title: "Leads", url: "/leads", icon: Users },
-  { title: "Contracts", url: "/contracts", icon: FileText },
-  { title: "Designs", url: "/design-requests", icon: Palette },
-  { title: "Deals", url: "/deals", icon: Handshake },
+  { title: "Leads", url: "/leads", icon: Users, module: "leads" as const },
+  { title: "Contracts", url: "/contracts", icon: FileText, module: "leads" as const },
+  { title: "Designs", url: "/design-requests", icon: Palette, module: "leads" as const },
+  { title: "Deals", url: "/deals", icon: Handshake, module: "leads" as const },
 ];
 
-/** משרד פרסום - visible to all CRM users */
+/** משרד פרסום */
 const adAgencyItems = [
-  { title: "דשבורד", url: "/ad-agency", icon: LayoutGrid },
-  { title: "לקוחות", url: "/ad-agency/clients", icon: Users },
-  { title: "פרויקטים", url: "/ad-agency/projects", icon: FileText },
-  { title: "פריטים", url: "/ad-agency/items", icon: Package },
+  { title: "דשבורד", url: "/ad-agency", icon: LayoutGrid, module: "ad_agency" as const },
+  { title: "לקוחות", url: "/ad-agency/clients", icon: Users, module: "ad_agency" as const },
+  { title: "פרויקטים", url: "/ad-agency/projects", icon: FileText, module: "ad_agency" as const },
+  { title: "הצעות מחיר", url: "/contracts", icon: Receipt, module: "ad_agency" as const },
+  { title: "משימות", url: "/ad-agency/tasks", icon: ListTodo, module: "ad_agency" as const },
+  { title: "פריטים", url: "/ad-agency/items", icon: Package, module: "ad_agency" as const },
 ];
 
-/** Admin section—excludes Dashboard (now in primary). */
+/** Admin section: leads (Customers, Products) + system (Suppliers, Automations, Settings) */
 const adminItems = [
-  { title: "Customers", url: "/customers", icon: UserCheck },
-  { title: "Products", url: "/products", icon: Package },
-  { title: "Suppliers", url: "/suppliers", icon: Truck },
-  { title: "Automations", url: "/automations", icon: Zap },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Customers", url: "/customers", icon: UserCheck, module: "leads" as const },
+  { title: "Products", url: "/products", icon: Package, module: "leads" as const },
+  { title: "Suppliers", url: "/suppliers", icon: Truck, module: "system" as const },
+  { title: "Automations", url: "/automations", icon: Zap, module: "system" as const },
+  { title: "Settings", url: "/settings", icon: Settings, module: "system" as const },
 ];
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  module: "leads" | "ad_agency" | "system";
+};
+
+function NavItems({
+  items,
+  canShow,
+  isActive,
+}: {
+  items: NavItem[];
+  canShow: (item: NavItem) => boolean;
+  isActive: (item: NavItem) => boolean;
+}) {
+  const visible = items.filter(canShow);
+  return (
+    <>
+      {visible.map((item) => (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild isActive={isActive(item)} tooltip={item.title}>
+            <Link to={item.url}>
+              <item.icon className="h-4 w-4" />
+              <span>{item.title}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </>
+  );
+}
 
 export function DashboardSidebar() {
   const location = useLocation();
-  const { user, role, signOut } = useAuth();
+  const { user, role, signOut, canAccessModule, isModuleAdmin } = useAuth();
   const { state } = useSidebar();
+
+  const canShowAdminItem = (item: (typeof adminItems)[0]) =>
+    item.module === "leads"
+      ? canAccessModule("leads")
+      : isModuleAdmin("system");
+
+  const adminItemsVisible = adminItems.filter(canShowAdminItem);
 
   return (
     <Sidebar collapsible="icon">
@@ -93,16 +138,11 @@ export function DashboardSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {primaryItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <NavItems
+                items={primaryItems}
+                canShow={(i) => canAccessModule(i.module)}
+                isActive={(i) => location.pathname === i.url}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -113,16 +153,11 @@ export function DashboardSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <NavItems
+                items={menuItems}
+                canShow={(i) => canAccessModule(i.module)}
+                isActive={(i) => location.pathname === i.url}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -131,26 +166,24 @@ export function DashboardSidebar() {
           <SidebarGroupLabel>משרד פרסום</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {adAgencyItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={location.pathname === item.url || (item.url !== "/ad-agency" && location.pathname.startsWith(item.url + "/"))} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <NavItems
+                items={adAgencyItems}
+                canShow={(i) => canAccessModule(i.module)}
+                isActive={(i) =>
+                  location.pathname === i.url ||
+                  (i.url !== "/ad-agency" && location.pathname.startsWith(i.url + "/"))
+                }
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {role === "admin" && (
+        {adminItemsVisible.length > 0 && (
           <SidebarGroup className="mt-4">
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminItems.map((item) => (
+                {adminItemsVisible.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
                       <Link to={item.url}>

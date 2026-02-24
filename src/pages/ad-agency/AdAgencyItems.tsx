@@ -17,7 +17,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type OpItem = Tables<"op_items">;
 
 export default function AdAgencyItems() {
-  const { role } = useAuth();
+  const { isModuleAdmin } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,7 +111,7 @@ export default function AdAgencyItems() {
       item.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isAdmin = role === "admin";
+  const isAdmin = isModuleAdmin("ad_agency");
   const hasActiveFilters = !!searchQuery.trim();
   const handleClearFilters = () => setSearchQuery("");
 

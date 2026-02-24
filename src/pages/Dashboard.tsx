@@ -16,7 +16,8 @@ import type { TimeRange } from "@/contexts/DashboardContext";
 
 function DashboardContent() {
   const { timeRange, setTimeRange } = useDashboard();
-  const { role, user } = useAuth();
+  const { user, isModuleAdmin } = useAuth();
+  const filterByMe = !isModuleAdmin("leads");
 
   return (
     <div className="space-y-section">
@@ -24,7 +25,7 @@ function DashboardContent() {
         <div className="hidden md:block">
           <h1 className="text-display font-semibold">Dashboard</h1>
           <p className="text-body text-muted-foreground mt-1">
-            {role === "sales" ? "My Pipeline" : "CRM performance overview"}
+            {filterByMe ? "My Pipeline" : "CRM performance overview"}
           </p>
         </div>
         <Select value={timeRange} onValueChange={(v: TimeRange) => setTimeRange(v)} className="md:ml-auto">
@@ -40,15 +41,15 @@ function DashboardContent() {
         </Select>
       </div>
 
-      <StatsCards timeRange={timeRange} role={role} userId={user?.id} />
+      <StatsCards timeRange={timeRange} role={filterByMe ? "sales" : "admin"} userId={user?.id} />
 
       <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "200ms" }}>
-        <OrdersChart assignedTo={role === "sales" ? user?.id : undefined} />
-        <LeadsBySourceChart assignedTo={role === "sales" ? user?.id : undefined} />
+        <OrdersChart assignedTo={filterByMe ? user?.id : undefined} />
+        <LeadsBySourceChart assignedTo={filterByMe ? user?.id : undefined} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "300ms" }}>
-        <ActivityFeed assignedTo={role === "sales" ? user?.id : undefined} />
+        <ActivityFeed assignedTo={filterByMe ? user?.id : undefined} />
         <QuickActions />
       </div>
     </div>

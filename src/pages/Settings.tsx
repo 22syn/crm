@@ -26,7 +26,8 @@ import { toast } from "sonner";
 import { Loader2, UserPlus, Trash2 } from "lucide-react";
 
 export default function Settings() {
-  const { role } = useAuth();
+  const { superAdmin, isModuleAdmin } = useAuth();
+  const canManageSettings = superAdmin || isModuleAdmin("system");
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState<"admin" | "sales">("sales");
@@ -56,7 +57,7 @@ export default function Settings() {
         profile: profiles?.find(p => p.user_id === r.user_id),
       }));
     },
-    enabled: role === "admin",
+    enabled: canManageSettings,
   });
 
   const addRoleMutation = useMutation({
@@ -91,7 +92,7 @@ export default function Settings() {
     },
   });
 
-  if (role !== "admin") {
+  if (!canManageSettings) {
     return (
       <div className="text-center py-12">
           <h1 className="text-2xl font-bold hidden md:block">Access denied</h1>
