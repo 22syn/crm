@@ -9,7 +9,7 @@ interface ProjectWithClient {
   budget_approved: number | null;
   start_date: string | null;
   end_date: string | null;
-  op_clients?: { name: string } | null;
+  op_clients?: { name: string; payment_terms?: string | null } | null;
 }
 
 const stageColumns = [

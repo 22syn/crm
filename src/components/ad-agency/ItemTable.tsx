@@ -79,8 +79,8 @@ export function ItemTable({ items, sections = [], isAdmin, onEdit, onDelete, vis
   const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
       if (sortField === "price") {
-        const aVal = Number(a.price) ?? 0;
-        const bVal = Number(b.price) ?? 0;
+        const aVal = Number(a.price) || 0;
+        const bVal = Number(b.price) || 0;
         return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
       }
       if (sortField === "section_id" || sortField === "section") {

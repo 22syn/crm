@@ -7,25 +7,31 @@ export interface CrmTeamMember {
   email: string | null;
 }
 
+/** Fetches users who have leads module access (for assignee dropdown) */
 export function useCrmTeam() {
   return useQuery({
     queryKey: ["crm-team"],
     queryFn: async (): Promise<CrmTeamMember[]> => {
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .in("role", ["admin", "sales"]);
+      const [rolesRes, superAdminRes] = await Promise.all([
+        supabase.from("user_module_roles").select("user_id").eq("module", "leads"),
+        supabase.from("profiles").select("user_id").eq("super_admin", true),
+      ]);
 
-      if (rolesError) throw rolesError;
-      const userIds = [...new Set((roles ?? []).map((r) => r.user_id))];
-      if (userIds.length === 0) return [];
+      if (rolesRes.error) throw rolesRes.error;
+      if (superAdminRes.error) throw superAdminRes.error;
 
-      const { data: profiles, error: profilesError } = await supabase
+      const userIds = new Set<string>();
+      (rolesRes.data ?? []).forEach((r) => userIds.add(r.user_id));
+      (superAdminRes.data ?? []).forEach((p) => userIds.add(p.user_id));
+      const list = [...userIds];
+      if (list.length === 0) return [];
+
+      const { data: profiles, error } = await supabase
         .from("profiles")
         .select("user_id, full_name, email")
-        .in("user_id", userIds);
+        .in("user_id", list);
 
-      if (profilesError) throw profilesError;
+      if (error) throw error;
       return (profiles ?? []).map((p) => ({
         user_id: p.user_id,
         full_name: p.full_name ?? null,

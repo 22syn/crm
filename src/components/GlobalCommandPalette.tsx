@@ -10,8 +10,9 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { LayoutDashboard, Users, Handshake, FileText, Plus } from "lucide-react";
+import { LayoutDashboard, Users, Handshake, FileText, Plus, LayoutGrid, Package, ListTodo } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import { escapeIlike } from "@/lib/escapeIlike";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
@@ -55,11 +56,12 @@ export function GlobalCommandPalette() {
     queryKey: ["global-search-leads", search],
     queryFn: async () => {
       if (!search.trim()) return [];
+      const escaped = escapeIlike(search.trim());
       const { data, error } = await supabase
         .from("leads")
         .select("id, customer_name, customer_email, customer_phone, status")
         .or(
-          `customer_name.ilike.%${search}%,customer_email.ilike.%${search}%,customer_phone.ilike.%${search}%`
+          `customer_name.ilike.%${escaped}%,customer_email.ilike.%${escaped}%,customer_phone.ilike.%${escaped}%`
         )
         .limit(10);
       if (error) throw error;
@@ -112,6 +114,7 @@ export function GlobalCommandPalette() {
           {search.trim().length >= 2 ? (searchLoading ? "Searching..." : "No results.") : "Type to search leads."}
         </CommandEmpty>
         {!search.trim() && (
+          <>
           <CommandGroup heading="Go to">
             <CommandItem onSelect={() => runCommand(() => navigate("/dashboard"))}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -134,6 +137,33 @@ export function GlobalCommandPalette() {
               Contracts
             </CommandItem>
           </CommandGroup>
+          <CommandGroup heading="משרד פרסום">
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency"))}>
+              <LayoutGrid className="mr-2 h-4 w-4" />
+              דשבורד משרד פרסום
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/projects"))}>
+              <FileText className="mr-2 h-4 w-4" />
+              פרויקטים
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => navigate("/contracts"))}>
+              <FileText className="mr-2 h-4 w-4" />
+              הצעות מחיר
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/clients"))}>
+              <Users className="mr-2 h-4 w-4" />
+              לקוחות
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/tasks"))}>
+              <ListTodo className="mr-2 h-4 w-4" />
+              משימות
+            </CommandItem>
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/items"))}>
+              <Package className="mr-2 h-4 w-4" />
+              פריטים
+            </CommandItem>
+          </CommandGroup>
+          </>
         )}
         {!search.trim() && recentLeads.length > 0 && (
           <CommandGroup heading="Recent">

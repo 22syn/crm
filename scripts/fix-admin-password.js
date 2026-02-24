@@ -12,8 +12,12 @@ if (!key) {
 }
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
-const email = "kobihazout2@gmail.com";
-const newPassword = "K5991322h";
+const email = process.env.ADMIN_EMAIL || "kobihazout2@gmail.com";
+const newPassword = process.env.ADMIN_PASSWORD;
+if (!newPassword) {
+  console.error("Missing ADMIN_PASSWORD. Run: ADMIN_PASSWORD=yourpass node scripts/fix-admin-password.js");
+  process.exit(1);
+}
 
 const { data: { users }, error: listErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
 if (listErr) {
@@ -33,4 +37,4 @@ if (updateErr) {
   process.exit(1);
 }
 
-console.log(`Password updated for ${email}. You can now sign in with: ${email} / ${newPassword}`);
+console.log(`Password updated for ${email}.`);

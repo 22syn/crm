@@ -63,7 +63,26 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
         .from("op_project_items")
         .select("id, project_id, item_id, quantity, days, prep_days, extras, created_at")
         .eq("project_id", projectId);
-      if (error) throw error;
+      if (error) {
+        const { data: fallback, error: err2 } = await supabase
+          .from("op_project_items")
+          .select("id, project_id, item_id, quantity, days, created_at")
+          .eq("project_id", projectId);
+        if (err2) throw err2;
+        const fallbackRows = (fallback ?? []).map((r) => ({ ...r, prep_days: 0, extras: 0 }));
+        if (fallbackRows.length === 0) return [];
+        const itemIds = [...new Set(fallbackRows.map((r) => r.item_id))];
+        const { data: itemsData, error: itemsErr } = await supabase
+          .from("op_items")
+          .select("id, type, price")
+          .in("id", itemIds);
+        if (itemsErr) throw itemsErr;
+        const itemsMap = new Map((itemsData ?? []).map((i) => [i.id, i]));
+        return fallbackRows.map((r) => ({
+          ...r,
+          op_items: itemsMap.get(r.item_id) ?? null,
+        })) as ProjectItemWithDetails[];
+      }
       if (!rows?.length) return [];
       const itemIds = [...new Set(rows.map((r) => r.item_id))];
       const { data: itemsData, error: itemsErr } = await supabase

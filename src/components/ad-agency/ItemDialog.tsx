@@ -36,7 +36,7 @@ export function ItemDialog({ open, onOpenChange, item, sections = [], onSave }: 
   useEffect(() => {
     if (item) {
       setType(item.type);
-      setPrice(Number(item.price) ?? 0);
+      setPrice(Number(item.price) || 0);
       setSectionId((item as OpItem & { section_id?: string | null }).section_id ?? null);
     } else {
       setType("");

@@ -2,10 +2,11 @@
 
 ## Seed admin + 100 leads (`npm run seed:run`)
 
-Runs the seed migration via pooler (uses `supabase/.temp/pooler-url` when linked):
+Runs the seed migration via pooler (uses `supabase/.temp/pooler-url` when linked).
+**Required:** `ADMIN_PASSWORD` – never commit real passwords.
 
 ```bash
-DB_PASSWORD=yourpass npm run seed:run
+ADMIN_PASSWORD=yourpass DB_PASSWORD=yourpass npm run seed:run
 ```
 
 Or with full URL (note **aws-1** for Frankfurt):
@@ -13,6 +14,24 @@ Or with full URL (note **aws-1** for Frankfurt):
 ```bash
 DATABASE_URL="postgres://postgres.fbtnhhurjwizcrmcisci:YOUR_PASSWORD@aws-1-eu-central-1.pooler.supabase.com:5432/postgres" npm run seed:run
 ```
+
+---
+
+## Add user with CRM access (`npm run user:add`)
+
+Creates a new user (or invites them) and grants CRM access.
+
+**Invite – ori gets email to set password:**
+```bash
+USER_EMAIL=ori@harsinai.co.il USER_ROLE=sales SERVICE_ROLE_KEY=your_key npm run user:add
+```
+
+**Create with password – you share the password with ori:**
+```bash
+USER_EMAIL=ori@harsinai.co.il USER_PASSWORD=TempPass123! USER_ROLE=sales SERVICE_ROLE_KEY=your_key npm run user:add
+```
+
+`USER_ROLE` defaults to `sales`; use `admin` for admin access.
 
 ---
 

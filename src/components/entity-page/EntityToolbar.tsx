@@ -157,6 +157,14 @@ export function EntityToolbar({
           {children}
         </div>
 
+        {/* Group: Column visibility (early for visibility on narrow screens) */}
+        {renderColumnVisibility && (
+          <>
+            <Divider />
+            <div className="shrink-0 pl-1.5">{renderColumnVisibility}</div>
+          </>
+        )}
+
         {/* Group 2: Views */}
         {showViews && (
           <>
@@ -286,14 +294,6 @@ export function EntityToolbar({
                 {t.clearFilters}
               </Button>
             </div>
-          </>
-        )}
-
-        {/* Group: Column visibility */}
-        {renderColumnVisibility && (
-          <>
-            <Divider />
-            <div className="shrink-0 pl-1.5">{renderColumnVisibility}</div>
           </>
         )}
 
@@ -461,7 +461,7 @@ export function EntityToolbar({
   ) : null;
 
   return (
-    <div className="rounded-lg border border-border/60 bg-card/80 px-4 py-2.5">
+    <div className="rounded-lg border border-border/60 bg-card/80 px-4 py-2.5 min-w-0">
       {useMobileLayout && (
         <>
           <div className="md:hidden">{mobileToolbar}</div>

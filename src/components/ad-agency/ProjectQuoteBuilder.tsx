@@ -63,7 +63,14 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
         .from("op_project_items")
         .select("id, quantity, days, prep_days, extras, op_items(type, price)")
         .eq("project_id", project.id);
-      if (error) throw error;
+      if (error) {
+        const { data: fallback, error: err2 } = await supabase
+          .from("op_project_items")
+          .select("id, quantity, days, op_items(type, price)")
+          .eq("project_id", project.id);
+        if (err2) throw err2;
+        return (fallback ?? []).map((r) => ({ ...r, prep_days: 0, extras: 0 })) as ProjectItemWithPrice[];
+      }
       return data as ProjectItemWithPrice[];
     },
     enabled: open && !!project.id,

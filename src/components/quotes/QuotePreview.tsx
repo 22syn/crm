@@ -5,7 +5,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 
 interface QuoteItem {
   title: string;
@@ -16,12 +15,19 @@ interface QuoteItem {
   product_type?: string;
 }
 
+export interface QuoteContactInfo {
+  whatsapp?: string;
+  instagram?: string;
+  email?: string;
+}
+
 interface QuotePreviewProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customerName: string;
   customerAddress?: string;
   quoteNumber?: string;
+  quoteDate?: string | Date;
   items: QuoteItem[];
   subtotal: number;
   discount: number;
@@ -30,6 +36,25 @@ interface QuotePreviewProps {
   validUntil?: Date;
   notes?: string;
   paymentTerms?: string;
+  companyName?: string;
+  contactInfo?: QuoteContactInfo;
+}
+
+/** Design tokens for quote document (dark portfolio style) */
+const tokens = {
+  bg: "#0F0F0F",
+  text: "#FFFFFF",
+  textMuted: "#B7B7B7",
+  stroke: "#2A2A2A",
+  surface: "#151515",
+};
+
+function formatPrice(n: number) {
+  return `₪${n.toFixed(2)}`;
+}
+
+function formatDate(d: string | Date) {
+  return typeof d === "string" ? d : new Date(d).toLocaleDateString("he-IL");
 }
 
 export function QuotePreview({
@@ -38,6 +63,7 @@ export function QuotePreview({
   customerName,
   customerAddress,
   quoteNumber = "CT-XXXXXXXX-XXXX",
+  quoteDate,
   items,
   subtotal,
   discount,
@@ -46,114 +72,303 @@ export function QuotePreview({
   validUntil,
   notes,
   paymentTerms,
+  companyName = "הר סיני הפקות",
+  contactInfo,
 }: QuotePreviewProps) {
+  const headerSubline = [quoteNumber, quoteDate ? formatDate(quoteDate) : null]
+    .filter(Boolean)
+    .join(" / ");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-[760px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>תצוגה מקדימה של ההצעה</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="bg-[#f8f6f3] rounded-lg border border-[#e8e4de] shadow-sm" dir="rtl">
-          {/* Header - Demo Style */}
-          <div className="bg-[#3d3830] text-[#f8f6f3] p-8 text-center rounded-t-lg">
-            <div className="mb-4">
-              <h2 className="text-3xl font-bold tracking-tight">Demo CRM</h2>
-              <span className="text-[10px] tracking-[0.2em] opacity-70 uppercase">Premium Furniture Management</span>
-            </div>
-            <div className="w-16 h-[1px] bg-[#c4b8a8] mx-auto my-4"></div>
-            <h1 className="text-xl font-light tracking-wide">הצעת מחיר</h1>
-            <p className="mt-2 text-sm opacity-80 font-light">{quoteNumber}</p>
-          </div>
+        <div
+          className="rounded-lg overflow-hidden"
+          dir="rtl"
+          style={{
+            backgroundColor: tokens.bg,
+            color: tokens.text,
+            fontFamily: "'Heebo', sans-serif",
+            maxWidth: 720,
+            margin: "0 auto",
+          }}
+        >
+          {/* Document container: 680–760px, padding 28–36px */}
+          <div className="px-7 py-7" style={{ padding: "28px 36px" }}>
+            {/* Header */}
+            <header className="flex items-start justify-between gap-6" style={{ marginBottom: 24 }}>
+              <div className="text-start">
+                <h1
+                  className="font-semibold"
+                  style={{ fontSize: "24px", fontWeight: 600 }}
+                >
+                  הצעת מחיר.
+                </h1>
+                {headerSubline && (
+                  <p
+                    className="text-[#B7B7B7]"
+                    style={{ fontSize: "11px", lineHeight: 1.6, marginTop: 4 }}
+                  >
+                    {headerSubline}
+                  </p>
+                )}
+              </div>
+              <div
+                className="font-medium"
+                style={{ fontSize: "14px", color: tokens.text }}
+              >
+                {companyName}
+              </div>
+            </header>
 
-          {/* Content */}
-          <div className="p-8">
-            <p className="mb-2 text-[#5a5347]">שלום {customerName},</p>
-            {customerAddress && (
-              <p className="mb-2 text-[#5a5347] text-sm">{customerAddress}</p>
-            )}
-            <p className="mb-6 text-[#5a5347]">תודה על פנייתך! מצורפת הצעת המחיר שלך:</p>
+            <div style={{ height: 1, backgroundColor: tokens.stroke, marginBottom: 24 }} />
 
-            {/* Items Table */}
-            <table className="w-full border-collapse my-6 text-sm">
-              <thead>
-                <tr className="border-b-2 border-[#c4b8a8]">
-                  <th className="p-3 text-right font-medium text-[#3d3830]">פריט</th>
-                  <th className="p-3 text-right font-medium text-[#3d3830]">מידות</th>
-                  <th className="p-3 text-center font-medium text-[#3d3830]">כמות</th>
-                  <th className="p-3 text-right font-medium text-[#3d3830]">מחיר ליחידה</th>
-                  <th className="p-3 text-right font-medium text-[#3d3830]">סה"כ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={index} className="border-b border-[#e8e4de]">
-                    <td className="p-3 text-[#5a5347]">
-                      <div>{item.title}</div>
-                      {item.product_type && (
-                        <div className="text-xs text-[#8a8279]">{item.product_type}</div>
-                      )}
-                    </td>
-                    <td className="p-3 text-[#5a5347] text-sm">{item.dimensions || "-"}</td>
-                    <td className="p-3 text-center text-[#5a5347]">{item.quantity}</td>
-                    <td className="p-3 text-right text-[#5a5347]">₪{item.unit_price.toFixed(2)}</td>
-                    <td className="p-3 text-right text-[#5a5347]">₪{item.total_price.toFixed(2)}</td>
+            {/* תכולת עבודה. - intro + client */}
+            <section style={{ marginBottom: 24 }}>
+              <h2
+                className="font-medium"
+                style={{ fontSize: "15px", marginBottom: 12 }}
+              >
+                תכולת עבודה.
+              </h2>
+              <p
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  color: tokens.textMuted,
+                }}
+              >
+                {customerName}
+                {customerAddress ? ` · ${customerAddress}` : ""}
+              </p>
+              <p
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  color: tokens.textMuted,
+                  marginTop: 8,
+                }}
+              >
+                מצורפת הצעת המחיר להמשך.
+              </p>
+            </section>
+
+            <div style={{ height: 1, backgroundColor: tokens.stroke, marginBottom: 24 }} />
+
+            {/* תמחור. - pricing table */}
+            <section style={{ marginBottom: 24 }}>
+              <h2
+                className="font-medium"
+                style={{ fontSize: "15px", marginBottom: 16 }}
+              >
+                תמחור.
+              </h2>
+              <table className="w-full border-collapse" style={{ fontSize: "11px" }}>
+                <thead>
+                  <tr>
+                    <th
+                      className="text-end font-medium py-3 pe-3 ps-2"
+                      style={{ color: tokens.text, fontSize: "11px" }}
+                    >
+                      פריט
+                    </th>
+                    <th
+                      className="text-center font-medium py-3 px-2"
+                      style={{ color: tokens.text, fontSize: "11px" }}
+                    >
+                      כמות
+                    </th>
+                    <th
+                      className="text-end font-medium py-3 px-2"
+                      style={{ color: tokens.text, fontSize: "11px" }}
+                    >
+                      מחיר ליחידה
+                    </th>
+                    <th
+                      className="text-end font-medium py-3 px-2"
+                      style={{ color: tokens.text, fontSize: "11px" }}
+                    >
+                      סה״כ
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((item, index) => (
+                    <tr key={index}>
+                      <td
+                        className="py-3 pe-3 ps-2 border-t"
+                        style={{
+                          borderColor: tokens.stroke,
+                          color: tokens.textMuted,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        <span>{item.title}</span>
+                        {(item.product_type || item.dimensions) && (
+                          <span className="block text-[10px] mt-0.5 opacity-80">
+                            {[item.product_type, item.dimensions].filter(Boolean).join(" · ")}
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        className="py-3 px-2 border-t text-center"
+                        style={{ borderColor: tokens.stroke, color: tokens.textMuted }}
+                      >
+                        {item.quantity}
+                      </td>
+                      <td
+                        className="py-3 px-2 border-t text-end font-medium"
+                        style={{
+                          borderColor: tokens.stroke,
+                          color: tokens.text,
+                          fontSize: "12px",
+                        }}
+                      >
+                        <span dir="ltr">{formatPrice(item.unit_price)}</span>
+                      </td>
+                      <td
+                        className="py-3 px-2 border-t text-end font-medium"
+                        style={{
+                          borderColor: tokens.stroke,
+                          color: tokens.text,
+                          fontSize: "12px",
+                        }}
+                      >
+                        <span dir="ltr">{formatPrice(item.total_price)}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            {/* Totals */}
-            <div className="bg-white/50 p-5 rounded border border-[#e8e4de]">
-              <div className="flex justify-between py-2 text-sm text-[#5a5347]">
-                <span>סכום ביניים:</span>
-                <span>₪{subtotal.toFixed(2)}</span>
+              {/* Summary row - divider + סה״כ לתשלום. */}
+              <div
+                className="flex justify-between items-center py-3 mt-2 font-medium"
+                style={{
+                  borderTop: `1px solid ${tokens.stroke}`,
+                  fontSize: "12px",
+                  color: tokens.text,
+                }}
+              >
+                <span>סה״כ לתשלום.</span>
+                <span dir="ltr">{formatPrice(total)}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between py-2 text-sm text-[#6b8e6b]">
-                  <span>הנחה:</span>
-                  <span>-₪{discount.toFixed(2)}</span>
+                <div
+                  className="flex justify-between py-1 text-[11px]"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <span>הנחה</span>
+                  <span dir="ltr">-{formatPrice(discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between py-2 text-sm text-[#5a5347]">
-                <span>מע"מ (17%):</span>
-                <span>₪{tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between py-3 text-lg font-medium text-[#3d3830] border-t-2 border-[#c4b8a8] mt-2">
-                <span>סה"כ לתשלום:</span>
-                <span>₪{total.toFixed(2)}</span>
-              </div>
-            </div>
+              {tax > 0 && (
+                <div
+                  className="flex justify-between py-1 text-[11px]"
+                  style={{ color: tokens.textMuted }}
+                >
+                  <span>מע״מ (17%)</span>
+                  <span dir="ltr">{formatPrice(tax)}</span>
+                </div>
+              )}
+            </section>
 
-            {paymentTerms && (
-              <p className="text-[#5a5347] mt-4 text-sm">
-                <strong className="text-[#3d3830]">תנאי תשלום:</strong> {paymentTerms}
-              </p>
+            {(paymentTerms || validUntil || notes) && (
+              <>
+                <div style={{ height: 1, backgroundColor: tokens.stroke, marginBottom: 24 }} />
+                <section style={{ marginBottom: 24 }}>
+                  <h2
+                    className="font-medium"
+                    style={{ fontSize: "15px", marginBottom: 12 }}
+                  >
+                    תנאים.
+                  </h2>
+                  <div
+                    style={{
+                      fontSize: "10.5px",
+                      lineHeight: 1.8,
+                      color: tokens.textMuted,
+                    }}
+                  >
+                    {paymentTerms && <p>{paymentTerms}</p>}
+                    {validUntil && (
+                      <p style={{ marginTop: paymentTerms ? 8 : 0 }}>
+                        תוקף עד: {validUntil.toLocaleDateString("he-IL")}
+                      </p>
+                    )}
+                    {notes && (
+                      <p style={{ marginTop: (paymentTerms || validUntil) ? 8 : 0 }}>{notes}</p>
+                    )}
+                  </div>
+                </section>
+              </>
             )}
 
-            {validUntil && (
-              <p className="text-[#8a8279] mt-6 text-sm">
-                הצעה זו בתוקף עד: {validUntil.toLocaleDateString("he-IL")}
-              </p>
-            )}
-
-            {notes && (
-              <div className="bg-[#f0ebe3] p-4 rounded border border-[#e0d9ce] mt-6 text-sm text-[#5a5347]">
-                <strong className="text-[#3d3830]">הערות:</strong>
-                <br />
-                {notes}
-              </div>
-            )}
-
-            <p className="mt-8 text-[#5a5347]">לאישור ההצעה או לשאלות נוספות, אנא צרו קשר.</p>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center p-6 border-t border-[#e8e4de] text-[#8a8279] text-sm">
-            <p className="font-light">Because ordinary isn't an option</p>
-            <p className="mt-2 text-xs">democrm.com</p>
+            {/* יצירת קשר. - footer */}
+            <div style={{ height: 1, backgroundColor: tokens.stroke, marginBottom: 24 }} />
+            <footer>
+              <h2
+                className="font-medium"
+                style={{ fontSize: "15px", marginBottom: 12 }}
+              >
+                יצירת קשר.
+              </h2>
+              <ul
+                className="list-none p-0 m-0 space-y-1"
+                style={{
+                  fontSize: "11px",
+                  lineHeight: 1.6,
+                  color: tokens.textMuted,
+                }}
+              >
+                {contactInfo?.whatsapp && (
+                  <li>
+                    <a
+                      href={contactInfo.whatsapp.startsWith("http") ? contactInfo.whatsapp : `https://wa.me/${contactInfo.whatsapp.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:opacity-80 transition-opacity"
+                      style={{ color: tokens.text }}
+                    >
+                      WhatsApp
+                    </a>
+                  </li>
+                )}
+                {contactInfo?.instagram && (
+                  <li>
+                    <a
+                      href={contactInfo.instagram.startsWith("http") ? contactInfo.instagram : `https://instagram.com/${contactInfo.instagram.replace(/^@/, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:opacity-80 transition-opacity"
+                      style={{ color: tokens.text }}
+                    >
+                      Instagram
+                    </a>
+                  </li>
+                )}
+                {contactInfo?.email && (
+                  <li>
+                    <a
+                      href={`mailto:${contactInfo.email}`}
+                      className="hover:opacity-80 transition-opacity"
+                      style={{ color: tokens.text }}
+                    >
+                      {contactInfo.email}
+                    </a>
+                  </li>
+                )}
+                {(!contactInfo?.whatsapp && !contactInfo?.instagram && !contactInfo?.email) && (
+                  <li>{companyName}</li>
+                )}
+              </ul>
+            </footer>
           </div>
         </div>
 

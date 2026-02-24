@@ -48,6 +48,7 @@ export function ProjectDialog({
   const [formData, setFormData] = useState({
     client_id: preselectedClientId || "",
     title: "",
+    budget_required: "",
     budget_approved: "",
     status: "draft" as ProjectStatus,
     start_date: "",
@@ -58,18 +59,20 @@ export function ProjectDialog({
   useEffect(() => {
     if (project) {
       setFormData({
-        client_id: project.client_id,
-        title: project.title,
+        client_id: project.client_id ?? "",
+        title: project.title ?? "",
+        budget_required: project.budget_required != null ? String(project.budget_required) : "",
         budget_approved: project.budget_approved != null ? String(project.budget_approved) : "",
-        status: project.status as ProjectStatus,
-        start_date: project.start_date || "",
-        end_date: project.end_date || "",
-        notes: project.notes || "",
+        status: (project.status ?? "draft") as ProjectStatus,
+        start_date: project.start_date ?? "",
+        end_date: project.end_date ?? "",
+        notes: project.notes ?? "",
       });
     } else {
       setFormData({
         client_id: preselectedClientId || "",
         title: "",
+        budget_required: "",
         budget_approved: "",
         status: "draft",
         start_date: "",
@@ -79,11 +82,15 @@ export function ProjectDialog({
     }
   }, [project, preselectedClientId, open]);
 
+  const isDraft =
+    formData.status === "draft" || formData.status === "waiting_for_approval";
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
       client_id: formData.client_id,
       title: formData.title.trim(),
+      budget_required: formData.budget_required ? Number(formData.budget_required) : 0,
       budget_approved: formData.budget_approved ? Number(formData.budget_approved) : 0,
       status: formData.status,
       start_date: formData.start_date || null,
@@ -127,16 +134,39 @@ export function ProjectDialog({
               required
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="budget_approved">צפי הכנסה (תקציב אושר)</Label>
-            <Input
-              id="budget_approved"
-              type="number"
-              min={0}
-              step="0.01"
-              value={formData.budget_approved}
-              onChange={(e) => setFormData((p) => ({ ...p, budget_approved: e.target.value }))}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget_required">תקציב נדרש (טיוטה)</Label>
+              <Input
+                id="budget_required"
+                type="number"
+                min={0}
+                step="0.01"
+                value={formData.budget_required}
+                onChange={(e) => setFormData((p) => ({ ...p, budget_required: e.target.value }))}
+                disabled={!isDraft}
+              />
+              {!isDraft && (
+                <p className="text-xs text-muted-foreground">מוצג לצורך עיון בלבד</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="budget_approved">תקציב שאושר (צפי הכנסה)</Label>
+              <Input
+                id="budget_approved"
+                type="number"
+                min={0}
+                step="0.01"
+                value={formData.budget_approved}
+                onChange={(e) => setFormData((p) => ({ ...p, budget_approved: e.target.value }))}
+                disabled={isDraft}
+              />
+              {isDraft && (
+                <p className="text-xs text-muted-foreground">
+                  יוגדר בעת מעבר מאישור הטיוטה
+                </p>
+              )}
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="status">סטטוס</Label>

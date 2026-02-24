@@ -2,7 +2,7 @@
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = 'r9bxmb-wa.myshopify.com';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const SHOPIFY_STOREFRONT_TOKEN = 'cc303002feee58e6db4e440d762c147d';
+const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
 
 export interface ShopifyProduct {
   node: {
@@ -105,11 +105,15 @@ const STOREFRONT_PRODUCTS_QUERY = `
 `;
 
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
+  const token = SHOPIFY_STOREFRONT_TOKEN;
+  if (!token) {
+    throw new Error('VITE_SHOPIFY_STOREFRONT_TOKEN is required. Add it to .env');
+  }
   const response = await fetch(SHOPIFY_STOREFRONT_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN
+      'X-Shopify-Storefront-Access-Token': token
     },
     body: JSON.stringify({
       query,

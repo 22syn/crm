@@ -1,16 +1,16 @@
 -- Seed admin user (kobihazout2@gmail.com) and 100 sample leads (idempotent)
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
+-- pgcrypto lives in extensions schema on Supabase hosted
 DO $$
 DECLARE
   v_user_id UUID;
-  v_encrypted_pw TEXT := extensions.crypt('K5991322h', extensions.gen_salt('bf'));
+  v_encrypted_pw TEXT;
   v_exists BOOLEAN;
 BEGIN
   SELECT id INTO v_user_id FROM auth.users WHERE email = 'kobihazout2@gmail.com' LIMIT 1;
   v_exists := (v_user_id IS NOT NULL);
 
   IF NOT v_exists THEN
+    v_encrypted_pw := extensions.crypt('__ADMIN_PASSWORD__', extensions.gen_salt('bf'));
     v_user_id := gen_random_uuid();
     -- 1. Insert user into auth.users
     INSERT INTO auth.users (

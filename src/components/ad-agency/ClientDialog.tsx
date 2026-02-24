@@ -5,7 +5,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Tables } from "@/integrations/supabase/types";
+
+const PAYMENT_TERMS_OPTIONS: { value: string; label: string }[] = [
+  { value: "__none__", label: "ללא" },
+  { value: "מקדמה 50%", label: "מקדמה 50%" },
+  { value: "תשלום מראש", label: "תשלום מראש" },
+  { value: "תוך 7 ימי עסקים", label: "תוך 7 ימי עסקים" },
+  { value: "תוך 14 ימי עסקים", label: "תוך 14 ימי עסקים" },
+  { value: "תוך 30 יום", label: "תוך 30 יום" },
+  { value: "תוך 45 יום", label: "תוך 45 יום" },
+  { value: "תוך 60 יום", label: "תוך 60 יום" },
+  { value: "עם קבלת הסחורה", label: "עם קבלת הסחורה" },
+];
 
 type OpClient = Tables<"op_clients">;
 
@@ -38,7 +57,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
         contact_name: client.contact_name || "",
         contact_phone: client.contact_phone || "",
         address: client.address || "",
-        payment_terms: (client as { payment_terms?: string | null }).payment_terms || "",
+        payment_terms: (client as { payment_terms?: string | null }).payment_terms || "__none__",
         notes: client.notes || "",
         is_active: client.is_active ?? true,
       });
@@ -50,7 +69,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
         contact_name: "",
         contact_phone: "",
         address: "",
-        payment_terms: "",
+        payment_terms: "__none__",
         notes: "",
         is_active: true,
       });
@@ -59,7 +78,11 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...formData, is_active: formData.is_active });
+    onSave({
+      ...formData,
+      is_active: formData.is_active,
+      payment_terms: formData.payment_terms === "__none__" ? null : formData.payment_terms,
+    });
   };
 
   return (
@@ -123,12 +146,28 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
           </div>
           <div className="space-y-2">
             <Label htmlFor="payment_terms">תנאי תשלום</Label>
-            <Input
-              id="payment_terms"
+            <Select
               value={formData.payment_terms}
-              onChange={(e) => setFormData((prev) => ({ ...prev, payment_terms: e.target.value }))}
-              placeholder="למשל: תוך 30 יום, מקדמה 50%"
-            />
+              onValueChange={(v) => setFormData((prev) => ({ ...prev, payment_terms: v }))}
+            >
+              <SelectTrigger id="payment_terms">
+                <SelectValue placeholder="בחר תנאי תשלום" />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  ...PAYMENT_TERMS_OPTIONS,
+                  ...(formData.payment_terms &&
+                  formData.payment_terms !== "__none__" &&
+                  !PAYMENT_TERMS_OPTIONS.some((o) => o.value === formData.payment_terms)
+                    ? [{ value: formData.payment_terms, label: formData.payment_terms }]
+                    : []),
+                ].map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">הערות</Label>
@@ -143,7 +182,7 @@ export function ClientDialog({ open, onOpenChange, client, onSave }: ClientDialo
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div>
                 <Label htmlFor="is_active">לקוח פעיל</Label>
-                <p className="text-sm text-muted-foreground">לקוחות לא פעילים לא יופיעו ב־dropdown של פרויקטים חדשים</p>
+                <p className="text-sm text-muted-foreground">לקוחות לא פעילים לא יופיעו ברשימת הלקוחות בעת יצירת פרויקט חדש</p>
               </div>
               <Switch
                 id="is_active"

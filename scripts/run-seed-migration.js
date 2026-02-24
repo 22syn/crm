@@ -9,10 +9,17 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const sql = readFileSync(
+let sql = readFileSync(
   join(__dirname, "../supabase/migrations/20260221100000_seed_admin_and_leads.sql"),
   "utf8"
 );
+sql = sql.replace(/__ADMIN_PASSWORD__/g, adminPassword.replace(/'/g, "''"));
+
+const adminPassword = process.env.ADMIN_PASSWORD;
+if (!adminPassword) {
+  console.error("Missing ADMIN_PASSWORD. Run: ADMIN_PASSWORD=yourpass npm run seed:run");
+  process.exit(1);
+}
 
 let url = process.env.DATABASE_URL;
 if (!url && process.env.DB_PASSWORD) {

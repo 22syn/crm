@@ -25,6 +25,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { session, role, loading } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading) {
     return (
@@ -52,6 +53,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
+  const isAdAgency = pathname.startsWith("/ad-agency");
+  const mainDir = isAdAgency ? "rtl" : undefined;
+
   return (
     <SidebarProvider>
       <DashboardSidebar />
@@ -62,7 +66,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <MobileHeaderTitle />
           </div>
         </header>
-        <main className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden">{children}</main>
+        <main
+          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden"
+          dir={mainDir}
+        >
+          {children}
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

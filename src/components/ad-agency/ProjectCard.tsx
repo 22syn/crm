@@ -1,12 +1,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, GripVertical, Pencil, User } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Calendar, DollarSign, FileText, GripVertical, ListTodo, MoreHorizontal, Pencil, Trash2, User } from "lucide-react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface ProjectWithClient {
   id: string;
@@ -16,17 +22,22 @@ interface ProjectWithClient {
   budget_approved: number | null;
   start_date: string | null;
   end_date: string | null;
-  op_clients?: { name: string } | null;
+  op_clients?: { name: string; payment_terms?: string | null } | null;
 }
 
 interface ProjectCardProps {
   project: ProjectWithClient;
   onEdit: (project: ProjectWithClient) => void;
+  onDelete?: (project: ProjectWithClient) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-green-500/20 text-green-700",
+  waiting_for_approval: "bg-amber-500/20 text-amber-700",
+  planning: "bg-sky-500/20 text-sky-700",
+  execution: "bg-green-500/20 text-green-700",
+  collection: "bg-emerald-500/20 text-emerald-700",
   completed: "bg-blue-500/20 text-blue-700",
   cancelled: "bg-destructive/20 text-destructive",
 };
@@ -34,11 +45,16 @@ const STATUS_COLORS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   draft: "טיוטה",
   active: "פעיל",
+  waiting_for_approval: "ממתין לאישור",
+  planning: "תכנון",
+  execution: "ביצוע",
+  collection: "גבייה",
   completed: "הושלם",
   cancelled: "בוטל",
 };
 
-export function ProjectCard({ project, onEdit }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+  const navigate = useNavigate();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: project.id,
   });
@@ -65,9 +81,71 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
               {project.title}
             </Link>
           </div>
-          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
-            <Pencil className="h-3 w-3" />
-          </Button>
+          {onDelete ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem asChild>
+                  <Link to={`/ad-agency/projects/${project.id}?quote=1`} onClick={(e) => e.stopPropagation()}>
+                    <FileText className="h-3 w-3 mr-2" />
+                    בנה הצעת מחיר
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    navigate(`/ad-agency/tasks?project=${project.id}`);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ListTodo className="h-3 w-3 mr-2" />
+                  משימות
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
+                  <Pencil className="h-3 w-3 mr-2" />
+                  עריכה
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project); }} className="text-destructive">
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  מחיקה
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem asChild>
+                  <Link to={`/ad-agency/projects/${project.id}?quote=1`} onClick={(e) => e.stopPropagation()}>
+                    <FileText className="h-3 w-3 mr-2" />
+                    בנה הצעת מחיר
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    navigate(`/ad-agency/tasks?project=${project.id}`);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ListTodo className="h-3 w-3 mr-2" />
+                  משימות
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
+                  <Pencil className="h-3 w-3 mr-2" />
+                  עריכה
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-3 pt-0 space-y-2">
@@ -81,10 +159,25 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
           <DollarSign className="h-3 w-3" />
           <span>₪{Number(budget).toLocaleString("he-IL")}</span>
         </div>
-        {project.end_date && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            <span>{format(new Date(project.end_date), "d MMM", { locale: he })}</span>
+        {(project.start_date || project.end_date || project.op_clients?.payment_terms) && (
+          <div className="flex flex-col gap-0.5">
+            {project.start_date && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3 shrink-0" />
+                <span>תאריך התחלה: {format(new Date(project.start_date), "d MMM", { locale: he })}</span>
+              </div>
+            )}
+            {project.end_date && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3 shrink-0" />
+                <span>תאריך סיום: {format(new Date(project.end_date), "d MMM", { locale: he })}</span>
+              </div>
+            )}
+            {project.op_clients?.payment_terms && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-6">
+                <span>תנאי תשלום: {project.op_clients.payment_terms}</span>
+              </div>
+            )}
           </div>
         )}
         <Badge className={`text-xs ${STATUS_COLORS[project.status] ?? ""}`}>
