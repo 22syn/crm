@@ -286,10 +286,19 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
           </DialogHeader>
           <div className="flex flex-col gap-4 min-h-0 flex-1">
             <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="חפש פריט לפי סוג..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-9 h-9"
+                />
+              </div>
               <p className="text-sm text-muted-foreground">בחר פריט להוספה</p>
               <ScrollArea className="h-[200px] rounded-md border">
                 <div className="p-2 space-y-0.5">
-                  {items.map((i) => (
+                  {filteredItems.map((i) => (
                     <div
                       key={i.id}
                       className="flex items-center justify-between gap-2 px-3 py-2 rounded-sm hover:bg-muted/50"
@@ -308,8 +317,10 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
                       </Button>
                     </div>
                   ))}
-                  {items.length === 0 && (
-                    <p className="text-sm text-muted-foreground py-4 text-center">אין פריטים בקטלוג</p>
+                  {filteredItems.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-4 text-center">
+                      {items.length === 0 ? "אין פריטים בקטלוג" : "לא נמצאו תוצאות. נסה לחפש אחרת."}
+                    </p>
                   )}
                 </div>
               </ScrollArea>
