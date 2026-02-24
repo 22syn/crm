@@ -314,7 +314,7 @@ export function QuotePreview({
               <ul
                 className="list-none p-0 m-0 space-y-1"
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   lineHeight: 1.6,
                   color: tokens.textMuted,
                 }}
@@ -326,7 +326,7 @@ export function QuotePreview({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:opacity-80 transition-opacity"
-                      style={{ color: tokens.text }}
+                      style={{ color: tokens.accent }}
                     >
                       WhatsApp
                     </a>
@@ -339,7 +339,7 @@ export function QuotePreview({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:opacity-80 transition-opacity"
-                      style={{ color: tokens.text }}
+                      style={{ color: tokens.accent }}
                     >
                       Instagram
                     </a>
@@ -350,7 +350,7 @@ export function QuotePreview({
                     <a
                       href={`mailto:${contactInfo.email}`}
                       className="hover:opacity-80 transition-opacity"
-                      style={{ color: tokens.text }}
+                      style={{ color: tokens.accent }}
                     >
                       {contactInfo.email}
                     </a>
