@@ -61,15 +61,20 @@ CREATE POLICY "Leads module admin products" ON public.products FOR INSERT WITH C
 CREATE POLICY "Leads module admin products update" ON public.products FOR UPDATE USING (has_module_admin(auth.uid(), 'leads'));
 CREATE POLICY "Leads module admin products delete" ON public.products FOR DELETE USING (has_module_admin(auth.uid(), 'leads'));
 
--- product_segments
-DROP POLICY IF EXISTS "CRM users can view product_segments" ON public.product_segments;
-DROP POLICY IF EXISTS "Admins can insert product_segments" ON public.product_segments;
-DROP POLICY IF EXISTS "Admins can update product_segments" ON public.product_segments;
-DROP POLICY IF EXISTS "Admins can delete product_segments" ON public.product_segments;
-CREATE POLICY "Leads module view product_segments" ON public.product_segments FOR SELECT USING (has_module_access(auth.uid(), 'leads'));
-CREATE POLICY "Leads module admin insert product_segments" ON public.product_segments FOR INSERT WITH CHECK (has_module_admin(auth.uid(), 'leads'));
-CREATE POLICY "Leads module admin update product_segments" ON public.product_segments FOR UPDATE USING (has_module_admin(auth.uid(), 'leads'));
-CREATE POLICY "Leads module admin delete product_segments" ON public.product_segments FOR DELETE USING (has_module_admin(auth.uid(), 'leads'));
+-- product_segments (if table exists - may have been dropped in later migration)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'product_segments') THEN
+    DROP POLICY IF EXISTS "CRM users can view product_segments" ON public.product_segments;
+    DROP POLICY IF EXISTS "Admins can insert product_segments" ON public.product_segments;
+    DROP POLICY IF EXISTS "Admins can update product_segments" ON public.product_segments;
+    DROP POLICY IF EXISTS "Admins can delete product_segments" ON public.product_segments;
+    CREATE POLICY "Leads module view product_segments" ON public.product_segments FOR SELECT USING (has_module_access(auth.uid(), 'leads'));
+    CREATE POLICY "Leads module admin insert product_segments" ON public.product_segments FOR INSERT WITH CHECK (has_module_admin(auth.uid(), 'leads'));
+    CREATE POLICY "Leads module admin update product_segments" ON public.product_segments FOR UPDATE USING (has_module_admin(auth.uid(), 'leads'));
+    CREATE POLICY "Leads module admin delete product_segments" ON public.product_segments FOR DELETE USING (has_module_admin(auth.uid(), 'leads'));
+  END IF;
+END $$;
 
 -- design_requests
 DROP POLICY IF EXISTS "CRM users can view design_requests" ON public.design_requests;
