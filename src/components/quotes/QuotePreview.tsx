@@ -161,7 +161,7 @@ export function QuotePreview({
                 תמחור
               </h2>
               <table className="w-full border-collapse" style={{ fontSize: "13px" }}>
-                <thead>
+                <thead style={{ backgroundColor: tokens.stroke }}>
                   <tr>
                     <th
                       className="text-end font-medium py-3 pe-3 ps-2"
@@ -198,6 +198,7 @@ export function QuotePreview({
                           borderColor: tokens.stroke,
                           color: tokens.textMuted,
                           lineHeight: 1.6,
+                          fontSize: "13px",
                         }}
                       >
                         <span>{item.title}</span>
@@ -209,7 +210,7 @@ export function QuotePreview({
                       </td>
                       <td
                         className="py-3 px-2 border-t text-center"
-                        style={{ borderColor: tokens.stroke, color: tokens.textMuted }}
+                        style={{ borderColor: tokens.stroke, color: tokens.textMuted, fontSize: "13px" }}
                       >
                         {item.quantity}
                       </td>
@@ -218,7 +219,7 @@ export function QuotePreview({
                         style={{
                           borderColor: tokens.stroke,
                           color: tokens.text,
-                          fontSize: "12px",
+                          fontSize: "13px",
                         }}
                       >
                         <span dir="ltr">{formatPrice(item.unit_price)}</span>
@@ -228,7 +229,7 @@ export function QuotePreview({
                         style={{
                           borderColor: tokens.stroke,
                           color: tokens.text,
-                          fontSize: "12px",
+                          fontSize: "13px",
                         }}
                       >
                         <span dir="ltr">{formatPrice(item.total_price)}</span>
@@ -238,16 +239,16 @@ export function QuotePreview({
                 </tbody>
               </table>
 
-              {/* Summary row - divider + סה״כ לתשלום. */}
+              {/* Summary row - divider + סה״כ לתשלום */}
               <div
-                className="flex justify-between items-center py-3 mt-2 font-medium"
+                className="flex justify-between items-center py-4 mt-2 font-semibold"
                 style={{
-                  borderTop: `1px solid ${tokens.stroke}`,
-                  fontSize: "12px",
+                  borderTop: `2px solid ${tokens.stroke}`,
+                  fontSize: "15px",
                   color: tokens.text,
                 }}
               >
-                <span>סה״כ לתשלום.</span>
+                <span>סה״כ לתשלום</span>
                 <span dir="ltr">{formatPrice(total)}</span>
               </div>
               {discount > 0 && (
