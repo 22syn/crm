@@ -40,13 +40,14 @@ interface QuotePreviewProps {
   contactInfo?: QuoteContactInfo;
 }
 
-/** Design tokens for quote document (dark portfolio style) */
+/** Design tokens — clean business document style */
 const tokens = {
-  bg: "#0F0F0F",
-  text: "#FFFFFF",
-  textMuted: "#B7B7B7",
-  stroke: "#2A2A2A",
-  surface: "#151515",
+  bg: "#FFFFFF",
+  text: "#1a1a1a",
+  textMuted: "#525252",
+  stroke: "#e5e5e5",
+  accent: "#2563eb",
+  fontFamily: "'Heebo', 'Segoe UI', sans-serif",
 };
 
 function formatPrice(n: number) {
@@ -94,9 +95,10 @@ export function QuotePreview({
           style={{
             backgroundColor: tokens.bg,
             color: tokens.text,
-            fontFamily: "'Heebo', sans-serif",
+            fontFamily: tokens.fontFamily,
             maxWidth: 720,
             margin: "0 auto",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}
         >
           {/* Document container: 680–760px, padding 28–36px */}
