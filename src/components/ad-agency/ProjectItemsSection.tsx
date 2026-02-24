@@ -280,7 +280,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
       )}
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>הוסף פריט לפרויקט</DialogTitle>
           </DialogHeader>
@@ -296,7 +296,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
                 />
               </div>
               <p className="text-sm text-muted-foreground">בחר פריט להוספה</p>
-              <ScrollArea className="h-[200px] rounded-md border">
+              <ScrollArea className="h-[400px] rounded-md border">
                 <div className="p-2 space-y-0.5">
                   {filteredItems.map((i) => (
                     <div
@@ -328,7 +328,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
             {pendingItems.length > 0 && (
               <div className="space-y-2 border-t pt-4">
                 <p className="text-sm font-medium">פריטים שנוספו ({pendingItems.length})</p>
-                <ScrollArea className="h-[140px] rounded-md border">
+                <ScrollArea className="h-[180px] rounded-md border">
                   <div className="p-2 space-y-1">
                     {pendingItems.map((p) => {
                       const opItem = itemsMap.get(p.item_id);
