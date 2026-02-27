@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Upload, CheckCircle, ArrowRight, FileText } from "lucide-react";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
 
 export default function QuoteApprovalPage() {
   const { id } = useParams();
@@ -36,12 +37,13 @@ export default function QuoteApprovalPage() {
   const approveMutation = useMutation({
     mutationFn: async ({ paymentProofUrl }: { paymentProofUrl: string }) => {
       // 1. Update quote status and payment proof URL
+      const quoteUpdate: Database["public"]["Tables"]["quotes"]["Update"] & { payment_proof_url?: string } = {
+        status: "approved",
+        payment_proof_url: paymentProofUrl,
+      };
       const { error: quoteError } = await supabase
         .from("quotes")
-        .update({ 
-          status: "approved",
-          payment_proof_url: paymentProofUrl as any // Cast because column might not exist yet but we'll try
-        })
+        .update(quoteUpdate)
         .eq("id", id);
 
       if (quoteError) throw quoteError;
@@ -57,13 +59,13 @@ export default function QuoteApprovalPage() {
       }
 
       // 3. Check if design is needed (lead quotes only)
-      const needsDesign = quote.quote_items.some((item: any) => item.requires_custom_design);
+      const needsDesign = quote.quote_items.some((item) => item.requires_custom_design);
 
       if (needsDesign) {
         // Create design requests
         const designRequests = quote.quote_items
-          .filter((item: any) => item.requires_custom_design)
-          .map((item: any) => ({
+          .filter((item) => item.requires_custom_design)
+          .map((item) => ({
             quote_id: id,
             quote_item_id: item.id,
             customer_notes: item.custom_design_notes,
@@ -148,7 +150,7 @@ export default function QuoteApprovalPage() {
         .getPublicUrl(filePath);
 
       await approveMutation.mutateAsync({ paymentProofUrl: publicUrl });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
     } finally {
       setUploading(false);
@@ -235,7 +237,7 @@ export default function QuoteApprovalPage() {
           <FileText className="h-5 w-5 flex-shrink-0" />
           <p>
             After approval, the system will route automatically:
-            {quote.quote_items.some((i: any) => i.requires_custom_design) 
+            {quote.quote_items.some((i) => i.requires_custom_design) 
               ? " This contract includes custom design items and will be sent to the designer first."
               : " This contract will be converted directly to an order and sent to the supplier."}
           </p>

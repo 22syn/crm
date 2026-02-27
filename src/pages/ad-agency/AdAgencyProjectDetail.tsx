@@ -21,7 +21,7 @@ export default function AdAgencyProjectDetail() {
       setQuoteBuilderOpen(true);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, id]);
+  }, [searchParams, id, setSearchParams]);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["op_project", id],

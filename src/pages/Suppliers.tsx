@@ -191,9 +191,9 @@ export default function Suppliers() {
                     <TableRow key={supplier.id}>
                       <TableCell className="font-medium">{supplier.name}</TableCell>
                       <TableCell>
-                        {(supplier as any).category ? (
+                        {supplier.category ? (
                           <Badge variant="outline">
-                            {CATEGORY_LABELS[(supplier as any).category] || (supplier as any).category}
+                            {CATEGORY_LABELS[supplier.category] || supplier.category}
                           </Badge>
                         ) : "-"}
                       </TableCell>

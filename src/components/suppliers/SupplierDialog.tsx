@@ -52,7 +52,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
         address: supplier.address || "",
         notes: supplier.notes || "",
         is_active: supplier.is_active ?? true,
-        category: (supplier as any).category || "",
+        category: supplier.category || "",
       });
     } else {
       setFormData({
@@ -74,7 +74,7 @@ export function SupplierDialog({ open, onOpenChange, supplier, onSave }: Supplie
       ...formData,
       category: formData.category || null,
     };
-    onSave(dataToSave as any);
+    onSave(dataToSave as Partial<Supplier> & { name: string });
   };
 
   return (

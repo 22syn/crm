@@ -90,7 +90,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       setCustomerName(lead.customer_name);
       setCustomerEmail(lead.customer_email || "");
       setCustomerPhone(lead.customer_phone || "");
-      setCustomerAddress((lead as any).customer_address || "");
+      setCustomerAddress(lead.customer_address || "");
     }
   }, [open, lead]);
 
@@ -176,24 +176,26 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
       validUntil.setDate(validUntil.getDate() + validDays);
 
       // Create quote
-      const { data: quote, error: quoteError } = await (supabase
+      const quoteInsert: Database["public"]["Tables"]["quotes"]["Insert"] = {
+        quote_number: `Q-${Date.now()}`,
+        lead_id: lead?.id ?? null,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone,
+        customer_address: customerAddress || null,
+        status: sendEmail ? "sent" : "draft",
+        subtotal,
+        discount,
+        tax,
+        total,
+        valid_until: validUntil.toISOString().split("T")[0],
+        notes: notes || null,
+      };
+      const { data: quote, error: quoteError } = await supabase
         .from("quotes")
-        .insert({
-          lead_id: lead?.id,
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone,
-          customer_address: customerAddress,
-          status: sendEmail ? "sent" : "draft",
-          subtotal,
-          discount,
-          tax,
-          total,
-          valid_until: validUntil.toISOString().split('T')[0],
-          notes,
-        } as any)
+        .insert(quoteInsert)
         .select()
-        .single() as any);
+        .single();
 
       if (quoteError) throw quoteError;
 
@@ -214,9 +216,9 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
         custom_design_notes: item.custom_design_notes,
       }));
 
-      const { error: itemsError } = await (supabase
+      const { error: itemsError } = await supabase
         .from("quote_items")
-        .insert(quoteItems as any) as any);
+        .insert(quoteItems);
 
       if (itemsError) throw itemsError;
 
@@ -228,7 +230,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             customerName,
             customerEmail,
             customerPhone,
-            quoteNumber: (quote as any).quote_number,
+            quoteNumber: quote.quote_number,
             items: items.map(i => ({
               title: i.title,
               quantity: i.quantity,

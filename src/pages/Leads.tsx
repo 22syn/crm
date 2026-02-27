@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCrmTeam } from "@/hooks/useCrmTeam";
 import { escapeIlike } from "@/lib/escapeIlike";
@@ -239,7 +239,7 @@ export default function Leads() {
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [quoteItems, setQuoteItems] = useState<any[]>([]);
+  const [quoteItems, setQuoteItems] = useState<Tables<"quote_items">["Row"][]>([]);
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();

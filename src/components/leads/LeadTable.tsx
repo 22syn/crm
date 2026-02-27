@@ -316,7 +316,7 @@ export function LeadTable({
         </span>
       ),
     },
-  ], [editingCell, editValue, savingCell, leadQuotes, teamMembers, onInlineUpdate, onViewLead, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
+  ], [editingCell, editValue, savingCell, leadQuotes, teamMembers, onInlineUpdate, onViewLead, onStatusChange, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
 
   return (
     <DataTable<Lead>

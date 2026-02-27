@@ -20,15 +20,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
+
+type QuoteRow = Tables<"quotes">["Row"];
+type QuoteItemRow = Tables<"quote_items">["Row"];
 
 export default function Quotes() {
   const queryClient = useQueryClient();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState<any>(null);
-  const [quoteItems, setQuoteItems] = useState<any[]>([]);
+  const [selectedQuote, setSelectedQuote] = useState<QuoteRow | null>(null);
+  const [quoteItems, setQuoteItems] = useState<QuoteItemRow[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [quoteToDelete, setQuoteToDelete] = useState<any>(null);
+  const [quoteToDelete, setQuoteToDelete] = useState<QuoteRow | null>(null);
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes"],
@@ -80,13 +84,14 @@ export default function Quotes() {
     },
   });
 
-  // Run auto-archive on mount
+  // Run auto-archive on mount (once)
   useEffect(() => {
     archiveOldQuotesMutation.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional run-on-mount
   }, []);
 
   const approveQuoteMutation = useMutation({
-    mutationFn: async (quote: any) => {
+    mutationFn: async (quote: QuoteRow) => {
       // Update quote status to approved
       const { error: quoteError } = await supabase
         .from("quotes")
@@ -162,7 +167,7 @@ export default function Quotes() {
 
       // Create design requests for items that need custom design
       if (items && items.length > 0) {
-        const designRequests = items.map((item: any) => ({
+        const designRequests = items.map((item: QuoteItemRow) => ({
           quote_id: quote.id,
           quote_item_id: item.id,
           customer_notes: item.custom_design_notes,
@@ -263,14 +268,14 @@ export default function Quotes() {
   const [clientFilter, setClientFilter] = useState("all");
 
   const allQuotesForFilters = [...quotes, ...archivedQuotes];
-  const yearOptions = [...new Set(allQuotesForFilters.map((q: any) => {
+  const yearOptions = [...new Set(allQuotesForFilters.map((q) => {
     const d = q.created_at || q.archived_at;
     return d ? new Date(d).getFullYear().toString() : null;
-  }).filter(Boolean))].sort((a, b) => (b as string).localeCompare(a as string)).map((y) => ({ value: y as string, label: y as string }));
-  const clientOptions = [...new Set(allQuotesForFilters.map((q: any) => (q.customer_name || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map((c) => ({ value: c, label: c }));
+  }).filter(Boolean) as string[])].sort((a, b) => b.localeCompare(a)).map((y) => ({ value: y, label: y }));
+  const clientOptions = [...new Set(allQuotesForFilters.map((q) => (q.customer_name || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b)).map((c) => ({ value: c, label: c }));
 
   const getFilteredQuotes = () => {
-    let list: any[];
+    let list: QuoteRow[];
     if (statusFilter === "all") list = quotes;
     else if (statusFilter === "draft") list = draftQuotes;
     else if (statusFilter === "sent") list = sentQuotes;
@@ -278,18 +283,18 @@ export default function Quotes() {
     else list = archivedQuotes;
 
     if (yearFilter !== "all") {
-      list = list.filter((x: any) => {
+      list = list.filter((x) => {
         const d = x.created_at || x.archived_at;
         return d && new Date(d).getFullYear().toString() === yearFilter;
       });
     }
     if (clientFilter !== "all") {
-      list = list.filter((x: any) => (x.customer_name || "").trim() === clientFilter);
+      list = list.filter((x) => (x.customer_name || "").trim() === clientFilter);
     }
     if (!search.trim()) return list;
     const q = search.trim().toLowerCase();
     return list.filter(
-      (x: any) =>
+      (x) =>
         (x.customer_name || "").toLowerCase().includes(q) ||
         (x.quote_number || "").toLowerCase().includes(q)
     );
@@ -307,7 +312,7 @@ export default function Quotes() {
   const sentQuotes = quotes.filter(q => q.status === "sent");
   const approvedQuotes = quotes.filter(q => q.status === "approved");
 
-  const handleViewQuote = async (quote: any) => {
+  const handleViewQuote = async (quote: QuoteRow) => {
     setSelectedQuote(quote);
     
     // Fetch quote items
@@ -320,16 +325,16 @@ export default function Quotes() {
     setPreviewOpen(true);
   };
 
-  const handleApproveQuote = (quote: any) => {
+  const handleApproveQuote = (quote: QuoteRow) => {
     approveQuoteMutation.mutate(quote);
   };
 
-  const handleEditQuote = async (quote: any) => {
+  const handleEditQuote = async (quote: QuoteRow) => {
     // Show the quote preview - full edit requires more changes
     handleViewQuote(quote);
   };
 
-  const handleDeleteQuote = (quote: any) => {
+  const handleDeleteQuote = (quote: QuoteRow) => {
     setQuoteToDelete(quote);
     setDeleteDialogOpen(true);
   };

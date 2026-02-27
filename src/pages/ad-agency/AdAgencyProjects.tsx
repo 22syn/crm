@@ -90,7 +90,7 @@ export default function AdAgencyProjects() {
     if (needsTransition) {
       autoTransitionMutation.mutate();
     }
-  }, [projects, isLoading, autoTransitionMutation.isPending]);
+  }, [projects, isLoading, autoTransitionMutation]);
 
   const createMutation = useMutation({
     mutationFn: async (data: Partial<OpProject> & { client_id: string; title: string }) => {

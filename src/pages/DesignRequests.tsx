@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Palette, Upload, Loader2 } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 import { DesignRequestTable } from "@/components/designs/DesignRequestTable";
 import { DesignRequestKanban } from "@/components/designs/DesignRequestKanban";
 import type { EntityViewMode } from "@/components/entity-page";
@@ -83,11 +84,13 @@ export default function DesignRequests() {
       design_file_url?: string;
       design_notes?: string;
     }) => {
-      const updates: any = { updated_at: new Date().toISOString() };
-      if (status) updates.status = status;
-      if (design_file_url) updates.design_file_url = design_file_url;
-      if (design_notes !== undefined) updates.design_notes = design_notes;
-      if (status === "completed") updates.completed_at = new Date().toISOString();
+      const updates: Database["public"]["Tables"]["design_requests"]["Update"] = {
+        updated_at: new Date().toISOString(),
+        ...(status && { status }),
+        ...(design_file_url && { design_file_url }),
+        ...(design_notes !== undefined && { design_notes }),
+        ...(status === "completed" && { completed_at: new Date().toISOString() }),
+      };
 
       const { error } = await supabase
         .from("design_requests")
@@ -162,8 +165,8 @@ export default function DesignRequests() {
       setDialogOpen(false);
       setSelectedRequest(null);
       setDesignNotes("");
-    } catch (error: any) {
-      toast.error("Error uploading file: " + error.message);
+    } catch (error: unknown) {
+      toast.error("Error uploading file: " + (error instanceof Error ? error.message : String(error)));
     } finally {
       setUploading(false);
     }
