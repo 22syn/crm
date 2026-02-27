@@ -1,0 +1,8 @@
+# Demo CRM — Cursor Rules
+
+> Full rules: Obsidian `04-knowledge/standards/hadaryaCRM-standards.md`
+
+## Quick Reference
+- **Entity:** EntityPageShell + EntityToolbar + EntityKanban
+- **Security:** escapeIlike() for ILIKE; escapeHtml() for HTML
+- **Plan lifecycle:** After completing a task → update docs, suggest deleting plan
