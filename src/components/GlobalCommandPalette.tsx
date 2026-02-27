@@ -38,8 +38,15 @@ function pushRecentLeadId(leadId: string) {
 
 export function GlobalCommandPalette() {
   const [open, setOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+
+  // Debounce search (300ms) to reduce request churn while typing
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -83,12 +90,13 @@ export function GlobalCommandPalette() {
       const list = (data ?? []) as Lead[];
       return ids.map((id) => list.find((l) => l.id === id)).filter(Boolean) as Lead[];
     },
-    enabled: open && !search.trim(),
+    enabled: open && !searchInput.trim(),
   });
 
   const runCommand = useCallback(
     (callback: () => void) => {
       setOpen(false);
+      setSearchInput("");
       setSearch("");
       callback();
     },
@@ -106,14 +114,14 @@ export function GlobalCommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
         placeholder="Search leads by name, email, phone..."
-        value={search}
-        onValueChange={setSearch}
+        value={searchInput}
+        onValueChange={setSearchInput}
       />
       <CommandList>
         <CommandEmpty>
-          {search.trim().length >= 2 ? (searchLoading ? "Searching..." : "No results.") : "Type to search leads."}
+          {searchInput.trim().length >= 2 ? (searchLoading ? "Searching..." : "No results.") : "Type to search leads."}
         </CommandEmpty>
-        {!search.trim() && (
+        {!searchInput.trim() && (
           <>
           <CommandGroup heading="Go to">
             <CommandItem onSelect={() => runCommand(() => navigate("/dashboard"))}>
@@ -165,7 +173,7 @@ export function GlobalCommandPalette() {
           </CommandGroup>
           </>
         )}
-        {!search.trim() && recentLeads.length > 0 && (
+        {!searchInput.trim() && recentLeads.length > 0 && (
           <CommandGroup heading="Recent">
             {recentLeads.map((lead) => (
               <CommandItem key={lead.id} onSelect={() => handleSelectLead(lead)}>

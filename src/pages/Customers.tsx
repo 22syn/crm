@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { escapeIlike } from "@/lib/escapeIlike";
@@ -59,11 +59,21 @@ export default function Customers() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Pagination State
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
+
+  // Debounce search (300ms) to reduce request churn while typing
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchQuery(searchInput);
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -72,8 +82,7 @@ export default function Customers() {
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<CustomerStatus>("new");
 
-  // Reset page on search
-  const handleSearchChange = (val: string) => { setSearchQuery(val); setPage(0); };
+  const handleSearchChange = (val: string) => setSearchInput(val);
 
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["customers", page, searchQuery],
@@ -293,7 +302,7 @@ export default function Customers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search customers..."
-              value={searchQuery}
+              value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
