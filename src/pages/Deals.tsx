@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useTablePreferences } from "@/hooks/useTablePreferences";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
 import type { EntityViewMode } from "@/components/entity-page";
 
 type DealStage =
@@ -46,12 +46,18 @@ export default function Deals() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [viewMode, setViewMode] = useState<EntityViewMode>("kanban");
-  const [search, setSearch] = useState("");
-  const [stageFilter, setStageFilter] = useState<string>("all");
   const queryClient = useQueryClient();
 
+  interface DealFiltersData {
+    search: string;
+    stageFilter: string;
+  }
+
   const {
-    filters: savedFilters,
+    filters,
+    setFilter,
+    searchInput,
+    setSearchInput,
     views: savedViews,
     saveAsNewView,
     saveAsNewViewPending,
@@ -59,35 +65,31 @@ export default function Deals() {
     deleteView,
     resetToDefault,
     resetPending,
-  } = useTablePreferences("deals");
-  const appliedSavedRef = useRef(false);
+    applyView,
+    clearFilters,
+  } = useEntityFilters<DealFiltersData>({
+    pageKey: "deals",
+    initialFilters: {
+      search: "",
+      stageFilter: "all",
+    },
+  });
+
+  const { search, stageFilter } = filters;
+
   const [saveViewDialogOpen, setSaveViewDialogOpen] = useState(false);
   const [newViewName, setNewViewName] = useState("");
-
-  useEffect(() => {
-    if (appliedSavedRef.current || !savedFilters) return;
-    if (typeof savedFilters.search === "string") setSearch(savedFilters.search);
-    if (typeof savedFilters.stageFilter === "string") setStageFilter(savedFilters.stageFilter);
-    appliedSavedRef.current = true;
-  }, [savedFilters]);
-
-  const currentFilters = () => ({ search, stageFilter });
 
   const handleSaveAsNewView = async () => {
     const name = newViewName.trim() || "Untitled view";
     try {
-      await saveAsNewView({ view_name: name, filters: currentFilters() });
+      await saveAsNewView({ view_name: name, filters: filters as Record<string, string | string[]> });
       toast.success(`View "${name}" saved`);
       setSaveViewDialogOpen(false);
       setNewViewName("");
     } catch {
       toast.error("Failed to save view");
     }
-  };
-
-  const applyView = (filters: Record<string, string>) => {
-    if (typeof filters.search === "string") setSearch(filters.search);
-    if (typeof filters.stageFilter === "string") setStageFilter(filters.stageFilter);
   };
 
   const handleRenameView = async (id: string, name: string) => {
@@ -97,22 +99,6 @@ export default function Deals() {
     } catch {
       toast.error("Failed to rename view");
     }
-  };
-
-  const handleResetPreferences = async () => {
-    try {
-      await resetToDefault();
-      setSearch("");
-      setStageFilter("all");
-      toast.success("Filters reset to default");
-    } catch {
-      toast.error("Failed to reset preferences");
-    }
-  };
-
-  const handleClearFilters = () => {
-    setSearch("");
-    setStageFilter("all");
   };
 
   const hasFilters = search.trim() !== "" || stageFilter !== "all";
@@ -229,38 +215,38 @@ export default function Deals() {
       <EntityToolbar
         onSaveView={() => setSaveViewDialogOpen(true)}
         savePending={saveAsNewViewPending}
-        onReset={handleResetPreferences}
+        onReset={resetToDefault}
         resetPending={resetPending}
         savedViews={savedViews}
-        onApplyView={applyView}
+        onApplyView={applyView as (f: Record<string, string>) => void}
         onRenameView={handleRenameView}
         onDeleteView={deleteView}
         hasFilters={hasFilters}
-        onClearFilters={handleClearFilters}
+        onClearFilters={clearFilters}
         renderMobileSearch={
           <DealFilters
             variant="searchOnly"
-            search={search}
-            onSearchChange={setSearch}
+            search={searchInput}
+            onSearchChange={setSearchInput}
             stageFilter={stageFilter}
-            onStageFilterChange={setStageFilter}
+            onStageFilterChange={(v) => setFilter("stageFilter", v)}
           />
         }
         renderMobileFilters={
           <DealFilters
             variant="filtersOnly"
-            search={search}
-            onSearchChange={setSearch}
+            search={searchInput}
+            onSearchChange={setSearchInput}
             stageFilter={stageFilter}
-            onStageFilterChange={setStageFilter}
+            onStageFilterChange={(v) => setFilter("stageFilter", v)}
           />
         }
       >
         <DealFilters
-          search={search}
-          onSearchChange={setSearch}
+          search={searchInput}
+          onSearchChange={setSearchInput}
           stageFilter={stageFilter}
-          onStageFilterChange={setStageFilter}
+          onStageFilterChange={(v) => setFilter("stageFilter", v)}
         />
       </EntityToolbar>
     ) : null;

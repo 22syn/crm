@@ -33,7 +33,7 @@ import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCrmTeam } from "@/hooks/useCrmTeam";
-import { useTablePreferences } from "@/hooks/useTablePreferences";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
 import { LEAD_STAGES } from "@/utils/leadStages";
 import {
   SORT_OPTIONS,
@@ -107,19 +107,21 @@ export default function Leads() {
   const [quoteBuilderOpen, setQuoteBuilderOpen] = useState(false);
   const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
 
-  // Search & Filter State
-  /** Immediate value in the search input (updates on every keystroke). */
-  const [searchInput, setSearchInput] = useState("");
-  /** Debounced value used for the leads query (reduces request churn while typing). */
-  const [search, setSearch] = useState("");
-  /** Empty = all statuses, non-empty = only these statuses */
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [sourceFilter, setSourceFilter] = useState("all");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [sortOption, setSortOption] = useState<SortOption>("created_at_asc");
+  const [page, setPage] = useState(0);
+
+  interface LeadFiltersData {
+    search: string;
+    statusFilter: string[];
+    sourceFilter: string;
+    assigneeFilter: string;
+  }
 
   const {
-    filters: savedFilters,
+    filters,
+    setFilter,
+    searchInput,
+    setSearchInput,
     views: savedViews,
     saveAsNewView,
     saveAsNewViewPending,
@@ -127,68 +129,44 @@ export default function Leads() {
     deleteView,
     resetToDefault,
     resetPending,
-  } = useTablePreferences("leads");
-  const appliedSavedRef = useRef(false);
+    applyView,
+    clearFilters,
+  } = useEntityFilters<LeadFiltersData>({
+    pageKey: "leads",
+    initialFilters: {
+      search: "",
+      statusFilter: [],
+      sourceFilter: "all",
+      assigneeFilter: "all",
+    },
+    onFiltersChange: () => setPage(0),
+    normalizeFilters: (f) => ({
+      search: typeof f.search === "string" ? f.search : "",
+      statusFilter: Array.isArray(f.statusFilter)
+        ? f.statusFilter
+        : typeof f.statusFilter === "string" && f.statusFilter !== "all"
+          ? [f.statusFilter]
+          : [],
+      sourceFilter: typeof f.sourceFilter === "string" ? f.sourceFilter : "all",
+      assigneeFilter: typeof f.assigneeFilter === "string" ? f.assigneeFilter : "all",
+    }),
+  });
+
+  const { search, statusFilter, sourceFilter, assigneeFilter } = filters;
+
   const [saveViewDialogOpen, setSaveViewDialogOpen] = useState(false);
   const [newViewName, setNewViewName] = useState("");
-
-  // Debounce search input (300ms) before updating query key and resetting page.
-  // Keeps request churn low while typing; saved preferences and URL params use the same search state.
-  const SEARCH_DEBOUNCE_MS = 300;
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput);
-      setPage(0);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(t);
-  }, [searchInput]);
-
-  // Apply saved filter preferences once when they load (search + searchInput stay in sync for saved state).
-  useEffect(() => {
-    if (appliedSavedRef.current || !savedFilters) return;
-    if (typeof savedFilters.search === "string") {
-      setSearch(savedFilters.search);
-      setSearchInput(savedFilters.search);
-    }
-    if (Array.isArray(savedFilters.statusFilter)) {
-      setStatusFilter(savedFilters.statusFilter);
-    } else if (typeof savedFilters.statusFilter === "string" && savedFilters.statusFilter !== "all") {
-      setStatusFilter([savedFilters.statusFilter]);
-    }
-    if (typeof savedFilters.sourceFilter === "string") setSourceFilter(savedFilters.sourceFilter);
-    if (typeof savedFilters.assigneeFilter === "string") setAssigneeFilter(savedFilters.assigneeFilter);
-    appliedSavedRef.current = true;
-  }, [savedFilters]);
-
-  const currentFilters = () => ({ search, statusFilter, sourceFilter, assigneeFilter });
 
   const handleSaveAsNewView = async () => {
     const name = newViewName.trim() || "Untitled view";
     try {
-      await saveAsNewView({ view_name: name, filters: currentFilters() });
+      await saveAsNewView({ view_name: name, filters: filters as Record<string, string | string[]> });
       toast.success(`View "${name}" saved`);
       setSaveViewDialogOpen(false);
       setNewViewName("");
     } catch {
       toast.error("Failed to save view");
     }
-  };
-
-  const applyView = (filters: Record<string, string>) => {
-    if (typeof filters.search === "string") {
-      setSearch(filters.search);
-      setSearchInput(filters.search);
-    }
-    if (Array.isArray(filters.statusFilter)) {
-      setStatusFilter(filters.statusFilter);
-    } else if (typeof filters.statusFilter === "string" && filters.statusFilter !== "all") {
-      setStatusFilter([filters.statusFilter]);
-    } else {
-      setStatusFilter([]);
-    }
-    if (typeof filters.sourceFilter === "string") setSourceFilter(filters.sourceFilter);
-    if (typeof filters.assigneeFilter === "string") setAssigneeFilter(filters.assigneeFilter);
-    setPage(0);
   };
 
   const handleRenameView = async (id: string, name: string) => {
@@ -200,31 +178,6 @@ export default function Leads() {
     }
   };
 
-  const handleResetPreferences = async () => {
-    try {
-      await resetToDefault();
-      setSearch("");
-      setSearchInput("");
-      setStatusFilter([]);
-      setSourceFilter("all");
-      setAssigneeFilter("all");
-      setPage(0);
-      toast.success("Filters reset to default");
-    } catch {
-      toast.error("Failed to reset preferences");
-    }
-  };
-
-  /** Clear filter state locally (no preference save). Used by empty state "Clear filters". */
-  const handleClearFilters = () => {
-    setSearch("");
-    setSearchInput("");
-    setStatusFilter([]);
-    setSourceFilter("all");
-    setAssigneeFilter("all");
-    setPage(0);
-  };
-
   /** True when any filter is applied (used for empty-state copy and actions). */
   const hasActiveFilters =
     search.trim() !== "" ||
@@ -233,7 +186,6 @@ export default function Leads() {
     assigneeFilter !== "all";
 
   // Pagination State
-  const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
 
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
@@ -241,7 +193,7 @@ export default function Leads() {
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [quoteItems, setQuoteItems] = useState<any[]>([]);
+  const [quoteItems, setQuoteItems] = useState<Database["public"]["Tables"]["quote_items"]["Row"][]>([]);
   const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
@@ -253,15 +205,15 @@ export default function Leads() {
     const urlStatus = searchParams.get("status");
     const urlAssignee = searchParams.get("assignee");
     if (noMeeting) {
-      setStatusFilter([]);
-      setSourceFilter("all");
-      setAssigneeFilter("all");
+      setFilter("statusFilter", []);
+      setFilter("sourceFilter", "all");
+      setFilter("assigneeFilter", "all");
     } else {
       if (urlStatus && ["new", "in_process", "meeting_scheduled", "meeting_done", "waiting_for_approval", "done", "not_done"].includes(urlStatus)) {
-        setStatusFilter([urlStatus]);
+        setFilter("statusFilter", [urlStatus]);
       }
       if (urlAssignee) {
-        setAssigneeFilter(urlAssignee === "unassigned" ? "unassigned" : urlAssignee);
+        setFilter("assigneeFilter", urlAssignee === "unassigned" ? "unassigned" : urlAssignee);
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount for URL params
@@ -303,9 +255,9 @@ export default function Leads() {
 
   // Search input updates immediately; debounce effect above applies search to query and resets page.
   const handleSearchChange = (val: string) => setSearchInput(val);
-  const handleStatusFilterChange = (vals: string[]) => { setStatusFilter(vals); setPage(0); };
-  const handleSourceFilterChange = (val: string) => { setSourceFilter(val); setPage(0); };
-  const handleAssigneeFilterChange = (val: string) => { setAssigneeFilter(val); setPage(0); };
+  const handleStatusFilterChange = (vals: string[]) => setFilter("statusFilter", vals);
+  const handleSourceFilterChange = (val: string) => setFilter("sourceFilter", val);
+  const handleAssigneeFilterChange = (val: string) => setFilter("assigneeFilter", val);
 
   const { user } = useAuth();
   const { data: teamMembers = [] } = useCrmTeam();
@@ -592,19 +544,19 @@ export default function Leads() {
     <EntityToolbar
       onSaveView={() => setSaveViewDialogOpen(true)}
       savePending={saveAsNewViewPending}
-      onReset={handleResetPreferences}
+      onReset={resetToDefault}
       resetPending={resetPending}
       savedViews={savedViews}
-      onApplyView={applyView}
+      onApplyView={applyView as (f: Record<string, string>) => void}
       onRenameView={handleRenameView}
       onDeleteView={deleteView}
       quickViews={[
-        { value: "my", label: "My pipeline", onSelect: () => { setAssigneeFilter(user?.id ?? "all"); setPage(0); } },
-        { value: "unassigned", label: "Unassigned", onSelect: () => { setAssigneeFilter("unassigned"); setPage(0); } },
+        { value: "my", label: "My pipeline", onSelect: () => handleAssigneeFilterChange(user?.id ?? "all") },
+        { value: "unassigned", label: "Unassigned", onSelect: () => handleAssigneeFilterChange("unassigned") },
       ]}
       renderSort={sortSelect}
       hasFilters={hasActiveFilters}
-      onClearFilters={handleClearFilters}
+      onClearFilters={clearFilters}
       renderMobileSearch={
         <LeadFilters
           variant="searchOnly"
@@ -674,8 +626,8 @@ export default function Leads() {
               {!isLoading && leads.length === 0 ? (
                 <LeadsEmptyState
                   hasActiveFilters={hasActiveFilters}
-                  onResetFilters={handleResetPreferences}
-                  onClearFilters={handleClearFilters}
+                  onResetFilters={resetToDefault}
+                  onClearFilters={clearFilters}
                   onAddFirstLead={() => { setEditingLead(null); setDialogOpen(true); }}
                   onAddDemoLeads={() => seedDemoLeadsMutation.mutate()}
                   addDemoLeadsPending={seedDemoLeadsMutation.isPending}
@@ -721,8 +673,8 @@ export default function Leads() {
               ) : !isLoading && leads.length === 0 ? (
                 <LeadsEmptyState
                   hasActiveFilters={hasActiveFilters}
-                  onResetFilters={handleResetPreferences}
-                  onClearFilters={handleClearFilters}
+                  onResetFilters={resetToDefault}
+                  onClearFilters={clearFilters}
                   onAddFirstLead={() => { setEditingLead(null); setDialogOpen(true); }}
                   onAddDemoLeads={() => seedDemoLeadsMutation.mutate()}
                   addDemoLeadsPending={seedDemoLeadsMutation.isPending}
