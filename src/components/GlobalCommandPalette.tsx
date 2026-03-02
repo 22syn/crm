@@ -13,6 +13,7 @@ import {
 import { LayoutDashboard, Users, Handshake, FileText, Plus, LayoutGrid, Package, ListTodo } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { escapeIlike } from "@/lib/escapeIlike";
+import { arrayToRecord } from "@/lib/normalize";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 
@@ -88,7 +89,8 @@ export function GlobalCommandPalette() {
         .in("id", ids);
       if (error) throw error;
       const list = (data ?? []) as Lead[];
-      return ids.map((id) => list.find((l) => l.id === id)).filter(Boolean) as Lead[];
+      const byId = arrayToRecord(list, (l) => l.id);
+      return ids.map((id) => byId[id]).filter(Boolean) as Lead[];
     },
     enabled: open && !searchInput.trim(),
   });
