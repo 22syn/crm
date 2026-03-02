@@ -4,7 +4,8 @@ Design files for the visual redesign. Managed via Pencil MCP.
 
 ## Files
 
-- **hadarya-design-system.pen** — Design system tokens: colors, typography, spacing, Button/Input/Card/Badge components. Access via Pencil MCP tools (`batch_get`, `batch_design`, etc.) with path `designs/hadarya-design-system.pen` or absolute path to this directory.
+- **hadarya-design-system.pen** — Design system tokens: colors, typography, spacing, Button/Input/Card/Badge components.
+- **auth.pen** — Auth page: centered card, Demo CRM title, Email/Password fields, Sign in button.
 
 ## Usage
 
