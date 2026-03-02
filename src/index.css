@@ -4,11 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Demo Design System - Production Company (Clean Creative) */
+/* hadaryaCRM Design System — see docs/DESIGN_TOKENS.md */
 
 @layer base {
   :root {
-    /* Demo Design System - Production Company (Clean Creative) */
     --background: 220 15% 98%;
     --foreground: 220 20% 15%;
 
@@ -65,8 +64,8 @@
     --space-block: 1rem;     /* 16px - standard padding */
     --space-tight: 0.5rem;   /* 8px - tight groupings */
 
-    /* Sidebar - Cool dark */
-    --sidebar-background: 220 15% 18%;
+    /* Sidebar - from design system (#0f1025) */
+    --sidebar-background: 232 35% 11%;
     --sidebar-foreground: 220 15% 92%;
     --sidebar-primary: 220 15% 85%;
     --sidebar-primary-foreground: 220 15% 18%;
