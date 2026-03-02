@@ -1,13 +1,11 @@
 import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { LeadKanban } from "@/components/leads/LeadKanban";
 import { LeadTable } from "@/components/leads/LeadTable";
-import { LeadDialog } from "@/components/leads/LeadDialog";
+import { LeadDialogsOrchestrator } from "@/components/leads/LeadDialogsOrchestrator";
 import { LeadFilters } from "@/components/leads/LeadFilters";
 import { LeadsHeaderActions } from "@/components/leads/LeadsHeaderActions";
 import { LeadsEmptyState } from "@/components/leads/LeadsEmptyState";
 import { LeadsTableSkeleton } from "@/components/leads/LeadsTableSkeleton";
-import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
-import { QuotePreview } from "@/components/quotes/QuotePreview";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,16 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useLeads } from "@/hooks/useLeads";
 
@@ -359,96 +348,36 @@ export default function Leads() {
         </>
       }
     >
-      <LeadDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        lead={editingLead}
+      <LeadDialogsOrchestrator
+        dialogOpen={dialogOpen}
+        setDialogOpen={setDialogOpen}
+        editingLead={editingLead}
+        setEditingLead={setEditingLead}
         onSave={handleSave}
-        isLoading={createMutation.isPending || updateMutation.isPending}
+        savePending={createMutation.isPending || updateMutation.isPending}
         teamMembers={teamMembers}
         onCreateQuote={handleCreateQuote}
         onViewQuote={handleViewQuote}
         onUnlinkQuote={handleUnlinkQuote}
         onAssociateQuote={handleAssociateQuote}
-        onViewExistingLead={(leadId) => {
-          setDialogOpen(false);
-          setEditingLead(null);
-          navigate("/leads", { state: { openLeadId: leadId } });
-        }}
-        onViewLead={(leadId) => {
-          setDialogOpen(false);
-          setEditingLead(null);
-          navigate(`/leads/${leadId}`);
-        }}
+        onViewExistingLead={(leadId) =>
+          navigate("/leads", { state: { openLeadId: leadId } })
+        }
+        onViewLead={(leadId) => navigate(`/leads/${leadId}`)}
+        quoteBuilderOpen={quoteBuilderOpen}
+        setQuoteBuilderOpen={setQuoteBuilderOpen}
+        quoteLead={quoteLead}
+        previewOpen={previewOpen}
+        setPreviewOpen={setPreviewOpen}
+        selectedQuote={selectedQuote}
+        quoteItems={quoteItems}
+        saveViewDialogOpen={saveViewDialogOpen}
+        setSaveViewDialogOpen={setSaveViewDialogOpen}
+        newViewName={newViewName}
+        setNewViewName={setNewViewName}
+        onSaveAsNewView={handleSaveAsNewView}
+        saveAsNewViewPending={saveAsNewViewPending}
       />
-
-      <QuoteBuilder
-        open={quoteBuilderOpen}
-        onOpenChange={setQuoteBuilderOpen}
-        lead={quoteLead}
-      />
-
-      {selectedQuote && (
-        <QuotePreview
-          open={previewOpen}
-          onOpenChange={setPreviewOpen}
-          customerName={selectedQuote.customer_name}
-          customerAddress={selectedQuote.customer_address ?? undefined}
-          quoteNumber={selectedQuote.quote_number}
-          quoteDate={
-            selectedQuote.created_at
-              ? new Date(selectedQuote.created_at)
-              : undefined
-          }
-          items={quoteItems}
-          subtotal={selectedQuote.subtotal}
-          discount={selectedQuote.discount || 0}
-          tax={selectedQuote.tax || 0}
-          total={selectedQuote.total}
-          validUntil={
-            selectedQuote.valid_until
-              ? new Date(selectedQuote.valid_until)
-              : undefined
-          }
-          notes={selectedQuote.notes}
-        />
-      )}
-
-      <Dialog open={saveViewDialogOpen} onOpenChange={setSaveViewDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Save as new view</DialogTitle>
-          </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            Save current filters as a named view so you can switch back to it
-            later.
-          </p>
-          <div className="grid gap-2 py-2">
-            <Label htmlFor="view-name">View name</Label>
-            <Input
-              id="view-name"
-              value={newViewName}
-              onChange={(e) => setNewViewName(e.target.value)}
-              placeholder="e.g. My pipeline"
-              onKeyDown={(e) => e.key === "Enter" && handleSaveAsNewView()}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setSaveViewDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveAsNewView}
-              disabled={saveAsNewViewPending}
-            >
-              {saveAsNewViewPending ? "Saving…" : "Save view"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </EntityPageShell>
   );
 }
