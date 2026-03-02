@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -52,12 +51,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 to-background p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Demo CRM</CardTitle>
+      <Card className="w-full max-w-[400px] shadow-lg">
+        <CardHeader className="text-center space-y-1">
+          <CardTitle className="text-2xl font-semibold">Demo CRM</CardTitle>
           <CardDescription>Where leads become customers</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="login-email">Email</Label>
@@ -83,7 +82,7 @@ export default function Auth() {
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Sign In
+              Sign in
             </Button>
           </form>
         </CardContent>
