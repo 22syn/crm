@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { ROUTE_MAP } from "./DashboardBreadcrumb";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
@@ -66,8 +67,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <MobileHeaderTitle />
           </div>
         </header>
+        <DashboardHeader />
         <main
-          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden"
+          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden overflow-y-auto bg-[#f3f4f6]"
           dir={mainDir}
         >
           {children}

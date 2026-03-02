@@ -95,9 +95,14 @@ function NavItems({
     <>
       {visible.map((item) => (
         <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild isActive={isActive(item)} tooltip={item.title}>
-            <Link to={item.url}>
-              <item.icon className="h-4 w-4" />
+          <SidebarMenuButton
+            asChild
+            isActive={isActive(item)}
+            tooltip={item.title}
+            className="group px-3 py-2.5 rounded-lg hover:bg-gray-800/30 hover:text-white data-[active=true]:bg-gray-800/50 data-[active=true]:text-white"
+          >
+            <Link to={item.url} className="flex items-center gap-3">
+              <item.icon className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-indigo-400 group-data-[active=true]:text-indigo-400" />
               <span>{item.title}</span>
             </Link>
           </SidebarMenuButton>
@@ -121,23 +126,25 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border p-4">
+      <SidebarHeader className="border-b border-gray-800/50 h-16 flex items-center px-6 group-data-[collapsible=icon]:px-2">
         <Link
           to="/dashboard"
           className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2"
         >
-          <div className="flex flex-col items-center w-full min-w-0 group-data-[collapsible=icon]:items-center">
-            <span className="text-xl font-bold tracking-tight text-sidebar-foreground truncate group-data-[collapsible=icon]:hidden">Demo CRM</span>
-            <LayoutDashboard className="h-5 w-5 shrink-0 text-sidebar-foreground hidden group-data-[collapsible=icon]:block" />
-            <span className="text-[10px] tracking-[0.2em] text-sidebar-foreground/60 uppercase group-data-[collapsible=icon]:hidden">Premium Management</span>
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+            H
           </div>
+          <div className="flex flex-col items-start w-full min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:hidden">
+            <span className="text-white font-semibold text-xl tracking-tight truncate">Hadarya CRM</span>
+          </div>
+          <LayoutDashboard className="h-5 w-5 shrink-0 text-sidebar-foreground hidden group-data-[collapsible=icon]:block" />
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-1">
               <NavItems
                 items={primaryItems}
                 canShow={(i) => canAccessModule(i.module)}
@@ -147,9 +154,9 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between gap-2">
+          <SidebarGroupLabel className="flex items-center justify-between gap-2 text-xs text-gray-500 group-data-[collapsible=icon]:hidden">
             <span>Menu</span>
-            <SidebarTrigger className="shrink-0 group-data-[collapsible=icon]:hidden" />
+            <SidebarTrigger className="shrink-0" />
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -185,9 +192,14 @@ export function DashboardSidebar() {
               <SidebarMenu>
                 {adminItemsVisible.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={location.pathname === item.url} tooltip={item.title}>
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                      tooltip={item.title}
+                      className="group px-3 py-2.5 rounded-lg hover:bg-gray-800/30 hover:text-white data-[active=true]:bg-gray-800/50 data-[active=true]:text-white"
+                    >
+                      <Link to={item.url} className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-indigo-400 group-data-[active=true]:text-indigo-400" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -199,7 +211,7 @@ export function DashboardSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-2">
+      <SidebarFooter className="border-t border-gray-800/50 p-4">
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>

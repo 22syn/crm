@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectDetailTabs } from "@/components/ad-agency/ProjectDetailTabs";
 import { ProjectQuoteBuilder } from "@/components/ad-agency/ProjectQuoteBuilder";
 import { exportBudgetToExcel } from "@/lib/exportBudgetToExcel";
+import { toast } from "sonner";
 import { ArrowLeft, FileText, Loader2, Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -76,7 +77,7 @@ export default function AdAgencyProjectDetail() {
       if (error) return []; // table may not exist if migration not run
       return (data ?? []) as { id: string; name: string }[];
     },
-    enabled: !!id && !!project,
+    enabled: !!id,
   });
   const sectionMap = new Map(sections.map((s) => [s.id, s.name]));
 
@@ -139,6 +140,9 @@ export default function AdAgencyProjectDetail() {
         items,
         summary: { itemsTotal, insurance, productionFee, discount, grandTotal },
       });
+      toast.success("התקציב יוצא לאקסל בהצלחה");
+    } catch (err) {
+      toast.error("שגיאה בייצוא לאקסל: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setExporting(false);
     }

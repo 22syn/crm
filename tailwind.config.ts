@@ -70,6 +70,16 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        /* Stitch CRM theme */
+        crm: {
+          sidebar: "#0f1025",
+          card: "#151938",
+          bg: "#f3f4f6",
+          accent: "#4f46e5",
+        },
+      },
+      fontFamily: {
+        sans: ["Inter", "Heebo", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

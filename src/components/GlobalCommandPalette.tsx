@@ -60,6 +60,12 @@ export function GlobalCommandPalette() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-command-palette", handler);
+    return () => window.removeEventListener("open-command-palette", handler);
+  }, []);
+
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ["global-search-leads", search],
     queryFn: async () => {

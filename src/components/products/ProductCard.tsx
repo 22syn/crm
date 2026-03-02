@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ShopifyProduct } from "@/lib/shopify";
@@ -7,7 +8,7 @@ interface ProductCardProps {
   product: ShopifyProduct;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export const ProductCard = React.memo(function ProductCard({ product }: ProductCardProps) {
   const { node } = product;
   const imageUrl = node.images.edges[0]?.node.url;
   const price = parseFloat(node.priceRange.minVariantPrice.amount);
@@ -20,10 +21,13 @@ export function ProductCard({ product }: ProductCardProps) {
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <div className="aspect-square bg-muted relative">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
+          <img
+            src={imageUrl}
             alt={node.images.edges[0]?.node.altText || node.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            width={256}
+            height={256}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -57,4 +61,4 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardContent>
     </Card>
   );
-}
+});

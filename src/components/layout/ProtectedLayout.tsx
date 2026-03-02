@@ -1,11 +1,11 @@
-import { Outlet } from "react-router-dom";
-import { Navigate } from "react-router-dom";
+import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { DashboardLayout } from "./DashboardLayout";
 
 export function ProtectedLayout() {
-  const { session, loading, role } = useAuth();
+  const { session, loading, role, canAccessModule } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading) {
     return (
@@ -25,6 +25,10 @@ export function ProtectedLayout() {
         <p className="text-zinc-600 dark:text-zinc-400">Access Pending</p>
       </div>
     );
+  }
+
+  if (pathname.startsWith("/ad-agency") && !canAccessModule("ad_agency")) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

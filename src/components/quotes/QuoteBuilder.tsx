@@ -383,6 +383,9 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                             src={product.node.images.edges[0].node.url}
                             alt={product.node.title}
                             className="w-full h-full object-cover"
+                            loading="lazy"
+                            width={48}
+                            height={48}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

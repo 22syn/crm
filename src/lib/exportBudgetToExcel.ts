@@ -1,5 +1,3 @@
-import ExcelJS from "exceljs";
-
 export interface BudgetExportData {
   project: {
     title: string;
@@ -29,6 +27,7 @@ export interface BudgetExportData {
 }
 
 export async function exportBudgetToExcel(data: BudgetExportData): Promise<void> {
+  const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("תקציב");
 

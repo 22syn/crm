@@ -1,8 +1,8 @@
-import { StatsCards } from "@/components/dashboard/StatsCards";
-import { LeadsBySourceChart } from "@/components/dashboard/LeadsBySourceChart";
-import { OrdersChart } from "@/components/dashboard/OrdersChart";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { QuickActions } from "@/components/dashboard/QuickActions";
+import { StatsCardsStitch } from "@/components/dashboard/StatsCardsStitch";
+import { SalesPipelineChart } from "@/components/dashboard/SalesPipelineChart";
+import { MonthlyRevenueChart } from "@/components/dashboard/MonthlyRevenueChart";
+import { ActivityFeedStitch } from "@/components/dashboard/ActivityFeedStitch";
+import { TopPerformingAgents } from "@/components/dashboard/TopPerformingAgents";
 import { DashboardProvider, useDashboard } from "@/contexts/DashboardContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -20,16 +20,20 @@ function DashboardContent() {
   const filterByMe = !isModuleAdmin("leads");
 
   return (
-    <div className="space-y-section">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="hidden md:block">
-          <h1 className="text-display font-semibold">Dashboard</h1>
-          <p className="text-body text-muted-foreground mt-1">
+          <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {filterByMe ? "My Pipeline" : "CRM performance overview"}
           </p>
         </div>
-        <Select value={timeRange} onValueChange={(v: TimeRange) => setTimeRange(v)} className="md:ml-auto">
-          <SelectTrigger className="w-[160px] rounded-sm">
+        <Select
+          value={timeRange}
+          onValueChange={(v: TimeRange) => setTimeRange(v)}
+          className="md:ml-auto"
+        >
+          <SelectTrigger className="w-[160px] rounded-md">
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
@@ -41,17 +45,25 @@ function DashboardContent() {
         </Select>
       </div>
 
-      <StatsCards timeRange={timeRange} role={filterByMe ? "sales" : "admin"} userId={user?.id} />
+      <StatsCardsStitch
+        timeRange={timeRange}
+        role={filterByMe ? "sales" : "admin"}
+        userId={user?.id}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "200ms" }}>
-        <OrdersChart assignedTo={filterByMe ? user?.id : undefined} />
-        <LeadsBySourceChart assignedTo={filterByMe ? user?.id : undefined} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[280px]">
+        <div className="lg:col-span-4">
+          <SalesPipelineChart assignedTo={filterByMe ? user?.id : undefined} />
+        </div>
+        <div className="lg:col-span-5">
+          <MonthlyRevenueChart assignedTo={filterByMe ? user?.id : undefined} />
+        </div>
+        <div className="lg:col-span-3">
+          <ActivityFeedStitch assignedTo={filterByMe ? user?.id : undefined} />
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "300ms" }}>
-        <ActivityFeed assignedTo={filterByMe ? user?.id : undefined} />
-        <QuickActions />
-      </div>
+      <TopPerformingAgents />
     </div>
   );
 }

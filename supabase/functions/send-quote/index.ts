@@ -1,12 +1,22 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+function getCorsHeaders(req: Request) {
+  const origins = Deno.env.get("ALLOWED_ORIGINS")?.split(",").map((s) => s.trim()) ?? ["*"];
+  const reqOrigin = req.headers.get("Origin");
+  const allowOrigin =
+    origins.includes("*") || (reqOrigin && origins.includes(reqOrigin)) ? (reqOrigin ?? origins[0]) : origins[0];
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
+
+const corsHeadersStatic = {
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 function escapeHtml(s: string): string {
@@ -43,7 +53,36 @@ interface SendQuoteRequest {
   companyName?: string;
 }
 
+const sendQuoteSchema = z.object({
+  customerName: z.string().min(1).max(500),
+  customerEmail: z.string().email(),
+  customerPhone: z.string().max(50).optional(),
+  customerAddress: z.string().max(500).optional(),
+  quoteNumber: z.string().min(1).max(100),
+  quoteDate: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        title: z.string().max(500),
+        quantity: z.number().int().min(0),
+        unit_price: z.number().min(0),
+        total_price: z.number().min(0),
+      })
+    )
+    .min(1)
+    .max(100),
+  subtotal: z.number(),
+  discount: z.number(),
+  tax: z.number(),
+  total: z.number(),
+  validUntil: z.string().optional(),
+  notes: z.string().max(2000).optional(),
+  paymentTerms: z.string().max(500).optional(),
+  companyName: z.string().max(200).optional(),
+});
+
 const handler = async (req: Request): Promise<Response> => {
+  const corsHeaders = { ...corsHeadersStatic, ...getCorsHeaders(req) };
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -76,20 +115,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     const userId = claimsData.claims.sub;
 
-    // Verify user has CRM access
-    const { data: roles } = await supabaseClient
-      .from('user_roles')
-      .select('role')
+    // Verify user has CRM access (user_module_roles — modular permissions)
+    const { data: moduleRoles } = await supabaseClient
+      .from('user_module_roles')
+      .select('module')
       .eq('user_id', userId);
-    
-    if (!roles || roles.length === 0) {
+
+    if (!moduleRoles || moduleRoles.length === 0) {
       return new Response(
         JSON.stringify({ error: "Forbidden - No CRM access" }),
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const data: SendQuoteRequest = await req.json();
+    const parsed = sendQuoteSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request", details: parsed.error.flatten() }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    const data = parsed.data as SendQuoteRequest;
     const companyName = data.companyName ?? "הר סיני הפקות";
     const headerSubline = [data.quoteNumber, data.quoteDate ? new Date(data.quoteDate).toLocaleDateString("he-IL") : null]
       .filter(Boolean)

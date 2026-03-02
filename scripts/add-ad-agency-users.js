@@ -1,8 +1,8 @@
 /**
- * Add ori@harsinai.co.il and kobi@leadslords.com with ad_agency (משרד פרסום) permissions.
- * Email = username = password for each user.
+ * Add users with ad_agency (משרד פרסום) permissions.
+ * Reads users from ADD_AGENCY_USERS env as JSON array: [{"email":"...","password":"..."}]
  *
- * Run: node --env-file=.env scripts/add-ad-agency-users.js
+ * Run: ADD_AGENCY_USERS='[{"email":"a@b.com","password":"..."}]' node --env-file=.env scripts/add-ad-agency-users.js
  */
 import { createClient } from "@supabase/supabase-js";
 
@@ -14,12 +14,26 @@ if (!key) {
   process.exit(1);
 }
 
-const supabase = createClient(url, key, { auth: { persistSession: false } });
+const usersJson = process.env.ADD_AGENCY_USERS;
+if (!usersJson) {
+  console.error(
+    "Missing ADD_AGENCY_USERS. Set as JSON array: ADD_AGENCY_USERS='[{\"email\":\"a@b.com\",\"password\":\"...\"}]'"
+  );
+  process.exit(1);
+}
 
-const users = [
-  { email: "ori@harsinai.co.il", password: "ori@harsinai.co.il" },
-  { email: "kobi@leadslords.com", password: "kobi@leadslords.com" },
-];
+let users;
+try {
+  users = JSON.parse(usersJson);
+  if (!Array.isArray(users) || users.some((u) => !u?.email || !u?.password)) {
+    throw new Error("Invalid format");
+  }
+} catch {
+  console.error("ADD_AGENCY_USERS must be a JSON array of {email, password} objects");
+  process.exit(1);
+}
+
+const supabase = createClient(url, key, { auth: { persistSession: false } });
 
 const MODULE = "ad_agency";
 const ROLE = "user";

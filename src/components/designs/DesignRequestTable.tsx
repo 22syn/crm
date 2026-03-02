@@ -129,6 +129,9 @@ export function DesignRequestTable({
                 src={r.quote_item.image_url}
                 alt=""
                 className="w-full h-full object-cover rounded"
+                loading="lazy"
+                width={40}
+                height={40}
               />
             ) : (
               <Package className="h-5 w-5 text-muted-foreground" />

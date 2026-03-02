@@ -1,6 +1,6 @@
-import "./sentry";
 import { createRoot } from "react-dom/client";
 import * as Sentry from "@sentry/react";
+import { initSentry } from "./sentry";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -23,3 +23,10 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </Sentry.ErrorBoundary>
 );
+
+if (typeof window !== "undefined") {
+  const defer = window.requestIdleCallback
+    ? (cb: () => void) => window.requestIdleCallback!(cb, { timeout: 2000 })
+    : (cb: () => void) => setTimeout(cb, 0);
+  defer(initSentry);
+}

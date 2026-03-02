@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Heebo:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Heebo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -65,15 +65,15 @@
     --space-block: 1rem;     /* 16px - standard padding */
     --space-tight: 0.5rem;   /* 8px - tight groupings */
 
-    /* Sidebar - Cool dark */
-    --sidebar-background: 220 15% 18%;
-    --sidebar-foreground: 220 15% 92%;
-    --sidebar-primary: 220 15% 85%;
-    --sidebar-primary-foreground: 220 15% 18%;
-    --sidebar-accent: 220 12% 25%;
-    --sidebar-accent-foreground: 220 15% 92%;
-    --sidebar-border: 220 12% 25%;
-    --sidebar-ring: 220 15% 85%;
+    /* Sidebar - Stitch dark (#0f1025) */
+    --sidebar-background: 232 35% 11%;
+    --sidebar-foreground: 220 10% 75%;
+    --sidebar-primary: 238 90% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 25%;
+    --sidebar-accent-foreground: 220 10% 92%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 220 15% 75%;
   }
 
   .dark {
@@ -154,6 +154,30 @@
     .kanban-grid {
       grid-template-columns: repeat(var(--col-count, 8), minmax(280px, 1fr));
     }
+  }
+
+  /* Stitch-style bar chart animation */
+  .bar-animate {
+    animation: growUp 1s ease-out forwards;
+    transform-origin: bottom;
+    transform: scaleY(0);
+  }
+  @keyframes growUp {
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* Custom scrollbar for activity feed */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
   }
 
   /* Respect reduced motion for all animations */

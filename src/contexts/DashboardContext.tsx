@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
 
 export type TimeRange = "week" | "last_week" | "month" | "quarter";
 
@@ -11,9 +11,17 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [timeRange, setTimeRange] = useState<TimeRange>("month");
+  const setTimeRangeStable = useCallback((range: TimeRange) => {
+    setTimeRange(range);
+  }, []);
+
+  const value = useMemo(
+    () => ({ timeRange, setTimeRange: setTimeRangeStable }),
+    [timeRange, setTimeRangeStable]
+  );
 
   return (
-    <DashboardContext.Provider value={{ timeRange, setTimeRange }}>
+    <DashboardContext.Provider value={value}>
       {children}
     </DashboardContext.Provider>
   );

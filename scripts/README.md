@@ -35,6 +35,20 @@ USER_EMAIL=ori@harsinai.co.il USER_PASSWORD=TempPass123! USER_ROLE=sales SERVICE
 
 ---
 
+## Add ad-agency users (`scripts/add-ad-agency-users.js`)
+
+Adds users with ad_agency (משרד פרסום) module access. Reads users from `ADD_AGENCY_USERS` env.
+
+**Required:** `SERVICE_ROLE_KEY`, `ADD_AGENCY_USERS` — JSON array of `{email, password}` objects.
+
+```bash
+ADD_AGENCY_USERS='[{"email":"user@example.com","password":"..."}]' node --env-file=.env scripts/add-ad-agency-users.js
+```
+
+Never commit real credentials. Add to `.env` (gitignored).
+
+---
+
 ## Migrate from old Supabase to new
 
 Copies business data (customers, leads, quotes, deals, etc.) from the old project to the new one.

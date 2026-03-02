@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ function getProbabilityColor(probability: number | null): string {
   return probabilityColors[100];
 }
 
-export function DealCard({ deal, onEdit }: DealCardProps) {
+export const DealCard = React.memo(function DealCard({ deal, onEdit }: DealCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
   });
@@ -110,4 +111,4 @@ export function DealCard({ deal, onEdit }: DealCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
