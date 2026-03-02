@@ -105,10 +105,11 @@ export default function Settings() {
         .select("user_id, email, full_name")
         .in("user_id", userIds);
 
+      const profilesByUserId = new Map((profiles ?? []).map((p) => [p.user_id, p]));
       return userIds.map((user_id) => ({
         user_id,
-        email: profiles?.find((p) => p.user_id === user_id)?.email ?? null,
-        full_name: profiles?.find((p) => p.user_id === user_id)?.full_name ?? null,
+        email: profilesByUserId.get(user_id)?.email ?? null,
+        full_name: profilesByUserId.get(user_id)?.full_name ?? null,
         moduleRoles: byUser.get(user_id) ?? {},
       }));
     },
