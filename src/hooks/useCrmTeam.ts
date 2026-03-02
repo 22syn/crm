@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,7 +10,7 @@ export interface CrmTeamMember {
 
 /** Fetches users who have leads module access (for assignee dropdown) */
 export function useCrmTeam() {
-  return useQuery({
+  const result = useQuery({
     queryKey: ["crm-team"],
     queryFn: async (): Promise<CrmTeamMember[]> => {
       const [rolesRes, superAdminRes] = await Promise.all([
@@ -39,4 +40,11 @@ export function useCrmTeam() {
       }));
     },
   });
+
+  const membersByUserId = useMemo(
+    () => new Map((result.data ?? []).map((m) => [m.user_id, m])),
+    [result.data],
+  );
+
+  return { ...result, membersByUserId };
 }

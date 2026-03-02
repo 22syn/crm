@@ -22,7 +22,7 @@ export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { data: teamMembers = [] } = useCrmTeam();
+  const { data: teamMembers = [], membersByUserId } = useCrmTeam();
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: lead, isLoading } = useQuery({
@@ -75,7 +75,7 @@ export default function LeadDetail() {
   }
 
   const stageConfig = getStageConfig(lead.status);
-  const assignee = teamMembers.find((m) => m.user_id === lead.assigned_to);
+  const assignee = lead.assigned_to ? membersByUserId.get(lead.assigned_to) : null;
 
   return (
     <>

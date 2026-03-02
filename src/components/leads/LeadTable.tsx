@@ -44,7 +44,8 @@ type InlineEditField = "customer_name" | "customer_phone" | "customer_email";
 
 interface LeadTableProps {
   leads: Lead[];
-  teamMembers?: CrmTeamMember[];
+  /** O(1) lookup by user_id for assignee display; values() for dropdown */
+  membersByUserId?: Map<string, CrmTeamMember>;
   onEdit: (lead: Lead) => void;
   onViewLead?: (lead: Lead) => void;
   onStatusChange: (leadId: string, status: LeadStatus) => void;
@@ -64,7 +65,7 @@ interface LeadTableProps {
 
 export function LeadTable({
   leads,
-  teamMembers = [],
+  membersByUserId = new Map(),
   onEdit,
   onViewLead,
   onStatusChange,
@@ -254,7 +255,7 @@ export function LeadTable({
       id: "assigned_to",
       header: "Assigned to",
       render: (lead) =>
-        onAssigneeChange && teamMembers.length > 0 ? (
+        onAssigneeChange && membersByUserId.size > 0 ? (
           <div className="flex items-center gap-1 min-w-[140px]">
             <Select
               value={lead.assigned_to ?? "unassigned"}
@@ -264,7 +265,7 @@ export function LeadTable({
               <SelectTrigger className="h-8 text-body rounded-sm"><SelectValue placeholder="Assign..." /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">Unassigned</SelectItem>
-                {teamMembers.map((m) => (
+                {Array.from(membersByUserId.values()).map((m) => (
                   <SelectItem key={m.user_id} value={m.user_id}>{m.full_name || m.email || m.user_id}</SelectItem>
                 ))}
               </SelectContent>
@@ -274,7 +275,7 @@ export function LeadTable({
             )}
           </div>
         ) : (
-          lead.assigned_to ? (teamMembers.find((m) => m.user_id === lead.assigned_to)?.full_name || "—") : "—"
+          (lead.assigned_to ? membersByUserId.get(lead.assigned_to)?.full_name : null) ?? "—"
         ),
     },
     {
@@ -316,7 +317,7 @@ export function LeadTable({
         </span>
       ),
     },
-  ], [editingCell, editValue, savingCell, leadQuotes, teamMembers, onInlineUpdate, onViewLead, onStatusChange, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
+  ], [editingCell, editValue, savingCell, leadQuotes, membersByUserId, onInlineUpdate, onViewLead, onStatusChange, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
 
   return (
     <DataTable<Lead>

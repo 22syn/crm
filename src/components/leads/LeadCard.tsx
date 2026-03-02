@@ -21,7 +21,8 @@ const PRIORITY_CONFIG: Record<LeadPriority, { label: string; icon: typeof Flame;
 
 interface LeadCardProps {
   lead: Lead;
-  teamMembers?: CrmTeamMember[];
+  /** O(1) lookup by user_id for assignee display */
+  membersByUserId?: Map<string, CrmTeamMember>;
   onEdit: (lead: Lead) => void;
   onViewLead?: (lead: Lead) => void;
   onCreateQuote?: (lead: Lead) => void;
@@ -30,7 +31,7 @@ interface LeadCardProps {
   onUnlinkQuote?: (leadId: string) => void;
 }
 
-export function LeadCard({ lead, teamMembers = [], onEdit, onViewLead, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
+export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
   });
@@ -117,7 +118,12 @@ export function LeadCard({ lead, teamMembers = [], onEdit, onViewLead, onCreateQ
         {lead.assigned_to && (
           <div className="flex items-center gap-1 text-meta text-muted-foreground mt-1 ml-6">
             <User className="h-3 w-3" />
-            <span>{teamMembers.find((m) => m.user_id === lead.assigned_to)?.full_name || teamMembers.find((m) => m.user_id === lead.assigned_to)?.email || "Assigned"}</span>
+            <span>
+              {(() => {
+                const assignee = membersByUserId?.get(lead.assigned_to!);
+                return assignee?.full_name || assignee?.email || "Assigned";
+              })()}
+            </span>
           </div>
         )}
       </CardHeader>

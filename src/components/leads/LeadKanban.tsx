@@ -18,7 +18,8 @@ const statusColumns = LEAD_STAGES.map(({ value, label, color }) => ({
 
 interface LeadKanbanProps {
   leads: Lead[];
-  teamMembers?: CrmTeamMember[];
+  /** O(1) lookup by user_id for assignee display */
+  membersByUserId?: Map<string, CrmTeamMember>;
   isLoading: boolean;
   onEdit: (lead: Lead) => void;
   onViewLead?: (lead: Lead) => void;
@@ -36,7 +37,7 @@ interface LeadKanbanProps {
 
 export function LeadKanban({
   leads,
-  teamMembers = [],
+  membersByUserId,
   isLoading,
   onEdit,
   onViewLead,
@@ -61,7 +62,7 @@ export function LeadKanban({
       renderCard={(lead) => (
         <LeadCard
           lead={lead}
-          teamMembers={teamMembers}
+          membersByUserId={membersByUserId}
           onEdit={onEdit}
           onViewLead={onViewLead}
           onCreateQuote={onCreateQuote}

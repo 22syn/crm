@@ -306,7 +306,7 @@ export default function Leads() {
   const handleAssigneeFilterChange = (val: string) => { setAssigneeFilter(val); setPage(0); };
 
   const { user } = useAuth();
-  const { data: teamMembers = [] } = useCrmTeam();
+  const { data: teamMembers = [], membersByUserId } = useCrmTeam();
 
   const { data: leadsData, isLoading } = useQuery({
     queryKey: ["leads", page, search, statusFilter, sourceFilter, assigneeFilter, noMeetingFilter],
@@ -666,7 +666,7 @@ export default function Leads() {
               ) : (
                 <LeadKanban
                   leads={leads}
-                  teamMembers={teamMembers}
+                  membersByUserId={membersByUserId}
                   isLoading={isLoading}
                   onEdit={handleEdit}
                   onViewLead={(l) => navigate(`/leads/${l.id}`)}
@@ -748,7 +748,7 @@ export default function Leads() {
                   )}
                   <LeadTable
                     leads={leads}
-                    teamMembers={teamMembers}
+                    membersByUserId={membersByUserId}
                     onEdit={handleEdit}
                     onViewLead={(l) => navigate(`/leads/${l.id}`)}
                     onStatusChange={handleStatusChange}
