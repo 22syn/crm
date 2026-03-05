@@ -18,6 +18,7 @@ import { Palette, Upload, Loader2 } from "lucide-react";
 import { DesignRequestTable } from "@/components/designs/DesignRequestTable";
 import { DesignRequestKanban } from "@/components/designs/DesignRequestKanban";
 import type { EntityViewMode } from "@/components/entity-page";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
 
 interface DesignRequest {
   id: string;
@@ -52,7 +53,27 @@ export default function DesignRequests() {
   const [designNotes, setDesignNotes] = useState("");
   const [uploading, setUploading] = useState(false);
   const [viewMode, setViewMode] = useState<EntityViewMode>("kanban");
-  const [activeTab, setActiveTab] = useState("pending");
+
+  interface DesignFilters {
+    search: string;
+    activeTab: string;
+  }
+
+  const {
+    filters,
+    setFilter,
+    searchInput,
+    setSearchInput,
+    clearFilters,
+  } = useEntityFilters<DesignFilters>({
+    pageKey: "design-requests",
+    initialFilters: {
+      search: "",
+      activeTab: "pending",
+    },
+  });
+
+  const { search, activeTab } = filters;
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["design-requests"],
@@ -179,9 +200,21 @@ export default function DesignRequests() {
     updateMutation.mutate({ id: request.id, status: "in_progress" });
   };
 
-  const pendingRequests = requests.filter((r) => r.status === "pending");
-  const inProgressRequests = requests.filter((r) => r.status === "in_progress");
-  const completedRequests = requests.filter((r) => r.status === "completed");
+  const filteredRequests = requests.filter((r) => {
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      if (
+        !r.quote?.customer_name.toLowerCase().includes(q) &&
+        !r.quote?.quote_number.toLowerCase().includes(q) &&
+        !r.quote_item?.title.toLowerCase().includes(q)
+      ) return false;
+    }
+    return true;
+  });
+
+  const pendingRequests = filteredRequests.filter((r) => r.status === "pending");
+  const inProgressRequests = filteredRequests.filter((r) => r.status === "in_progress");
+  const completedRequests = filteredRequests.filter((r) => r.status === "completed");
 
   const getTableRequests = () => {
     if (activeTab === "pending") return pendingRequests;
@@ -249,14 +282,42 @@ export default function DesignRequests() {
         />
       }
       renderToolbar={() => (
-        <EntityToolbar>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="rounded-sm">
-              <TabsTrigger value="pending" className="rounded-sm">Pending ({pendingRequests.length})</TabsTrigger>
-              <TabsTrigger value="in_progress" className="rounded-sm">In Progress ({inProgressRequests.length})</TabsTrigger>
-              <TabsTrigger value="completed" className="rounded-sm">Completed ({completedRequests.length})</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <EntityToolbar
+          hasFilters={search !== ""}
+          onClearFilters={clearFilters}
+          renderMobileSearch={
+            <div className="relative flex-1">
+              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hidden" />
+              <Input
+                placeholder="Search requests..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="h-9"
+              />
+            </div>
+          }
+        >
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+            <div className="relative flex-1 max-w-sm">
+              <Input
+                placeholder="Search requests..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="h-9"
+              />
+            </div>
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setFilter("activeTab", v)}
+              className="w-full sm:w-auto"
+            >
+              <TabsList className="rounded-sm">
+                <TabsTrigger value="pending" className="rounded-sm">Pending ({pendingRequests.length})</TabsTrigger>
+                <TabsTrigger value="in_progress" className="rounded-sm">In Progress ({inProgressRequests.length})</TabsTrigger>
+                <TabsTrigger value="completed" className="rounded-sm">Completed ({completedRequests.length})</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </EntityToolbar>
       )}
     >

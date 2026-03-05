@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { Plus, Loader2, Users, Phone, Mail, MapPin, Search, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
 
 type CustomerStatus = Database["public"]["Enums"]["customer_status"];
 
@@ -59,11 +60,30 @@ export default function Customers() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Pagination State
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 50;
+
+  interface CustomerFilters {
+    search: string;
+  }
+
+  const {
+    filters,
+    searchInput,
+    setSearchInput,
+    resetToDefault,
+    clearFilters,
+  } = useEntityFilters<CustomerFilters>({
+    pageKey: "customers",
+    initialFilters: {
+      search: "",
+    },
+    onFiltersChange: () => setPage(0),
+  });
+
+  const { search: searchQuery } = filters;
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -71,9 +91,6 @@ export default function Customers() {
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<CustomerStatus>("new");
-
-  // Reset page on search
-  const handleSearchChange = (val: string) => { setSearchQuery(val); setPage(0); };
 
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["customers", page, searchQuery],
@@ -292,11 +309,16 @@ export default function Customers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10"
             />
           </div>
+          {(searchQuery || searchInput) && (
+            <Button variant="ghost" onClick={clearFilters}>
+              Clear
+            </Button>
+          )}
         </div>
 
         {isLoading ? (

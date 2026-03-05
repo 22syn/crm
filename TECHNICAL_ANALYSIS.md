@@ -46,6 +46,7 @@ The pattern for "Saved Views" and search debouncing was manually implemented in 
 - Search debouncing.
 - Integration with `useTablePreferences`.
 - Filter normalization (handling inconsistent data from the database).
+**Status**: Successfully migrated Leads, Deals, Quotes, Customers, and Suppliers pages to this unified hook.
 
 ### `BulkActionToolbar` (Proposed)
 **Observed**: Only `Leads.tsx` has a robust bulk action bar.

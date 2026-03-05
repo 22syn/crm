@@ -20,15 +20,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
+import type { Database } from "@/integrations/supabase/types";
+
+type Quote = Database["public"]["Tables"]["quotes"]["Row"];
+type QuoteItem = Database["public"]["Tables"]["quote_items"]["Row"];
 
 export default function Quotes() {
   const queryClient = useQueryClient();
   const [builderOpen, setBuilderOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState<any>(null);
-  const [quoteItems, setQuoteItems] = useState<any[]>([]);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [quoteToDelete, setQuoteToDelete] = useState<any>(null);
+  const [quoteToDelete, setQuoteToDelete] = useState<Quote | null>(null);
 
   const { data: quotes = [], isLoading } = useQuery({
     queryKey: ["quotes"],
@@ -83,10 +88,10 @@ export default function Quotes() {
   // Run auto-archive on mount
   useEffect(() => {
     archiveOldQuotesMutation.mutate();
-  }, []);
+  }, [archiveOldQuotesMutation]);
 
   const approveQuoteMutation = useMutation({
-    mutationFn: async (quote: any) => {
+    mutationFn: async (quote: Quote) => {
       // Update quote status to approved
       const { error: quoteError } = await supabase
         .from("quotes")
@@ -152,7 +157,7 @@ export default function Quotes() {
 
       // Create design requests for items that need custom design
       if (items && items.length > 0) {
-        const designRequests = items.map((item: any) => ({
+        const designRequests = items.map((item: QuoteItem) => ({
           quote_id: quote.id,
           quote_item_id: item.id,
           customer_notes: item.custom_design_notes,
@@ -241,11 +246,34 @@ export default function Quotes() {
   });
 
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [search, setSearch] = useState("");
+
+  interface QuoteFiltersData {
+    search: string;
+    statusFilter: string;
+  }
+
+  const {
+    filters,
+    setFilter,
+    searchInput,
+    setSearchInput,
+    views: savedViews,
+    applyView,
+    resetToDefault,
+    resetPending,
+    clearFilters,
+  } = useEntityFilters<QuoteFiltersData>({
+    pageKey: "quotes",
+    initialFilters: {
+      search: "",
+      statusFilter: "all",
+    },
+  });
+
+  const { search, statusFilter } = filters;
 
   const getFilteredQuotes = () => {
-    let list: any[];
+    let list: Quote[];
     if (statusFilter === "all") list = quotes;
     else if (statusFilter === "draft") list = draftQuotes;
     else if (statusFilter === "sent") list = sentQuotes;
@@ -255,7 +283,7 @@ export default function Quotes() {
     if (!search.trim()) return list;
     const q = search.trim().toLowerCase();
     return list.filter(
-      (x: any) =>
+      (x) =>
         (x.customer_name || "").toLowerCase().includes(q) ||
         (x.quote_number || "").toLowerCase().includes(q)
     );
@@ -269,11 +297,11 @@ export default function Quotes() {
     return base;
   };
 
-  const draftQuotes = quotes.filter(q => q.status === "draft");
-  const sentQuotes = quotes.filter(q => q.status === "sent");
-  const approvedQuotes = quotes.filter(q => q.status === "approved");
+  const draftQuotes = (quotes as Quote[]).filter(q => q.status === "draft");
+  const sentQuotes = (quotes as Quote[]).filter(q => q.status === "sent");
+  const approvedQuotes = (quotes as Quote[]).filter(q => q.status === "approved");
 
-  const handleViewQuote = async (quote: any) => {
+  const handleViewQuote = async (quote: Quote) => {
     setSelectedQuote(quote);
     
     // Fetch quote items
@@ -286,16 +314,16 @@ export default function Quotes() {
     setPreviewOpen(true);
   };
 
-  const handleApproveQuote = (quote: any) => {
+  const handleApproveQuote = (quote: Quote) => {
     approveQuoteMutation.mutate(quote);
   };
 
-  const handleEditQuote = async (quote: any) => {
+  const handleEditQuote = async (quote: Quote) => {
     // Show the quote preview - full edit requires more changes
     handleViewQuote(quote);
   };
 
-  const handleDeleteQuote = (quote: any) => {
+  const handleDeleteQuote = (quote: Quote) => {
     setQuoteToDelete(quote);
     setDeleteDialogOpen(true);
   };
@@ -371,32 +399,38 @@ export default function Quotes() {
       }
       renderToolbar={() => (
         <EntityToolbar
+          onReset={resetToDefault}
+          resetPending={resetPending}
+          savedViews={savedViews}
+          onApplyView={applyView}
+          onClearFilters={clearFilters}
+          hasFilters={search !== "" || statusFilter !== "all"}
           renderMobileSearch={
             <QuoteFilters
               variant="searchOnly"
-              search={search}
-              onSearchChange={setSearch}
+              search={searchInput}
+              onSearchChange={setSearchInput}
               statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
+              onStatusFilterChange={(v) => setFilter("statusFilter", v)}
               archivedCount={archivedQuotes.length}
             />
           }
           renderMobileFilters={
             <QuoteFilters
               variant="filtersOnly"
-              search={search}
-              onSearchChange={setSearch}
+              search={searchInput}
+              onSearchChange={setSearchInput}
               statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
+              onStatusFilterChange={(v) => setFilter("statusFilter", v)}
               archivedCount={archivedQuotes.length}
             />
           }
         >
           <QuoteFilters
-            search={search}
-            onSearchChange={setSearch}
+            search={searchInput}
+            onSearchChange={setSearchInput}
             statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
+            onStatusFilterChange={(v) => setFilter("statusFilter", v)}
             archivedCount={archivedQuotes.length}
           />
         </EntityToolbar>

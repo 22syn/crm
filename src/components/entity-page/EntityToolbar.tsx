@@ -55,7 +55,7 @@ export interface EntityToolbarProps {
 
   /** Saved views - when provided, shows Saved views dropdown */
   savedViews?: SavedView[];
-  onApplyView?: (filters: Record<string, string>) => void;
+  onApplyView?: (filters: Record<string, any>) => void;
   onRenameView?: (id: string, name: string) => Promise<void>;
   onDeleteView?: (id: string) => void | Promise<void>;
 

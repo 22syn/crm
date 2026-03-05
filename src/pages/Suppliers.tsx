@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, Mail, MessageCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { useEntityFilters } from "@/hooks/useEntityFilters";
 
 type Supplier = Tables<"suppliers">;
 
@@ -39,10 +40,29 @@ export default function Suppliers() {
   const { role } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
+  interface SupplierFilters {
+    search: string;
+    showActiveOnly: boolean;
+  }
+
+  const {
+    filters,
+    setFilter,
+    searchInput,
+    setSearchInput,
+    clearFilters,
+  } = useEntityFilters<SupplierFilters>({
+    pageKey: "suppliers",
+    initialFilters: {
+      search: "",
+      showActiveOnly: true,
+    },
+  });
+
+  const { search: searchQuery, showActiveOnly } = filters;
 
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ["suppliers", showActiveOnly],
@@ -154,18 +174,23 @@ export default function Suppliers() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search suppliers..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                     className="pl-9 w-64"
                   />
                 </div>
                 <Button
                   variant={showActiveOnly ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setShowActiveOnly(!showActiveOnly)}
+                  onClick={() => setFilter("showActiveOnly", !showActiveOnly)}
                 >
                   {showActiveOnly ? "Active Only" : "Show All"}
                 </Button>
+                {(searchQuery || searchInput) && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Clear
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
