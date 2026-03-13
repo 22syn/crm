@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   CommandDialog,
   CommandEmpty,
@@ -42,6 +43,7 @@ export function GlobalCommandPalette() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { canAccessModule } = useAuth();
 
   // Debounce search (300ms) to reduce request churn while typing
   useEffect(() => {
@@ -66,6 +68,9 @@ export function GlobalCommandPalette() {
     return () => window.removeEventListener("open-command-palette", handler);
   }, []);
 
+  const hasLeads = canAccessModule("leads");
+  const hasAdAgency = canAccessModule("ad_agency");
+
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ["global-search-leads", search],
     queryFn: async () => {
@@ -81,7 +86,7 @@ export function GlobalCommandPalette() {
       if (error) throw error;
       return (data ?? []) as Lead[];
     },
-    enabled: open && search.length >= 2,
+    enabled: hasLeads && open && search.length >= 2,
   });
 
   const { data: recentLeads = [] } = useQuery({
@@ -98,7 +103,7 @@ export function GlobalCommandPalette() {
       const byId = arrayToRecord(list, (l) => l.id);
       return ids.map((id) => byId[id]).filter(Boolean) as Lead[];
     },
-    enabled: open && !searchInput.trim(),
+    enabled: hasLeads && open && !searchInput.trim(),
   });
 
   const runCommand = useCallback(
@@ -121,17 +126,22 @@ export function GlobalCommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Search leads by name, email, phone..."
+        placeholder={hasLeads ? "Search leads by name, email, phone..." : hasAdAgency ? "Navigate..." : "Search..."}
         value={searchInput}
         onValueChange={setSearchInput}
       />
       <CommandList>
         <CommandEmpty>
-          {searchInput.trim().length >= 2 ? (searchLoading ? "Searching..." : "No results.") : "Type to search leads."}
+          {searchInput.trim().length >= 2
+            ? searchLoading
+              ? "Searching..."
+              : "No results."
+            : hasLeads
+              ? "Type to search leads."
+              : "Navigate using the menu above."}
         </CommandEmpty>
-        {!searchInput.trim() && (
-          <>
-          <CommandGroup heading="Go to">
+        {!searchInput.trim() && hasLeads && (
+          <CommandGroup heading="Hadarya">
             <CommandItem onSelect={() => runCommand(() => navigate("/dashboard"))}>
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
@@ -153,6 +163,8 @@ export function GlobalCommandPalette() {
               Contracts
             </CommandItem>
           </CommandGroup>
+        )}
+        {!searchInput.trim() && hasAdAgency && (
           <CommandGroup heading="משרד פרסום">
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency"))}>
               <LayoutGrid className="mr-2 h-4 w-4" />
@@ -162,7 +174,7 @@ export function GlobalCommandPalette() {
               <FileText className="mr-2 h-4 w-4" />
               פרויקטים
             </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => navigate("/contracts"))}>
+            <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/price-quotes"))}>
               <FileText className="mr-2 h-4 w-4" />
               הצעות מחיר
             </CommandItem>
@@ -179,9 +191,8 @@ export function GlobalCommandPalette() {
               פריטים
             </CommandItem>
           </CommandGroup>
-          </>
         )}
-        {!searchInput.trim() && recentLeads.length > 0 && (
+        {!searchInput.trim() && hasLeads && recentLeads.length > 0 && (
           <CommandGroup heading="Recent">
             {recentLeads.map((lead) => (
               <CommandItem key={lead.id} onSelect={() => handleSelectLead(lead)}>

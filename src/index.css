@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Heebo:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Stitch design system: INTER only */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Heebo:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,7 +9,7 @@
 
 @layer base {
   :root {
-    /* Demo Design System - Production Company (Clean Creative) */
+    /* Light mode - Clean, neutral, NO blue */
     --background: 220 15% 98%;
     --foreground: 220 20% 15%;
 
@@ -18,7 +19,7 @@
     --popover: 220 15% 99%;
     --popover-foreground: 220 20% 15%;
 
-    /* Primary - Cool dark */
+    /* Primary - Cool dark neutral */
     --primary: 220 20% 25%;
     --primary-foreground: 220 15% 98%;
 
@@ -41,8 +42,8 @@
     --input: 220 15% 90%;
     --ring: 220 20% 35%;
 
-    /* Action accent - Purple-magenta (primary CTAs) */
-    --accent-action: 262 55% 50%;
+    /* Action accent - Light mode: neutral slate (no blue) */
+    --accent-action: 220 20% 35%;
     --accent-action-foreground: 0 0% 100%;
 
     /* Semantic */
@@ -51,24 +52,24 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    /* Typography scale (4-level hierarchy) */
-    --text-display: 1.75rem;   /* 28px - board/page titles */
-    --text-hero: 1.75rem;     /* 28px - page titles */
-    --text-title: 1.125rem;  /* 18px - section headers, column titles */
-    --text-body: 0.875rem;    /* 14px - body text and data */
-    --text-meta: 0.75rem;     /* 12px - metadata and labels */
+    /* Typography scale */
+    --text-display: 1.75rem;
+    --text-hero: 1.75rem;
+    --text-title: 1.125rem;
+    --text-body: 0.875rem;
+    --text-meta: 0.75rem;
 
     /* Section spacing */
-    --space-section: 1.5rem;  /* 24px - between major sections */
-    --space-block: 1rem;     /* 16px - standard padding */
-    --space-tight: 0.5rem;   /* 8px - tight groupings */
+    --space-section: 1.5rem;
+    --space-block: 1rem;
+    --space-tight: 0.5rem;
 
-    /* Sidebar - Stitch dark (#0f1025) */
-    --sidebar-background: 232 35% 11%;
+    /* Sidebar - Light mode: #0f1025 (Stitch spec), neutral highlights */
+    --sidebar-background: 237 42% 10%;
     --sidebar-foreground: 220 10% 75%;
-    --sidebar-primary: 238 90% 60%;
+    --sidebar-primary: 220 15% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 15% 25%;
     --sidebar-accent-foreground: 220 10% 92%;
@@ -77,13 +78,15 @@
   }
 
   .dark {
+    /* Dark mode - Blue accents (#1337ec) */
     --background: 220 15% 10%;
     --foreground: 220 15% 92%;
 
-    --card: 220 15% 14%;
+    /* Card - Dark: #151938 (Stitch spec) */
+    --card: 232 45% 15%;
     --card-foreground: 220 15% 92%;
 
-    --popover: 220 15% 14%;
+    --popover: 232 45% 15%;
     --popover-foreground: 220 15% 92%;
 
     --primary: 220 15% 90%;
@@ -105,17 +108,20 @@
     --input: 220 12% 25%;
     --ring: 220 15% 75%;
 
-    --accent-action: 262 55% 60%;
+    /* Action accent - Dark mode: Stitch blue #1337ec */
+    --accent-action: 231 84% 51%;
     --accent-action-foreground: 0 0% 100%;
+
     --success: 142 65% 48%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 55%;
     --warning-foreground: 0 0% 10%;
 
-    --sidebar-background: 220 15% 8%;
+    /* Sidebar - Dark: #0f1025 (Stitch spec) */
+    --sidebar-background: 237 42% 10%;
     --sidebar-foreground: 220 15% 92%;
-    --sidebar-primary: 220 15% 85%;
-    --sidebar-primary-foreground: 220 15% 8%;
+    --sidebar-primary: 231 84% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 12% 18%;
     --sidebar-accent-foreground: 220 15% 92%;
     --sidebar-border: 220 12% 18%;
@@ -129,10 +135,15 @@
   }
 
   body {
-    @apply text-foreground;
-    font-family: 'Heebo', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 15% 94%) 100%);
+    @apply text-foreground bg-background;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
+    overflow-x: hidden; /* BUG-01: prevent Kanban horizontal scroll from shifting mobile UI */
+  }
+
+  /* BUG-05: prevent background scroll when modal is open */
+  body:has([role="dialog"][data-state="open"]) {
+    overflow: hidden !important;
   }
 
   h1,
@@ -141,14 +152,15 @@
   h4,
   h5,
   h6 {
-    font-family: 'DM Serif Display', 'Heebo', sans-serif;
-    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
   }
 
   /* Kanban grid - responsive column width for mobile */
   .kanban-grid {
     grid-template-columns: repeat(var(--col-count, 8), minmax(220px, 1fr));
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain; /* BUG-01: prevent scroll chaining to body */
   }
   @media (min-width: 768px) {
     .kanban-grid {
@@ -173,11 +185,72 @@
     width: 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: hsl(var(--muted));
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+    background: hsl(var(--border));
     border-radius: 4px;
+  }
+  /* Dark card scrollbar (Stitch #151938) */
+  .custom-scrollbar-dark::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar-dark::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+  }
+  .custom-scrollbar-dark::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+  }
+
+  /* Sprint 2: Sticky first column in tables (RTL-aware) */
+  [data-sticky-first-col] th:first-child,
+  [data-sticky-first-col] td:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 2;
+    background: hsl(var(--card));
+    box-shadow: 2px 0 4px -2px hsl(var(--border) / 0.5);
+  }
+  [data-sticky-first-col] th:first-child {
+    z-index: 3; /* Corner cell above row + column headers */
+    box-shadow: 2px 0 4px -2px hsl(var(--border) / 0.5);
+  }
+  [dir="rtl"] [data-sticky-first-col] th:first-child,
+  [dir="rtl"] [data-sticky-first-col] td:first-child {
+    box-shadow: -2px 0 4px -2px hsl(var(--border) / 0.5);
+  }
+
+  /* Sprint 2: Mixed Hebrew/English titles (Deals, etc.) — better bidi wrapping */
+  .bidi-plaintext {
+    unicode-bidi: plaintext;
+  }
+
+  /* Sprint 3: Scroll shadow — gradient hint on scrollable container edge */
+  .scroll-shadow-x {
+    position: relative;
+  }
+  .scroll-shadow-x::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to left, hsl(var(--background)), transparent);
+    pointer-events: none;
+  }
+  [dir="rtl"] .scroll-shadow-x::after {
+    right: auto;
+    left: 0;
+    background: linear-gradient(to right, hsl(var(--background)), transparent);
+  }
+  /* Dark Kanban variant */
+  .scroll-shadow-x-dark::after {
+    background: linear-gradient(to left, #0f1025, transparent);
+  }
+  [dir="rtl"] .scroll-shadow-x-dark::after {
+    background: linear-gradient(to right, #0f1025, transparent);
   }
 
   /* Respect reduced motion for all animations */

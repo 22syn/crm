@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Plus, FilterX, RotateCcw } from "lucide-react";
 import { useTablePreferences } from "@/hooks/useTablePreferences";
 import type { EntityViewMode } from "@/components/entity-page";
 
@@ -273,6 +274,43 @@ export default function Deals() {
       onAddClick={() => setDialogOpen(true)}
       viewMode={viewMode}
       onViewModeChange={setViewMode}
+      kanbanCount={filteredDeals.length}
+      tableCount={filteredDeals.length}
+      isLoading={isLoading}
+      isEmpty={!isLoading && filteredDeals.length === 0}
+      renderEmptyState={
+        hasFilters ? (
+          <div className="rounded-xl border border-dashed bg-muted/30 py-12 px-6 text-center">
+            <FilterX className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
+            <p className="font-medium text-foreground">No deals match your filters</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Try clearing or resetting your filters.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              <Button variant="outline" size="sm" onClick={handleClearFilters}>
+                <FilterX className="h-4 w-4 mr-1" />
+                Clear filters
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleResetPreferences} disabled={resetPending}>
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Reset to default
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed bg-muted/30 py-12 px-6 text-center">
+            <Plus className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
+            <p className="font-medium text-foreground">Add your first deal</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Get started by creating a deal from your pipeline.
+            </p>
+            <Button variant="accent" className="mt-4" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Deal
+            </Button>
+          </div>
+        )
+      }
       renderKanban={
         <DealKanban
           deals={filteredDeals}

@@ -1,9 +1,11 @@
 import { lazy, Suspense } from "react";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import Auth from "./pages/Auth";
@@ -52,11 +54,30 @@ function AuthAwareCommandPalette() {
   return <GlobalCommandPalette />;
 }
 
+/** BUG-03: Scroll to top on route change (fixes mid-scroll page load) */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
+/** Redirect to default home based on user's module access */
+function RedirectToDefault() {
+  const { canAccessModule, isModuleAdmin } = useAuth();
+  if (canAccessModule("leads")) return <Navigate to="/dashboard" replace />;
+  if (canAccessModule("ad_agency")) return <Navigate to="/ad-agency" replace />;
+  if (isModuleAdmin("system")) return <Navigate to="/settings" replace />;
+  return <Navigate to="/dashboard" replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="hadarya-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
       <BrowserRouter
         future={{
           v7_startTransition: true,
@@ -64,6 +85,7 @@ const App = () => (
         }}
       >
         <AuthProvider>
+          <ScrollToTop />
           <AuthAwareCommandPalette />
           <Suspense
             fallback={
@@ -75,7 +97,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedLayout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route index element={<RedirectToDefault />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="leads" element={<Leads />} />
               <Route path="leads/:id" element={<LeadDetail />} />
@@ -97,6 +119,7 @@ const App = () => (
               <Route path="ad-agency/projects/:id" element={<AdAgencyProjectDetail />} />
               <Route path="ad-agency/tasks" element={<AdAgencyTasks />} />
               <Route path="ad-agency/items" element={<AdAgencyItems />} />
+              <Route path="ad-agency/price-quotes" element={<Quotes />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
@@ -104,6 +127,7 @@ const App = () => (
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

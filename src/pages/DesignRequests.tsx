@@ -235,6 +235,8 @@ export default function DesignRequests() {
       subtitle="Manage custom design requests"
       viewMode={viewMode}
       onViewModeChange={(m) => m !== "report" && setViewMode(m)}
+      kanbanCount={getTableRequests().length}
+      tableCount={getTableRequests().length}
       renderKanban={
         <DesignRequestKanban
           requests={getTableRequests()}

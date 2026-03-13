@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, LayoutGrid, List, BarChart3 } from "lucide-react";
 
@@ -34,6 +35,10 @@ export interface EntityPageShellProps {
   kanbanTabLabel?: string;
   /** Optional Table tab label (default: "Table") */
   tableTabLabel?: string;
+  /** Sprint 3: Optional count badge for Kanban tab */
+  kanbanCount?: number;
+  /** Sprint 3: Optional count badge for Table tab */
+  tableCount?: number;
   /** Optional Report tab label (default: "Report") */
   reportTabLabel?: string;
 
@@ -70,6 +75,8 @@ export function EntityPageShell({
   kanbanTabLabel = "Pipeline",
   tableTabLabel = "Table",
   reportTabLabel = "Report",
+  kanbanCount,
+  tableCount,
   dir,
   showReportTab,
   renderReport,
@@ -91,14 +98,14 @@ export function EntityPageShell({
           className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${!(headerActions || (addButtonText && onAddClick)) ? "hidden md:flex" : ""}`}
         >
           <div className="min-w-0 hidden md:block">
-            <h1 className="text-display font-semibold">{title}</h1>
-            <p className="text-body text-muted-foreground mt-1">{subtitle}</p>
+            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+            <p className="text-muted-foreground mt-2">{subtitle}</p>
           </div>
           {(headerActions || (addButtonText && onAddClick)) && (
             <div className="flex flex-wrap items-center gap-2 shrink-0 md:flex-1 md:justify-end">
               {headerActions}
               {addButtonText && onAddClick && (
-                <Button variant="accent" className="rounded-sm shrink-0" onClick={onAddClick}>
+                <Button variant="accent" className="rounded-lg shrink-0" onClick={onAddClick}>
                   <Plus className="h-4 w-4 mr-2 shrink-0" />
                   {addButtonText}
                 </Button>
@@ -109,17 +116,27 @@ export function EntityPageShell({
 
         {/* View toggle + Toolbar + Content — matches Leads */}
         <Tabs value={viewMode} onValueChange={handleViewChange} className="w-full" dir={dir}>
-          <TabsList className="w-full sm:w-auto justify-start">
-            <TabsTrigger value="kanban" className="gap-2">
+          <TabsList className="w-full sm:w-auto justify-start text-white [&_[role=tab]]:text-white">
+            <TabsTrigger value="kanban" className="gap-2 text-white data-[state=active]:text-accent-action">
               <LayoutGrid className="h-4 w-4" />
               {kanbanTabLabel}
+              {kanbanCount != null && (
+                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
+                  {kanbanCount}
+                </Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="table" className="gap-2">
+            <TabsTrigger value="table" className="gap-2 text-white data-[state=active]:text-accent-action">
               <List className="h-4 w-4" />
               {tableTabLabel}
+              {tableCount != null && (
+                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
+                  {tableCount}
+                </Badge>
+              )}
             </TabsTrigger>
             {showReportTab && (
-              <TabsTrigger value="report" className="gap-2">
+              <TabsTrigger value="report" className="gap-2 text-white data-[state=active]:text-accent-action">
                 <BarChart3 className="h-4 w-4" />
                 {reportTabLabel}
               </TabsTrigger>

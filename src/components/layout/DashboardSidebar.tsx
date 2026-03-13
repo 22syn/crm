@@ -11,28 +11,15 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
-  SidebarFooter,
-  SidebarRail,
   SidebarTrigger,
-  useSidebar,
+  SidebarRail,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
   FileText,
   Package,
   Settings,
-  LogOut,
-  ChevronUp,
-  User,
   Handshake,
   Truck,
   Palette,
@@ -43,12 +30,10 @@ import {
   Receipt,
 } from "lucide-react";
 
-/** Dashboard first—leads module */
-const primaryItems = [
+/** Hadarya module: Dashboard + leads pipeline */
+/** Hadarya section: Dashboard first, then Leads, Contracts, etc. */
+const hadaryaItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "leads" as const },
-];
-
-const menuItems = [
   { title: "Leads", url: "/leads", icon: Users, module: "leads" as const },
   { title: "Contracts", url: "/contracts", icon: FileText, module: "leads" as const },
   { title: "Designs", url: "/design-requests", icon: Palette, module: "leads" as const },
@@ -60,16 +45,20 @@ const adAgencyItems = [
   { title: "דשבורד", url: "/ad-agency", icon: LayoutGrid, module: "ad_agency" as const },
   { title: "לקוחות", url: "/ad-agency/clients", icon: Users, module: "ad_agency" as const },
   { title: "פרויקטים", url: "/ad-agency/projects", icon: FileText, module: "ad_agency" as const },
-  { title: "הצעות מחיר", url: "/contracts", icon: Receipt, module: "ad_agency" as const },
+  { title: "הצעות מחיר", url: "/ad-agency/price-quotes", icon: Receipt, module: "ad_agency" as const },
   { title: "משימות", url: "/ad-agency/tasks", icon: ListTodo, module: "ad_agency" as const },
   { title: "פריטים", url: "/ad-agency/items", icon: Package, module: "ad_agency" as const },
 ];
 
-/** Admin section: leads (Customers, Products) + system (Suppliers, Automations, Settings) */
-const adminItems = [
+/** Menu sub-menu: Customers, Products, Suppliers */
+const catalogSubItems = [
   { title: "Customers", url: "/customers", icon: UserCheck, module: "leads" as const },
   { title: "Products", url: "/products", icon: Package, module: "leads" as const },
   { title: "Suppliers", url: "/suppliers", icon: Truck, module: "system" as const },
+];
+
+/** Admin section: Automations, Settings */
+const adminItems = [
   { title: "Automations", url: "/automations", icon: Zap, module: "system" as const },
   { title: "Settings", url: "/settings", icon: Settings, module: "system" as const },
 ];
@@ -99,10 +88,10 @@ function NavItems({
             asChild
             isActive={isActive(item)}
             tooltip={item.title}
-            className="group px-3 py-2.5 rounded-lg hover:bg-gray-800/30 hover:text-white data-[active=true]:bg-gray-800/50 data-[active=true]:text-white"
+            className="group px-3 py-2 rounded-lg hover:!bg-transparent hover:!text-inherit data-[active=true]:bg-sidebar-primary/20 data-[active=true]:text-sidebar-primary-foreground"
           >
             <Link to={item.url} className="flex items-center gap-3">
-              <item.icon className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-indigo-400 group-data-[active=true]:text-indigo-400" />
+              <item.icon className="h-5 w-5 shrink-0 text-sidebar-foreground/70 group-data-[active=true]:text-sidebar-primary" />
               <span>{item.title}</span>
             </Link>
           </SidebarMenuButton>
@@ -114,79 +103,74 @@ function NavItems({
 
 export function DashboardSidebar() {
   const location = useLocation();
-  const { user, role, signOut, canAccessModule, isModuleAdmin } = useAuth();
-  const { state } = useSidebar();
+  const { canAccessModule, isModuleAdmin } = useAuth();
 
-  const canShowAdminItem = (item: (typeof adminItems)[0]) =>
-    item.module === "leads"
-      ? canAccessModule("leads")
-      : isModuleAdmin("system");
+  const canShowCatalogItem = (item: (typeof catalogSubItems)[0]) =>
+    item.module === "leads" ? canAccessModule("leads") : isModuleAdmin("system");
+  const canShowAdminItem = (item: (typeof adminItems)[0]) => isModuleAdmin("system");
 
   const adminItemsVisible = adminItems.filter(canShowAdminItem);
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-gray-800/50 h-16 flex items-center px-6 group-data-[collapsible=icon]:px-2">
+      <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center gap-2 px-3 group-data-[collapsible=icon]:px-2">
         <Link
           to="/dashboard"
-          className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2"
+          className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:flex-initial"
         >
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
-            H
+          <img
+            src="/logo.png"
+            alt="Company logo"
+            className="w-8 h-8 shrink-0 rounded-lg object-cover"
+          />
+          <div className="flex min-w-0 flex-1 flex-col items-start group-data-[collapsible=icon]:hidden">
+            <span className="text-white font-semibold text-xl tracking-tight truncate">Xsheva CRM</span>
           </div>
-          <div className="flex flex-col items-start w-full min-w-0 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:hidden">
-            <span className="text-white font-semibold text-xl tracking-tight truncate">Hadarya CRM</span>
-          </div>
-          <LayoutDashboard className="h-5 w-5 shrink-0 text-sidebar-foreground hidden group-data-[collapsible=icon]:block" />
         </Link>
+        <SidebarTrigger className="shrink-0 cursor-pointer text-sidebar-foreground/70 transition-colors duration-200 hover:text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              <NavItems
-                items={primaryItems}
-                canShow={(i) => canAccessModule(i.module)}
-                isActive={(i) => location.pathname === i.url}
-              />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between gap-2 text-xs text-gray-500 group-data-[collapsible=icon]:hidden">
-            <span>Menu</span>
-            <SidebarTrigger className="shrink-0" />
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <NavItems
-                items={menuItems}
-                canShow={(i) => canAccessModule(i.module)}
-                isActive={(i) => location.pathname === i.url}
-              />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="gap-1">
+        {canAccessModule("leads") && (
+          <SidebarGroup className="p-1.5">
+            <SidebarGroupLabel className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">Hadarya</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <NavItems
+                  items={hadaryaItems}
+                  canShow={(i) => canAccessModule(i.module)}
+                  isActive={(i) => location.pathname === i.url || (i.url !== "/dashboard" && location.pathname.startsWith(i.url + "/"))}
+                />
+                <NavItems
+                  items={catalogSubItems}
+                  canShow={canShowCatalogItem}
+                  isActive={(i) => location.pathname === i.url || location.pathname.startsWith(i.url + "/")}
+                />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
-        <SidebarGroup className="mt-4">
-          <SidebarGroupLabel>משרד פרסום</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <NavItems
-                items={adAgencyItems}
-                canShow={(i) => canAccessModule(i.module)}
-                isActive={(i) =>
-                  location.pathname === i.url ||
-                  (i.url !== "/ad-agency" && location.pathname.startsWith(i.url + "/"))
-                }
-              />
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {canAccessModule("ad_agency") && (
+          <SidebarGroup className="mt-2 p-1.5" dir="rtl">
+            <SidebarGroupLabel>משרד פרסום</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <NavItems
+                  items={adAgencyItems}
+                  canShow={(i) => canAccessModule(i.module)}
+                  isActive={(i) =>
+                    location.pathname === i.url ||
+                    (i.url !== "/ad-agency" && location.pathname.startsWith(i.url + "/"))
+                  }
+                />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {adminItemsVisible.length > 0 && (
-          <SidebarGroup className="mt-4">
+          <SidebarGroup className="mt-2 p-1.5">
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -196,10 +180,10 @@ export function DashboardSidebar() {
                       asChild
                       isActive={location.pathname === item.url}
                       tooltip={item.title}
-                      className="group px-3 py-2.5 rounded-lg hover:bg-gray-800/30 hover:text-white data-[active=true]:bg-gray-800/50 data-[active=true]:text-white"
+                      className="group px-3 py-2 rounded-lg hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary/20 data-[active=true]:text-sidebar-primary-foreground"
                     >
                       <Link to={item.url} className="flex items-center gap-3">
-                        <item.icon className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-indigo-400 group-data-[active=true]:text-indigo-400" />
+                        <item.icon className="h-5 w-5 shrink-0 text-sidebar-foreground/70 group-data-[active=true]:text-sidebar-primary" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -210,41 +194,7 @@ export function DashboardSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-gray-800/50 p-4">
-        <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start gap-2 px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:w-8"
-                >
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    <User className="h-4 w-4" />
-                  </div>
-                  <div className="flex flex-col items-start text-sm min-w-0 group-data-[collapsible=icon]:hidden">
-                    <span className="font-medium truncate max-w-[140px]">
-                      {user?.email}
-                    </span>
-                    <span className="text-xs text-muted-foreground capitalize">{role}</span>
-                  </div>
-                  <ChevronUp className="ml-auto h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="right" align="center" hidden={state !== "collapsed"}>
-              {user?.email}
-            </TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarFooter>
+      {/* Desktop: edge rail for collapse/expand (VS Code, Linear pattern) */}
       <SidebarRail />
     </Sidebar>
   );

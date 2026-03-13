@@ -313,6 +313,8 @@ export default function AdAgencyProjects() {
       onAddClick={handleAddClick}
       viewMode={viewMode}
       onViewModeChange={setViewMode}
+      kanbanCount={filteredProjects.length}
+      tableCount={filteredProjects.length}
       renderToolbar={() => projectToolbar}
       renderKanban={
         <ProjectKanban

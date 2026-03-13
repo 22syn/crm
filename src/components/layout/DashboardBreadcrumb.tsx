@@ -21,13 +21,19 @@ export const ROUTE_MAP: Record<string, string> = {
   "/suppliers": "Suppliers",
   "/automations": "Automations",
   "/settings": "Settings",
+  "/ad-agency": "משרד פרסום",
+  "/ad-agency/clients": "לקוחות",
+  "/ad-agency/projects": "פרויקטים",
+  "/ad-agency/tasks": "משימות",
+  "/ad-agency/items": "פריטים",
+  "/ad-agency/price-quotes": "הצעות מחיר",
 };
 
 export function DashboardBreadcrumb() {
   const location = useLocation();
   const pathname = location.pathname;
 
-  // Build breadcrumb segments from path
+  // Build breadcrumb segments from path — Stitch spec: "Dashboard > Section > Page"
   const segments = pathname.split("/").filter(Boolean);
   const items: { path: string; label: string }[] = [];
 
@@ -40,9 +46,11 @@ export function DashboardBreadcrumb() {
     items.push({ path: acc, label });
   }
 
-  // Fallback for root
+  // Prepend Dashboard when not at root — Stitch: "Dashboard > Section > Page"
   if (items.length === 0) {
     items.push({ path: "/dashboard", label: "Dashboard" });
+  } else if (items[0]?.path !== "/dashboard") {
+    items.unshift({ path: "/dashboard", label: "Dashboard" });
   }
 
   if (items.length <= 1) {

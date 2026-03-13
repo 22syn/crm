@@ -6,17 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function Products() {
-  const { data: products, isLoading, error } = useQuery<ShopifyProduct[]>({
+  const { data: products, isLoading, error, refetch } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products"],
     queryFn: () => fetchShopifyProducts(50),
   });
 
   return (
     <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="hidden md:block">
-            <h1 className="text-3xl font-bold">Products</h1>
-            <p className="text-muted-foreground">Synced from Shopify</p>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+            <p className="text-muted-foreground mt-2">Synced from Shopify</p>
           </div>
           <div className="flex items-center gap-3 md:ml-auto">
             <Badge variant="outline" className="gap-1">
@@ -43,8 +43,11 @@ export default function Products() {
         )}
 
         {error && (
-          <div className="text-center py-12 text-destructive">
-            Failed to load products. Please try again.
+          <div className="text-center py-12 space-y-4">
+            <p className="text-destructive">Failed to load products. Please try again.</p>
+            <Button variant="outline" onClick={() => refetch()}>
+              Retry
+            </Button>
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { QuoteKanban } from "@/components/quotes/QuoteKanban";
 import { QuoteFilters } from "@/components/quotes/QuoteFilters";
 import { QuoteTable } from "@/components/quotes/QuoteTable";
@@ -312,6 +313,9 @@ export default function Quotes() {
   const sentQuotes = quotes.filter(q => q.status === "sent");
   const approvedQuotes = quotes.filter(q => q.status === "approved");
 
+  const quoteModule = selectedQuote?.project_id ? "ad_agency" : "leads";
+  const { data: company } = useCompanySettings(quoteModule);
+
   const handleViewQuote = async (quote: QuoteRow) => {
     setSelectedQuote(quote);
     
@@ -368,13 +372,13 @@ export default function Quotes() {
         renderTable={null}
         isEmpty
         renderEmptyState={
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No Contracts</h3>
-            <p className="text-muted-foreground mt-1">Create your first contract</p>
-            <Button className="mt-4" onClick={() => setBuilderOpen(true)}>
+          <div className="rounded-xl border border-dashed bg-muted/30 py-12 px-6 text-center">
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
+            <p className="font-medium text-foreground">Add your first contract</p>
+            <p className="text-sm text-muted-foreground mt-1">Create a contract from a lead or quote.</p>
+            <Button variant="accent" className="mt-4" onClick={() => setBuilderOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Contract
+              New Contract
             </Button>
           </div>
         }
@@ -390,6 +394,8 @@ export default function Quotes() {
       onAddClick={() => setBuilderOpen(true)}
       viewMode={viewMode}
       onViewModeChange={(m) => m !== "report" && setViewMode(m)}
+      kanbanCount={getFilteredQuotes().length}
+      tableCount={getFilteredQuotes().length}
       renderKanban={
         <QuoteKanban
           quotes={getFilteredQuotes()}
@@ -467,6 +473,17 @@ export default function Quotes() {
           onOpenChange={setPreviewOpen}
           customerName={selectedQuote.customer_name}
           customerAddress={selectedQuote.customer_address ?? undefined}
+          companyName={company?.name}
+          companyAddress={company?.address ?? undefined}
+          contactInfo={
+            company
+              ? {
+                  email: company.email ?? undefined,
+                  phone: company.phone ?? undefined,
+                  website: company.website ?? undefined,
+                }
+              : undefined
+          }
           quoteNumber={selectedQuote.quote_number}
           quoteDate={selectedQuote.created_at ? new Date(selectedQuote.created_at) : undefined}
           items={quoteItems}

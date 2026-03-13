@@ -151,7 +151,7 @@ export function EntityToolbar({
   const sheetSide = isRtl ? "left" : "right";
 
   const desktopToolbar = (
-    <div className="flex flex-nowrap items-center gap-0 overflow-x-auto">
+    <div className="flex flex-nowrap items-center gap-0 min-w-max">
         {/* Group 1: Filters */}
         <div className="flex items-center gap-2 shrink-0 pr-1">
           {children}
@@ -461,7 +461,7 @@ export function EntityToolbar({
   ) : null;
 
   return (
-    <div className="rounded-lg border border-border/60 bg-card/80 px-4 py-2.5 min-w-0">
+    <div className="rounded-lg border border-border/60 bg-card/80 px-4 py-2.5 min-w-0 overflow-x-auto md:overflow-x-auto [&::-webkit-scrollbar]:h-1.5">
       {useMobileLayout && (
         <>
           <div className="md:hidden">{mobileToolbar}</div>

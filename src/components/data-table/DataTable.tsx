@@ -56,6 +56,12 @@ export interface DataTableProps<T> {
   /** Actions column */
   renderActions: (row: T, index: number) => React.ReactNode;
   actionsHeader?: string;
+  /** Stitch design variant: rounded card, uppercase headers, hover styling */
+  variant?: "default" | "stitch";
+  /** Footer slot (e.g. pagination) — renders inside card when variant=stitch */
+  renderFooter?: React.ReactNode;
+  /** Sprint 2: Sticky first column when scrolling horizontally (default: true for stitch) */
+  stickyFirstColumn?: boolean;
 }
 
 function getSortIcon(sortField: string, sortKey: string, sortDirection: SortDirection) {
@@ -83,6 +89,9 @@ export function DataTable<T>({
   onSelectionChange,
   renderActions,
   actionsHeader = "Actions",
+  variant = "default",
+  renderFooter,
+  stickyFirstColumn,
 }: DataTableProps<T>) {
   const allSelected = data.length > 0 && data.every((row) => selectedIds.has(getRowId(row)));
   const someSelected = selectedIds.size > 0;
@@ -106,13 +115,19 @@ export function DataTable<T>({
 
   const colCount = columns.length + (enableSelection ? 1 : 0) + 1; // +1 for actions
 
+  const isStitch = variant === "stitch";
+  const useStickyFirst = stickyFirstColumn ?? isStitch;
+  const tableWrapperClass = isStitch
+    ? "rounded-xl border overflow-hidden bg-card"
+    : "rounded-sm border overflow-x-auto scroll-shadow-x";
+
   return (
     <div className="space-y-3">
       {sortOptions && sortValue !== undefined && onSortChange && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Sort by:</span>
           <Select value={sortValue} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[220px] h-8 rounded-sm">
+            <SelectTrigger className={`w-[220px] h-8 ${isStitch ? "rounded-lg" : "rounded-sm"}`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -125,13 +140,21 @@ export function DataTable<T>({
           </Select>
         </div>
       )}
-      <div className="rounded-sm border overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {enableSelection && (
-                <TableHead className="w-10">
-                  <Checkbox
+      <div className={tableWrapperClass} style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
+        <div
+          className={
+            isStitch
+              ? "overflow-x-auto scroll-shadow-x [&_td]:px-6 [&_td]:py-4 [&_thead]:bg-card [&_thead_th]:bg-card"
+              : undefined
+          }
+          data-sticky-first-col={useStickyFirst ? "" : undefined}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {enableSelection && (
+                  <TableHead className={`w-10 ${isStitch ? "px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider" : ""}`}>
+                    <Checkbox
                     checked={allSelected ? true : someSelected ? "indeterminate" : false}
                     onCheckedChange={handleToggleAll}
                     aria-label="Select all"
@@ -141,7 +164,7 @@ export function DataTable<T>({
               {columns.map((col) => (
                 <TableHead
                   key={col.id}
-                  className={col.minWidth ? undefined : ""}
+                  className={`${col.minWidth ? "" : ""} ${isStitch ? "px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider" : ""} ${col.headerClassName ?? ""}`}
                   style={col.minWidth ? { minWidth: col.minWidth } : undefined}
                 >
                   {col.sortable && onHeaderSort ? (
@@ -159,7 +182,7 @@ export function DataTable<T>({
                   )}
                 </TableHead>
               ))}
-              <TableHead className="w-[100px]">{actionsHeader}</TableHead>
+              <TableHead className={isStitch ? "w-[100px] px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-wider" : "w-[100px]"}>{actionsHeader}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -173,7 +196,7 @@ export function DataTable<T>({
               data.map((row, index) => {
                 const id = getRowId(row);
                 return (
-                  <TableRow key={id} className="hover:bg-muted/50 group">
+                  <TableRow key={id} className={`group ${isStitch ? "hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors" : "hover:bg-muted/50"}`}>
                     {enableSelection && (
                       <TableCell className="w-10">
                         <Checkbox
@@ -197,6 +220,12 @@ export function DataTable<T>({
             )}
           </TableBody>
         </Table>
+        </div>
+        {isStitch && renderFooter && (
+          <div className="px-6 py-4 flex items-center justify-between border-t">
+            {renderFooter}
+          </div>
+        )}
       </div>
     </div>
   );

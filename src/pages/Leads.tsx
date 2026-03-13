@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import { useLeads } from "@/hooks/useLeads";
 
@@ -177,6 +177,8 @@ export default function Leads() {
       }
       viewMode={viewMode}
       onViewModeChange={(v) => v && setViewMode(v as "kanban" | "table")}
+      kanbanCount={totalCount}
+      tableCount={totalCount}
       renderToolbar={() => leadsToolbar}
       renderKanban={
         <>
@@ -298,6 +300,14 @@ export default function Leads() {
                   </Button>
                 </div>
               )}
+              {totalCount > 0 && (
+                <div className="bg-card rounded-xl border p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs text-muted-foreground">
+                    Displaying {Math.min(page * PAGE_SIZE + 1, totalCount)} to{" "}
+                    {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} leads
+                  </span>
+                </div>
+              )}
               <LeadTable
                 leads={leads}
                 membersByUserId={membersByUserId}
@@ -315,35 +325,71 @@ export default function Leads() {
                 onUnlinkQuote={handleUnlinkQuote}
                 sortOption={sortOption}
                 onSortOptionChange={(v) => setSortOption(v)}
+                renderFooter={
+                  totalCount > 0 ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded border"
+                          onClick={() => setPage((p) => Math.max(0, p - 1))}
+                          disabled={page === 0 || isLoading}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNum =
+                            totalPages <= 5
+                              ? i
+                              : page < 2
+                                ? i
+                                : page > totalPages - 3
+                                  ? totalPages - 5 + i
+                                  : page - 2 + i;
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={page === pageNum ? "default" : "ghost"}
+                              size="sm"
+                              className={`rounded px-3 py-1 text-sm ${page === pageNum ? "font-bold" : "font-medium"}`}
+                              onClick={() => setPage(pageNum)}
+                              disabled={isLoading}
+                            >
+                              {pageNum + 1}
+                            </Button>
+                          );
+                        })}
+                        {totalPages > 5 && (
+                          <>
+                            <span className="px-2 text-muted-foreground">...</span>
+                            <Button
+                              variant={page === totalPages - 1 ? "default" : "ghost"}
+                              size="sm"
+                              className="rounded px-3 py-1 text-sm font-medium"
+                              onClick={() => setPage(totalPages - 1)}
+                              disabled={isLoading}
+                            >
+                              {totalPages}
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-8 w-8 rounded border"
+                          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                          disabled={page >= totalPages - 1 || isLoading}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground">Rows per page: {PAGE_SIZE}</div>
+                    </>
+                  ) : undefined
+                }
               />
             </>
-          )}
-          {totalCount > 0 && (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-section">
-              <div className="text-meta text-muted-foreground shrink-0">
-                Showing {Math.min(page * PAGE_SIZE + 1, totalCount)} to{" "}
-                {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}{" "}
-                leads
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0 || isLoading}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= totalPages - 1 || isLoading}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
           )}
         </>
       }

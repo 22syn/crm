@@ -49,6 +49,8 @@ export interface EntityKanbanProps<T> {
   sortItems?: (items: T[]) => T[];
   isLoading?: boolean;
   emptyLabel?: string;
+  /** Hadarya Dark Kanban v2: dark board, prominent sort toolbar */
+  variant?: "default" | "stitch-dark";
 }
 
 /** Generic Pipeline Kanban — matches Leads structure: Sort dropdown, DnD, same layout */
@@ -66,6 +68,7 @@ export function EntityKanban<T>({
   sortItems,
   isLoading = false,
   emptyLabel = "No items",
+  variant = "stitch-dark",
 }: EntityKanbanProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -134,18 +137,36 @@ export function EntityKanban<T>({
     );
   }
 
+  const isDark = variant === "stitch-dark";
+
   return (
-    <div className="space-y-3">
+    <div className={isDark ? "rounded-xl overflow-hidden bg-[#0f1025] p-4" : "space-y-3"}>
       {sortOptions && sortValue != null && onSortChange && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Sort by:</span>
+        <div
+          className={`flex items-center gap-3 mb-4 ${isDark ? "text-white/90" : ""}`}
+        >
+          <span className="text-sm text-muted-foreground shrink-0">
+            Sort by:
+          </span>
           <Select value={sortValue} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[220px] h-8 rounded-sm">
+            <SelectTrigger
+              className={`w-[180px] sm:w-[220px] h-9 rounded-md shrink-0 ${
+                isDark
+                  ? "bg-[#151938] border-white/15 text-white hover:bg-[#151938]/90"
+                  : ""
+              }`}
+            >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              className={isDark ? "bg-[#151938] border-white/10" : ""}
+            >
               {sortOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
+                <SelectItem
+                  key={opt.value}
+                  value={opt.value}
+                  className={isDark ? "text-white/90 focus:bg-white/10" : ""}
+                >
                   {opt.label}
                 </SelectItem>
               ))}
@@ -160,7 +181,7 @@ export function EntityKanban<T>({
         onDragEnd={handleDragEnd}
       >
         <div
-          className="kanban-grid grid gap-4 overflow-x-auto pb-2 overscroll-x-contain"
+          className={`kanban-grid grid gap-4 overflow-x-auto pb-2 overscroll-x-contain scroll-shadow-x ${isDark ? "scroll-shadow-x-dark" : ""}`}
           style={{ "--col-count": visibleColumns.length } as React.CSSProperties}
         >
           {visibleColumns.map((col) => (
@@ -173,6 +194,7 @@ export function EntityKanban<T>({
               getItemId={getItemId}
               renderCard={renderCard}
               emptyLabel={emptyLabel}
+              variant={variant}
             />
           ))}
         </div>
