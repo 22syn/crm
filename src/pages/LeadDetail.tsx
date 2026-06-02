@@ -6,12 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeadComments } from "@/components/leads/LeadComments";
 import { LeadDialog } from "@/components/leads/LeadDialog";
-import { Loader2, ArrowLeft, Pencil, FileText, Eye, Unlink, Phone, Mail, MapPin, Calendar, User } from "lucide-react";
+import { Loader2, ArrowLeft, Pencil, FileText, Eye, Phone, Mail, MapPin, Calendar, User, LayoutGrid, MessageSquare } from "lucide-react";
 import { getSourceConfig } from "@/utils/sourceIcons";
 import { getStageConfig } from "@/utils/leadStages";
 import { useCrmTeam } from "@/hooks/useCrmTeam";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -23,6 +25,8 @@ export default function LeadDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: teamMembers = [], membersByUserId } = useCrmTeam();
+  const { role } = useAuth();
+  const hidePhone = role === "sales";
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: lead, isLoading } = useQuery({
@@ -80,25 +84,39 @@ export default function LeadDetail() {
   return (
     <>
     <div className="max-w-4xl mx-auto space-y-6">
-        <Button variant="ghost" onClick={() => navigate("/leads")} className="gap-2 -ml-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back to leads
+        <Button variant="ghost" size="sm" className="-ml-2 mb-2" onClick={() => navigate("/leads")}>
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
         </Button>
-
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold hidden md:block">{lead.customer_name}</h1>
-            <p className="text-base font-medium md:hidden truncate">{lead.customer_name}</p>
-            <p className="text-sm text-muted-foreground mt-1 hidden md:block">
+            <h1 className="text-3xl font-bold tracking-tight">{lead.customer_name}</h1>
+            <p className="text-muted-foreground mt-2">
               Created {format(new Date(lead.created_at), "MMM d, yyyy")} · ID {lead.id.slice(0, 8)}
             </p>
           </div>
-          <Button onClick={() => setEditOpen(true)} className="gap-2 shrink-0 md:ml-auto">
+          <Button onClick={() => setEditOpen(true)} variant="accent" className="gap-2 shrink-0 md:ml-auto rounded-lg">
             <Pencil className="h-4 w-4" />
             Edit
           </Button>
         </div>
 
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="quotes" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Quotes
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Activity
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="mt-6">
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -107,10 +125,40 @@ export default function LeadDetail() {
             <CardContent className="space-y-4">
               {lead.customer_phone && (
                 <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <a href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">
-                    {lead.customer_phone}
-                  </a>
+                  <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {hidePhone ? (
+                      <>
+                        <a
+                          href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          חייג
+                        </a>
+                        <a
+                          href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:underline"
+                        >
+                          WhatsApp
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <span dir="ltr">{lead.customer_phone}</span>
+                        <a href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`} className="text-primary hover:underline">חייג</a>
+                        <a
+                          href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:underline"
+                        >
+                          WhatsApp
+                        </a>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
               {lead.customer_email && (
@@ -183,12 +231,41 @@ export default function LeadDetail() {
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardContent className="pt-6">
-            <LeadComments leadId={lead.id} />
-          </CardContent>
-        </Card>
+          </TabsContent>
+          <TabsContent value="quotes" className="mt-6">
+            {quote ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Quote {quote.quote_number}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="text-lg font-semibold">₪{quote.total.toLocaleString()}</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/contracts")} className="rounded-lg">
+                    <Eye className="h-3 w-3 mr-1" />
+                    View Contract
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No quotes yet.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          <TabsContent value="activity" className="mt-6">
+            <Card>
+              <CardContent className="pt-6">
+                <LeadComments leadId={lead.id} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <LeadDialog

@@ -19,6 +19,10 @@ interface ColumnVisibilityDropdownProps {
   onChange: (ids: string[]) => void;
   onReset: () => void;
   resetPending?: boolean;
+  /** Button label (default: עמודות) */
+  columnsLabel?: string;
+  /** Reset button label (default: איפוס לברירת מחדל) */
+  resetLabel?: string;
 }
 
 export function ColumnVisibilityDropdown({
@@ -27,6 +31,8 @@ export function ColumnVisibilityDropdown({
   onChange,
   onReset,
   resetPending = false,
+  columnsLabel = "עמודות",
+  resetLabel = "איפוס לברירת מחדל",
 }: ColumnVisibilityDropdownProps) {
   const effectiveVisible = visibleIds ?? allColumns.map((c) => c.id);
 
@@ -48,7 +54,7 @@ export function ColumnVisibilityDropdown({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="shrink-0 h-9 rounded-md font-normal">
           <Columns className="h-4 w-4 mr-1.5 shrink-0" />
-          עמודות
+          {columnsLabel}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[200px]">
@@ -72,7 +78,7 @@ export function ColumnVisibilityDropdown({
           className="flex items-center gap-2 px-2 py-1.5 w-full text-sm text-muted-foreground hover:bg-accent hover:text-foreground rounded-sm disabled:opacity-50"
         >
           <RotateCcw className="h-4 w-4 shrink-0" />
-          איפוס לברירת מחדל
+          {resetLabel}
         </button>
       </DropdownMenuContent>
     </DropdownMenu>

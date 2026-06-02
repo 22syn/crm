@@ -1,6 +1,7 @@
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { QuoteBuilder } from "@/components/quotes/QuoteBuilder";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -82,6 +83,9 @@ export function LeadDialogsOrchestrator({
   onSaveAsNewView,
   saveAsNewViewPending,
 }: LeadDialogsOrchestratorProps) {
+  const quoteModule = selectedQuote?.project_id ? "ad_agency" : "leads";
+  const { data: company } = useCompanySettings(quoteModule);
+
   return (
     <>
       <LeadDialog
@@ -119,6 +123,17 @@ export function LeadDialogsOrchestrator({
           onOpenChange={setPreviewOpen}
           customerName={selectedQuote.customer_name}
           customerAddress={selectedQuote.customer_address ?? undefined}
+          companyName={company?.name}
+          companyAddress={company?.address ?? undefined}
+          contactInfo={
+            company
+              ? {
+                  email: company.email ?? undefined,
+                  phone: company.phone ?? undefined,
+                  website: company.website ?? undefined,
+                }
+              : undefined
+          }
           quoteNumber={selectedQuote.quote_number}
           quoteDate={
             selectedQuote.created_at

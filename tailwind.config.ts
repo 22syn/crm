@@ -75,11 +75,11 @@ export default {
           sidebar: "#0f1025",
           card: "#151938",
           bg: "#f3f4f6",
-          accent: "#4f46e5",
+          accent: "#1337ec",
         },
       },
       fontFamily: {
-        sans: ["Inter", "Heebo", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

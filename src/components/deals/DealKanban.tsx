@@ -1,3 +1,4 @@
+import { useTheme } from "next-themes";
 import { EntityKanban } from "@/components/entity-page";
 import { DealCard } from "./DealCard";
 
@@ -39,6 +40,8 @@ interface DealKanbanProps {
 }
 
 export function DealKanban({ deals, isLoading, onEdit, onStageChange }: DealKanbanProps) {
+  const { resolvedTheme } = useTheme();
+  const variant = resolvedTheme === "dark" ? "stitch-dark" : "default";
   return (
     <EntityKanban<Deal>
       columns={stageColumns}
@@ -46,9 +49,12 @@ export function DealKanban({ deals, isLoading, onEdit, onStageChange }: DealKanb
       getItemId={(d) => d.id}
       getStatus={(d) => d.stage}
       onStatusChange={onStageChange}
-      renderCard={(deal) => <DealCard deal={deal} onEdit={onEdit} />}
+      renderCard={(deal) => (
+        <DealCard deal={deal} onEdit={onEdit} variant={variant} />
+      )}
       isLoading={isLoading}
       emptyLabel="No deals"
+      variant={variant}
     />
   );
 }

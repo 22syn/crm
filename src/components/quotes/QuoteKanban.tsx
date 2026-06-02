@@ -1,3 +1,4 @@
+import { useTheme } from "next-themes";
 import { EntityKanban } from "@/components/entity-page";
 import { QuoteKanbanCard, type QuoteKanbanItem } from "./QuoteKanbanCard";
 
@@ -22,6 +23,8 @@ export function QuoteKanban({
   onEdit,
   onStatusChange,
 }: QuoteKanbanProps) {
+  const { resolvedTheme } = useTheme();
+  const variant = resolvedTheme === "dark" ? "stitch-dark" : "default";
   return (
     <EntityKanban<QuoteKanbanItem>
       columns={statusColumns}
@@ -38,6 +41,7 @@ export function QuoteKanban({
       )}
       isLoading={isLoading}
       emptyLabel="No contracts"
+      variant={variant}
     />
   );
 }

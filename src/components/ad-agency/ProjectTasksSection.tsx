@@ -266,7 +266,7 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
       )}
 
       <Dialog open={taskDialogOpen} onOpenChange={(o) => { setTaskDialogOpen(o); if (!o) resetForm(); }}>
-        <DialogContent>
+        <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>{editingTask ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
           </DialogHeader>
@@ -278,10 +278,10 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
             <div className="space-y-2">
               <Label>סטטוס</Label>
               <Select value={formData.status} onValueChange={(v) => setFormData((p) => ({ ...p, status: v as TaskStatus }))}>
-                <SelectTrigger>
+                <SelectTrigger dir="rtl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent dir="rtl">
                   {TASK_STATUS_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}
@@ -291,10 +291,10 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
             <div className="space-y-2">
               <Label>אחראי</Label>
               <Select value={formData.assigned_to} onValueChange={(v) => setFormData((p) => ({ ...p, assigned_to: v }))}>
-                <SelectTrigger>
+                <SelectTrigger dir="rtl">
                   <SelectValue placeholder="בחר" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent dir="rtl">
                   {profiles.map((pr) => (
                     <SelectItem key={pr.id} value={pr.user_id}>{pr.full_name ?? pr.user_id}</SelectItem>
                   ))}

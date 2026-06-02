@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { escapeIlike } from "@/lib/escapeIlike";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,17 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { EntityToolbar } from "@/components/entity-page";
+import { CustomerTable } from "@/components/customers/CustomerTable";
+import { CustomerFilters } from "@/components/customers/CustomerFilters";
+import { ColumnVisibilityDropdown } from "@/components/ad-agency/ColumnVisibilityDropdown";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { toast } from "sonner";
-import { Plus, Loader2, Users, Phone, Mail, MapPin, Search, Edit, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Loader2, Users, ChevronRight, ChevronLeft } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 type CustomerStatus = Database["public"]["Enums"]["customer_status"];
@@ -61,6 +55,7 @@ export default function Customers() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<CustomerStatus | "all">("all");
 
   // Pagination State
   const [page, setPage] = useState(0);
@@ -75,6 +70,11 @@ export default function Customers() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
+  // Reset page when status filter changes
+  useEffect(() => {
+    setPage(0);
+  }, [statusFilter]);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -85,7 +85,7 @@ export default function Customers() {
   const handleSearchChange = (val: string) => setSearchInput(val);
 
   const { data: customersData, isLoading } = useQuery({
-    queryKey: ["customers", page, searchQuery],
+    queryKey: ["customers", page, searchQuery, statusFilter],
     queryFn: async () => {
       let query = supabase
         .from("customers")
@@ -96,6 +96,9 @@ export default function Customers() {
       if (searchQuery) {
         const escaped = escapeIlike(searchQuery);
         query = query.or(`name.ilike.%${escaped}%,email.ilike.%${escaped}%,phone.ilike.%${escaped}%`);
+      }
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
       }
 
       const { data, error, count } = await query;
@@ -193,31 +196,88 @@ export default function Customers() {
 
   const isFormValid = name && phone && email;
 
-  const getStatusBadge = (customerStatus: CustomerStatus) => {
-    const option = STATUS_OPTIONS.find(s => s.value === customerStatus);
-    return (
-      <Badge variant="outline">
-        <span className={`w-2 h-2 rounded-full ${option?.color} mr-2`} />
-        {option?.label || customerStatus}
-      </Badge>
-    );
+  const hasActiveFilters = statusFilter !== "all" || !!searchQuery;
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setSearchInput("");
+    setSearchQuery("");
   };
 
-  return (
-    <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="hidden md:block">
-            <h1 className="text-3xl font-bold">Customers</h1>
-            <p className="text-muted-foreground">Manage customer records</p>
-          </div>
-          <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+  const {
+    visibleColumnIds,
+    setVisibleColumns,
+    resetToDefault,
+    resetPending,
+  } = useColumnVisibility("customers");
+  const CUSTOMER_COLUMNS = [
+    { id: "client_name", header: "Client Name" },
+    { id: "phone", header: "Phone" },
+    { id: "email", header: "Email" },
+    { id: "status", header: "Status" },
+    { id: "address", header: "Address" },
+    { id: "created_at", header: "Added" },
+  ];
 
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Customer
-              </Button>
-            </DialogTrigger>
+  const customerToolbar = (
+    <EntityToolbar
+      hasFilters={hasActiveFilters}
+      onClearFilters={handleClearFilters}
+      renderMobileSearch={
+        <CustomerFilters
+          variant="searchOnly"
+          search={searchInput}
+          onSearchChange={handleSearchChange}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
+      }
+      renderMobileFilters={
+        <CustomerFilters
+          variant="filtersOnly"
+          search={searchInput}
+          onSearchChange={handleSearchChange}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
+      }
+      renderColumnVisibility={
+        <ColumnVisibilityDropdown
+          allColumns={CUSTOMER_COLUMNS}
+          visibleIds={visibleColumnIds}
+          onChange={setVisibleColumns}
+          onReset={resetToDefault}
+          resetPending={resetPending}
+          columnsLabel="Columns"
+          resetLabel="Reset to default"
+        />
+      }
+    >
+      <CustomerFilters
+        search={searchInput}
+        onSearchChange={handleSearchChange}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+      />
+    </EntityToolbar>
+  );
+
+  return (
+    <div className="flex flex-col overflow-hidden">
+      {/* Hero — Stitch: Client Directory + subtitle */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tight">Client Directory</h1>
+          <p className="text-muted-foreground mt-2 max-w-xl">
+            Manage and monitor your long-term client relationships and lifetime value contribution.
+          </p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+          <DialogTrigger asChild>
+            <Button variant="accent" className="gap-2 rounded-lg">
+              <Plus className="h-4 w-4" />
+              Add Contact
+            </Button>
+          </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingCustomer ? "Edit Customer" : "New Customer"}</DialogTitle>
@@ -295,127 +355,93 @@ export default function Customers() {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
+      </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search customers..."
-              value={searchInput}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+      {customerToolbar}
 
-        {isLoading ? (
+      {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : customers.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-16 rounded-xl border bg-card">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No Customers</h3>
-            <p className="text-muted-foreground mt-1">Add your first customer</p>
+            <h3 className="text-lg font-semibold">No contacts yet</h3>
+            <p className="text-muted-foreground mt-1">Add your first customer to get started</p>
+            <Button variant="accent" className="mt-4" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Contact
+            </Button>
           </div>
         ) : (
-          <>
-            <Card>
-              <CardContent className="p-0 overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Added</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customers.map((customer) => (
-                      <TableRow key={customer.id}>
-                        <TableCell className="font-medium">{customer.name}</TableCell>
-                        <TableCell>
-                          <a href={`tel:${customer.phone}`} className="flex items-center gap-1 text-sm hover:underline">
-                            <Phone className="h-3 w-3" />
-                            {customer.phone}
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          <a href={`mailto:${customer.email}`} className="flex items-center gap-1 text-sm hover:underline">
-                            <Mail className="h-3 w-3" />
-                            {customer.email}
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(customer.status)}
-                        </TableCell>
-                        <TableCell>
-                          {customer.address && (
-                            <span className="flex items-center gap-1 text-sm">
-                              <MapPin className="h-3 w-3" />
-                              {customer.address}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(customer.created_at), "dd MMM yyyy")}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => openEditDialog(customer)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="text-destructive"
-                              onClick={() => deleteMutation.mutate(customer.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {Math.min((page * PAGE_SIZE) + 1, totalCount)} to {Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} customers
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
-                  disabled={page === 0 || isLoading}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={page >= totalPages - 1 || isLoading}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </>
+          <CustomerTable
+            customers={customers}
+            onEdit={openEditDialog}
+            onDelete={(customer) => deleteMutation.mutate(customer.id)}
+            visibleColumnIds={visibleColumnIds}
+            renderFooter={
+              <>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded border"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0 || isLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {totalPages > 0 &&
+                    Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum =
+                        totalPages <= 5
+                          ? i
+                          : page < 2
+                            ? i
+                            : page > totalPages - 3
+                              ? totalPages - 5 + i
+                              : page - 2 + i;
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={page === pageNum ? "default" : "ghost"}
+                          size="sm"
+                          className={`rounded px-3 py-1 text-sm ${page === pageNum ? "font-bold" : "font-medium"}`}
+                          onClick={() => setPage(pageNum)}
+                          disabled={isLoading}
+                        >
+                          {pageNum + 1}
+                        </Button>
+                      );
+                    })}
+                  {totalPages > 5 && (
+                    <>
+                      <span className="px-2 text-muted-foreground">...</span>
+                      <Button
+                        variant={page === totalPages - 1 ? "default" : "ghost"}
+                        size="sm"
+                        className="rounded px-3 py-1 text-sm font-medium"
+                        onClick={() => setPage(totalPages - 1)}
+                        disabled={isLoading}
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded border"
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1 || isLoading}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">Rows per page: {PAGE_SIZE}</div>
+              </>
+            }
+          />
         )}
     </div>
   );

@@ -1,0 +1,42 @@
+---
+description: Maestro vault as single source of truth for rules and standards
+alwaysApply: true
+---
+
+# Maestro — מקור אמת יחיד
+
+Maestro (Obsidian vault) הוא **המקור היחיד** לחוקים ולסטנדרטים של הפרויקט הנוכחי.
+
+## נתיב הכספת
+
+```
+~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Maestro/
+```
+
+(או: `.../iCloud~md~obsidian/Documents/Maestro/` לפי סביבתך)
+
+## קריאה לפני כל משימה
+
+לפני כל משימה, קרא:
+
+1. **Agent routing** — routing ו־agent guidelines
+2. **סטנדרטים** — `04-knowledge/standards/` או `04-knowledge/standards/hadaryaCRM-standards.md`
+3. **הפרויקט** — `02-projects/hadaryaCRM/`
+4. **תוכניות** — `docs/plans` (אם קיימות)
+
+אם אין סטנדרטים ספציפיים לפרויקט ב־Maestro, בדוק ב־`04-knowledge/standards/` או ציין "לבדוק ב־vault".
+
+## Workflows
+
+השתמש ב־workflows הבאים מתוך Maestro:
+
+- **execute** — ביצוע משימות
+- **review** — בדיקה ואישור
+- **finishing-branch** — סיום branch ושמירה
+
+## זיהוי הפרויקט
+
+**hadaryaCRM** — Demo CRM: **Vite + React + TypeScript** (frontend SPA עם Supabase).
+
+- התעלם מ־rules שאינם רלוונטיים (למשל Cloudflare, Rails, Vercel config אם הפרויקט לא על Vercel)
+- השתמש ב־rules/s standards שמותאמים ל־Vite, React, Supabase

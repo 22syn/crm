@@ -1,10 +1,12 @@
-import { ReactNode } from "react";
+import { ReactNode, useRef, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { ROUTE_MAP } from "./DashboardBreadcrumb";
+import { DashboardBreadcrumb, ROUTE_MAP } from "./DashboardBreadcrumb";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeSelector } from "./ThemeSelector";
+import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 function MobileHeaderTitle() {
@@ -27,6 +29,21 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { session, role, loading } = useAuth();
   const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+  const isAdAgency = pathname.startsWith("/ad-agency");
+
+  // Scroll RTL content to the right (logical start) so user doesn't need to scroll
+  useEffect(() => {
+    if (!isAdAgency || !mainRef.current) return;
+    const el = mainRef.current;
+    const scrollToRtlStart = () => {
+      if (el) el.scrollLeft = 0; // In RTL, 0 shows the logical start (right side)
+    };
+    scrollToRtlStart();
+    requestAnimationFrame(scrollToRtlStart);
+    const t = setTimeout(scrollToRtlStart, 100); // After lazy content loads
+    return () => clearTimeout(t);
+  }, [isAdAgency, pathname]);
 
   if (loading) {
     return (
@@ -54,7 +71,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     );
   }
 
-  const isAdAgency = pathname.startsWith("/ad-agency");
   const mainDir = isAdAgency ? "rtl" : undefined;
 
   return (
@@ -62,17 +78,35 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <DashboardSidebar />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:hidden">
-          <SidebarTrigger aria-label="Open menu" className="shrink-0" />
+          <SidebarTrigger
+            aria-label="Open menu"
+            className="shrink-0 min-w-11 min-h-11 -ml-2 flex items-center justify-center cursor-pointer transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+          />
           <div className="flex-1 min-w-0 flex items-center">
             <MobileHeaderTitle />
           </div>
+          <ThemeSelector />
         </header>
         <DashboardHeader />
         <main
-          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden overflow-y-auto bg-[#f3f4f6]"
+          ref={mainRef}
+          className={cn(
+            "flex-1 min-w-0 flex flex-col overflow-y-auto bg-background",
+            isAdAgency ? "overflow-x-auto" : "overflow-x-hidden",
+          )}
           dir={mainDir}
         >
-          {children}
+          <div className="shrink-0 px-4 md:px-6 py-2 border-b border-border hidden md:block">
+            <DashboardBreadcrumb />
+          </div>
+          <div
+            className={cn(
+              "flex-1 min-w-0 p-4 md:p-6 overflow-y-auto",
+              isAdAgency ? "overflow-x-auto" : "overflow-x-hidden",
+            )}
+          >
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>

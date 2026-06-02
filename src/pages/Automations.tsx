@@ -147,10 +147,10 @@ const Automations = () => {
   
   return (
     <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="hidden md:block">
-            <h1 className="text-3xl font-bold">Automations</h1>
-            <p className="text-muted-foreground mt-1">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Automations</h1>
+            <p className="text-muted-foreground mt-2">
               View all active automations in the system
             </p>
           </div>

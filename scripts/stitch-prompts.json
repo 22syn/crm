@@ -1,0 +1,193 @@
+{
+  "projectId": "12969395350507001707",
+  "devices": ["DESKTOP", "MOBILE"],
+  "designSystem": {
+    "description": "Use this design system in every screen. All shared components must look identical across pages.",
+    "themeModes": {
+      "light": "Light mode: main area bg ~98% light gray. Sidebar dark #0f1025. Accent: neutral slate (no blue) for primary buttons/links. Cards light or subtle. Status badges: light bg (e.g. blue-100, green-100).",
+      "dark": "Dark mode: main area bg ~10% dark. Sidebar #0f1025. Accent: blue #1337ec for primary buttons, active nav, highlights. Cards #151938. Status badges: dark bg (e.g. blue-900/30, green-900/30). Both modes must be designable — consider showing one or documenting both."
+    },
+    "colors": {
+      "sidebarBg": "#0f1025",
+      "cardBg": "#151938",
+      "accent": "#1337ec",
+      "accentForeground": "#ffffff",
+      "border": "rgba(255,255,255,0.1)"
+    },
+    "sharedComponents": {
+      "sidebar": "Left sidebar: dark #0f1025, fixed width ~240px. Logo at top, nav items (Dashboard, Leads, Contracts, Deals, Customers, etc.), icon + label. Active item: blue #1337ec accent (dark) or neutral (light). Collapsible to icon-only. Same on every authenticated page.",
+      "header": "Top header: search bar (placeholder 'Search leads, contacts, deals'), theme toggle (sun/moon), notifications bell, user avatar with dropdown. Same on all authenticated pages. Hidden on mobile (mobile header used instead).",
+      "mobileHeader": "Mobile: sticky header with hamburger menu (opens sidebar drawer), page title center, theme toggle right. Same on every page.",
+      "breadcrumb": "Breadcrumb: Dashboard > Section > Page. Same style on Leads, Deals, Contracts, Customers, Settings, Ad Agency. Uses muted-foreground for links.",
+      "tabs": "View tabs: Pipeline (grid icon), Table (list icon), Report (chart icon). Rounded toggle group. Active tab: accent color. Same on Leads, Deals, Contracts, Entity pages.",
+      "entityToolbar": "Toolbar above table/kanban: Filters (chips/inputs), Views dropdown, Sort dropdown, Save preferences, Reset, Column visibility, Clear filters. Rounded border card. Same on Leads, Deals, Contracts, Design Requests, Ad Agency tables.",
+      "table": "Data table: rounded card container. Sticky header. Columns: uppercase 12px bold labels, rows px-6 py-4. Avatar column, status badges (colored pills with dot), actions dropdown. Pagination in footer when needed. Same for Leads, Customers, Products, Suppliers, Items, Members.",
+      "kanban": "Kanban board: dark columns #151938 (dark mode) or light (light mode). Horizontal scroll. Column: colored dot + uppercase label + count badge. Cards: same style — value prominent, grip handle, assignee avatar. Same Kanban for Leads, Deals, Contracts, Design Requests, Projects.",
+      "emptyState": "Empty state: dashed border, centered icon, title, subtitle, primary button (Add first) and/or secondary (Clear filters, Reset). Same on all list/kanban pages when no data.",
+      "statusPill": "Status pill: rounded-full, colored dot + label. Used in table cells and cards. Same styling for New, Contacted, Qualified, etc.",
+      "buttons": "Primary (accent): blue or neutral. Outline: border, ghost on hover. Ghost: text only. Same button variants everywhere.",
+      "dialogs": "Modal: overlay, rounded content, header, footer with Cancel + primary. Same for Add Lead, Rename View, all forms.",
+      "cards": "Cards: bg #151938 (dark) or light. Border white/10 or subtle. Rounded-xl. Same for stats, activity feed, detail sections.",
+      "pagination": "Pagination: prev/next, page numbers. Same footer style in all tables.",
+      "loader": "Loading: centered spinner (border, transparent segment). Same in all loading states.",
+      "statsCards": "Dashboard stat cards: value large, label small, optional trend. Same 4-card row. Same on main Dashboard and Ad Agency Dashboard.",
+      "filtersBar": "Filters: search input with icon, Select dropdowns (Status, Source, Assignee). Same pattern for LeadFilters, DealFilters, QuoteFilters, ProjectFilters, ClientFilters, TaskFilters, ItemFilters. Mobile: search in toolbar row, filters in Sheet drawer.",
+      "commandPalette": "Global search (Cmd+K): centered modal, search input, quick nav items (Dashboard, Leads, Deals, etc.), recent leads. Same styling whenever opened.",
+      "sheet": "Mobile drawer: slides from right (left for RTL). Used for filters, mobile sidebar. Same overlay and panel style.",
+      "formInputs": "Input, Label, Textarea, Select trigger, Checkbox, Switch. Same border, focus ring, rounded. Used in LeadDialog, DealDialog, CustomerDialog, Settings, all forms.",
+      "columnVisibility": "Dropdown with checkboxes: show/hide columns. Used in Ad Agency tables, EntityToolbar. Same trigger and list style.",
+      "commentsTimeline": "Activity/comments: scroll area, avatar, author name, timestamp, body text. Same in Lead Detail Activity tab. Timeline dots optional.",
+      "pageHero": "Page title (large) + subtitle. Same on Leads, Deals, Customers, Settings, etc. Hidden on mobile when breadcrumb shows title.",
+      "skeleton": "Loading shimmer: table row placeholders, card placeholders. Same animation and gray tones.",
+      "modulePermissions": "Checkbox grid for module access (Leads, Ad Agency). Used in Settings Members table. Same as column visibility checkbox style.",
+      "avatar": "Initials fallback: rounded, accent bg. Same in header, table cells, cards. Sizes: sm (table), md (cards), lg (header).",
+      "scrollArea": "Scrollable region with custom scrollbar. Same in comments, dropdowns, long lists.",
+      "tooltip": "Hover tooltip on icon buttons. Same delay, placement, styling."
+    },
+    "desktopPromptSuffix": "Include the shared left sidebar and header. Consistent typography and spacing.",
+    "mobilePromptSuffix": "Mobile layout: hamburger header, full-width content. Sidebar as bottom sheet or slide-out drawer. Tables: horizontal scroll or stacked cards. Kanban: horizontal scroll columns."
+  },
+  "pages": [
+    {
+      "route": "/auth",
+      "name": "Hadarya CRM Login",
+      "noSidebar": true,
+      "desktop": "Login screen: split layout, left panel with email/password form and Sign in button, right panel with brand gradient (blue #1337ec). Clean typography. No sidebar (pre-auth).",
+      "mobile": "Login: stacked layout, logo top, form full-width, Sign in button. Right panel gradient below fold or as background."
+    },
+    {
+      "route": "/dashboard",
+      "name": "Hadarya CRM Dashboard",
+      "desktop": "Dashboard: 4 stat cards in a row (Revenue, Deals, Leads, Conversion), bar chart for pipeline, line chart for monthly revenue, activity feed with timeline. Use shared sidebar, shared card style.",
+      "mobile": "Dashboard mobile: stat cards 2x2 grid, charts stacked, activity feed below. Hamburger header. Same sidebar as drawer."
+    },
+    {
+      "route": "/leads",
+      "name": "Lead Management Kanban",
+      "desktop": "Lead pipeline Kanban: columns New, Contacted, Qualified, Proposal, Negotiation, Won, Lost. Use shared Kanban component. Cards: lead name, value, assignee avatar. Sort dropdown in toolbar.",
+      "mobile": "Leads Kanban mobile: horizontal scroll columns, same card design. Hamburger header. Toolbar with Sort stacked."
+    },
+    {
+      "route": "/leads",
+      "name": "Lead Management Table",
+      "desktop": "Leads table view: columns Name, Email, Phone, Status, Value, Assigned, Actions. Use shared table component. Search bar, filter chips, column visibility.",
+      "mobile": "Leads table mobile: horizontal scroll or card list. Same columns, responsive."
+    },
+    {
+      "route": "/leads/:id",
+      "name": "Lead Detail Profile",
+      "desktop": "Lead detail: back button, name header, tabs (Overview, Quotes, Activity). Contact info card, timeline, quote summary cards. Shared sidebar.",
+      "mobile": "Lead detail mobile: same content stacked. Tabs as segmented control or dropdown."
+    },
+    {
+      "route": "/deals",
+      "name": "Deals Pipeline Kanban",
+      "desktop": "Deals Kanban: columns Quote Approved, In Production, Ready for Delivery, Shipped, Delivered, Cancelled. Same Kanban as Leads. Cards: amount, expected date.",
+      "mobile": "Deals Kanban mobile: same as Leads Kanban mobile layout."
+    },
+    {
+      "route": "/contracts",
+      "name": "Contracts Kanban",
+      "desktop": "Contracts Kanban: columns Draft, Sent, Approved. Same Kanban design. Cards: client name, total.",
+      "mobile": "Contracts Kanban mobile: same Kanban mobile layout."
+    },
+    {
+      "route": "/contracts/approve/:id",
+      "name": "Quote Approval",
+      "desktop": "Quote approval: header, quote summary card with line items, Approve (blue) and Reject buttons. Shared sidebar.",
+      "mobile": "Quote approval mobile: stacked, full-width buttons."
+    },
+    {
+      "route": "/customers",
+      "name": "Client Directory",
+      "desktop": "Client Directory: hero title, filter bar. Table with avatar, name, email, status badge, actions. Same table as Leads. Pagination.",
+      "mobile": "Customers mobile: table horizontal scroll or card list. Same columns."
+    },
+    {
+      "route": "/products",
+      "name": "Products",
+      "desktop": "Products: tabs, search, table with name, SKU, price, category, actions. Same table component as Customers.",
+      "mobile": "Products mobile: same table mobile pattern."
+    },
+    {
+      "route": "/suppliers",
+      "name": "Suppliers",
+      "desktop": "Suppliers: table columns name, contact, products, status. Same table, filters, pagination.",
+      "mobile": "Suppliers mobile: same table mobile pattern."
+    },
+    {
+      "route": "/design-requests",
+      "name": "Design Requests Kanban",
+      "desktop": "Design pipeline Kanban: columns Pending, In Progress, Completed. Same Kanban design. Cards: request title, assignee.",
+      "mobile": "Design Kanban mobile: same Kanban mobile layout."
+    },
+    {
+      "route": "/automations",
+      "name": "Automations",
+      "desktop": "Automations: card list of rules (name, trigger, action, toggle). Add button. Shared sidebar.",
+      "mobile": "Automations mobile: stacked cards, same design."
+    },
+    {
+      "route": "/settings",
+      "name": "Settings and Team",
+      "desktop": "Settings: Team section, Members table (avatar, name, role, module checkboxes), Invite form. Same table component.",
+      "mobile": "Settings mobile: stacked sections, table scrollable."
+    },
+    {
+      "route": "/ad-agency",
+      "name": "Ad Agency Dashboard",
+      "desktop": "Agency dashboard: same layout as main Dashboard. Stats, pipeline, activity. RTL-friendly. Shared sidebar.",
+      "mobile": "Agency dashboard mobile: same as main dashboard mobile."
+    },
+    {
+      "route": "/ad-agency/clients",
+      "name": "Ad Agency Clients",
+      "desktop": "Ad Agency client list: same as Client Directory. Same table component.",
+      "mobile": "Same as Customers mobile."
+    },
+    {
+      "route": "/ad-agency/clients/:id",
+      "name": "Client Detail",
+      "desktop": "Client detail: same layout as Lead Detail. Tabs, cards.",
+      "mobile": "Same as Lead Detail mobile."
+    },
+    {
+      "route": "/ad-agency/projects",
+      "name": "Projects Kanban",
+      "desktop": "Projects Kanban: same Kanban as Leads. Project stage columns.",
+      "mobile": "Same Kanban mobile layout."
+    },
+    {
+      "route": "/ad-agency/projects/:id",
+      "name": "Project Detail",
+      "desktop": "Project detail: same as Lead Detail. Tasks, deliverables, timeline.",
+      "mobile": "Same as Lead Detail mobile."
+    },
+    {
+      "route": "/ad-agency/tasks",
+      "name": "Task Calendar",
+      "desktop": "Task calendar: monthly grid, task cards by date. Shared sidebar.",
+      "mobile": "Task calendar mobile: week view or list. Hamburger header."
+    },
+    {
+      "route": "/ad-agency/items",
+      "name": "Items Table",
+      "desktop": "Items table: same table component as Products.",
+      "mobile": "Same table mobile pattern."
+    },
+    {
+      "route": "*",
+      "name": "404 Not Found",
+      "noSidebar": true,
+      "desktop": "404 page: logo, Page not found message, back button. Minimal. No sidebar.",
+      "mobile": "Same 404, centered."
+    },
+    {
+      "route": "modal",
+      "name": "Add Lead Modal",
+      "noSidebar": true,
+      "desktop": "Modal overlay: form for new lead (name, email, phone, source, status). Cancel and Save. No sidebar (overlay).",
+      "mobile": "Modal full-screen on mobile: same form, bottom actions."
+    }
+  ]
+}

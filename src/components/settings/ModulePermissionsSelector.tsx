@@ -10,7 +10,7 @@ import {
 import type { Module, ModuleRole } from "@/contexts/AuthContext";
 
 const MODULE_CONFIG: Record<Module, { label: string; hasUser: boolean }> = {
-  leads: { label: "לידים", hasUser: true },
+  leads: { label: "Hadarya", hasUser: true },
   ad_agency: { label: "משרד פרסום", hasUser: true },
   system: { label: "הגדרות מערכת", hasUser: false },
 };

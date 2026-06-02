@@ -41,6 +41,7 @@ export function ProjectKanban({ projects, isLoading, onEdit, onDelete, onStageCh
       renderCard={(project) => <ProjectCard project={project} onEdit={onEdit} onDelete={onDelete} />}
       isLoading={isLoading}
       emptyLabel="אין פרויקטים"
+      variant="stitch-dark"
     />
   );
 }

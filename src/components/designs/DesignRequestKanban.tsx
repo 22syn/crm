@@ -1,3 +1,4 @@
+import { useTheme } from "next-themes";
 import { EntityKanban } from "@/components/entity-page";
 import { DesignRequestKanbanCard, type DesignRequestKanbanItem } from "./DesignRequestKanbanCard";
 
@@ -22,6 +23,8 @@ export function DesignRequestKanban({
   onUploadDesign,
   onStatusChange,
 }: DesignRequestKanbanProps) {
+  const { resolvedTheme } = useTheme();
+  const variant = resolvedTheme === "dark" ? "stitch-dark" : "default";
   return (
     <EntityKanban<DesignRequestKanbanItem>
       columns={statusColumns}
@@ -38,6 +41,7 @@ export function DesignRequestKanban({
       )}
       isLoading={isLoading}
       emptyLabel="No requests"
+      variant={variant}
     />
   );
 }

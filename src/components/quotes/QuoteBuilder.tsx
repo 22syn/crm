@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { QuotePreview } from "./QuotePreview";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import type { Database } from "@/integrations/supabase/types";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -65,6 +66,7 @@ interface QuoteBuilderProps {
 
 export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const queryClient = useQueryClient();
+  const { data: company } = useCompanySettings("leads");
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
@@ -637,6 +639,17 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
           onOpenChange={setPreviewOpen}
           customerName={customerName}
           customerAddress={customerAddress}
+          companyName={company?.name}
+          companyAddress={company?.address ?? undefined}
+          contactInfo={
+            company
+              ? {
+                  email: company.email ?? undefined,
+                  phone: company.phone ?? undefined,
+                  website: company.website ?? undefined,
+                }
+              : undefined
+          }
           items={items.map(i => ({
             title: i.title,
             quantity: i.quantity,

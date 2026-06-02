@@ -176,14 +176,7 @@ export default function QuoteApprovalPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <Button variant="ghost" onClick={() => navigate("/contracts")} className="gap-2">
-            <ArrowRight className="h-4 w-4" />
-            Back to contracts
-          </Button>
-        </div>
-
-        <Card>
+        <Card className="rounded-xl border overflow-hidden">
           <CardHeader>
             <CardTitle>Contract approval {quote.quote_number}</CardTitle>
             <CardDescription>Upload payment proof to complete the process</CardDescription>

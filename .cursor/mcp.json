@@ -5,6 +5,23 @@
     },
     "vercel": {
       "url": "https://mcp.vercel.com"
+    },
+    "stitch": {
+      "command": "npx",
+      "args": ["-y", "stitch-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "democrm-489100"
+      }
+    },
+    "obsidian": {
+      "command": "/Users/kobihazout/.npm-global/bin/obsidian-mcp-server",
+      "args": [],
+      "env": {
+        "OBSIDIAN_API_KEY": "b2fc6b6b4417f013313be8ae2f918e75995c6f605b660f2f7efc368da6d343de",
+        "OBSIDIAN_BASE_URL": "https://127.0.0.1:27124",
+        "OBSIDIAN_VERIFY_SSL": "false",
+        "OBSIDIAN_ENABLE_CACHE": "true"
+      }
     }
   }
 }

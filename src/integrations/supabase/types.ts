@@ -65,6 +65,39 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          id: string
+          module: string
+          name: string | null
+          address: string | null
+          email: string | null
+          phone: string | null
+          website: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          module: string
+          name?: string | null
+          address?: string | null
+          email?: string | null
+          phone?: string | null
+          website?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          module?: string
+          name?: string | null
+          address?: string | null
+          email?: string | null
+          phone?: string | null
+          website?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null

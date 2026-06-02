@@ -2,37 +2,19 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { EntityToolbar } from "@/components/entity-page";
+import { SupplierTable } from "@/components/suppliers/SupplierTable";
+import { SupplierFilters } from "@/components/suppliers/SupplierFilters";
 import { SupplierDialog } from "@/components/suppliers/SupplierDialog";
+import { ColumnVisibilityDropdown } from "@/components/ad-agency/ColumnVisibilityDropdown";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Phone, Mail, MessageCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Supplier = Tables<"suppliers">;
-
-const CATEGORY_LABELS: Record<string, string> = {
-  sofas: "Sofas",
-  cabinets: "Cabinets",
-  chairs: "Chairs",
-  tables: "Tables",
-};
 
 export default function Suppliers() {
   const { isModuleAdmin } = useAuth();
@@ -127,13 +109,75 @@ export default function Suppliers() {
   );
 
   const isAdmin = isModuleAdmin("system");
+  const hasActiveFilters = !!searchQuery.trim() || !showActiveOnly;
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setShowActiveOnly(true);
+  };
+
+  const {
+    visibleColumnIds,
+    setVisibleColumns,
+    resetToDefault,
+    resetPending,
+  } = useColumnVisibility("suppliers");
+  const SUPPLIER_COLUMNS = [
+    { id: "name", header: "Name" },
+    { id: "category", header: "Category" },
+    { id: "contact", header: "Contact" },
+    { id: "contact_details", header: "Contact Details" },
+    { id: "status", header: "Status" },
+  ];
+
+  const supplierToolbar = (
+    <EntityToolbar
+      hasFilters={hasActiveFilters}
+      onClearFilters={handleClearFilters}
+      renderMobileSearch={
+        <SupplierFilters
+          variant="searchOnly"
+          search={searchQuery}
+          onSearchChange={setSearchQuery}
+          showActiveOnly={showActiveOnly}
+          onShowActiveOnlyChange={setShowActiveOnly}
+        />
+      }
+      renderMobileFilters={
+        <SupplierFilters
+          variant="filtersOnly"
+          search={searchQuery}
+          onSearchChange={setSearchQuery}
+          showActiveOnly={showActiveOnly}
+          onShowActiveOnlyChange={setShowActiveOnly}
+        />
+      }
+      renderColumnVisibility={
+        <ColumnVisibilityDropdown
+          allColumns={SUPPLIER_COLUMNS}
+          visibleIds={visibleColumnIds}
+          onChange={setVisibleColumns}
+          onReset={resetToDefault}
+          resetPending={resetPending}
+          columnsLabel="Columns"
+          resetLabel="Reset to default"
+        />
+      }
+    >
+      <SupplierFilters
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        showActiveOnly={showActiveOnly}
+        onShowActiveOnlyChange={setShowActiveOnly}
+      />
+    </EntityToolbar>
+  );
 
   return (
-    <div className="p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="hidden md:block">
-            <h1 className="text-2xl font-bold">Suppliers</h1>
-            <p className="text-muted-foreground">Manage suppliers and business partners</p>
+    <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Suppliers</h1>
+            <p className="text-muted-foreground mt-2">Manage suppliers and business partners</p>
           </div>
           {isAdmin && (
             <Button onClick={() => { setSelectedSupplier(null); setDialogOpen(true); }}>
@@ -143,114 +187,23 @@ export default function Suppliers() {
           )}
         </div>
 
+        {supplierToolbar}
+
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Supplier List</CardTitle>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search suppliers..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 w-64"
-                  />
-                </div>
-                <Button
-                  variant={showActiveOnly ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowActiveOnly(!showActiveOnly)}
-                >
-                  {showActiveOnly ? "Active Only" : "Show All"}
-                </Button>
-              </div>
-            </div>
+            <CardTitle>Supplier List</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
-            ) : filteredSuppliers.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No suppliers found
-              </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Contact Details</TableHead>
-                    <TableHead>Status</TableHead>
-                    {isAdmin && <TableHead className="w-12"></TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSuppliers.map((supplier) => (
-                    <TableRow key={supplier.id}>
-                      <TableCell className="font-medium">{supplier.name}</TableCell>
-                      <TableCell>
-                        {supplier.category ? (
-                          <Badge variant="outline">
-                            {CATEGORY_LABELS[supplier.category] || supplier.category}
-                          </Badge>
-                        ) : "-"}
-                      </TableCell>
-                      <TableCell>{supplier.contact_name || "-"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          {supplier.email && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Mail className="h-3 w-3" />
-                              <a href={`mailto:${supplier.email}`} className="text-primary hover:underline">
-                                {supplier.email}
-                              </a>
-                            </div>
-                          )}
-                          {supplier.phone && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <Phone className="h-3 w-3" />
-                              <a href={`tel:${supplier.phone}`} className="text-primary hover:underline">
-                                {supplier.phone}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={supplier.is_active ? "default" : "secondary"}>
-                          {supplier.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(supplier)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(supplier)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <SupplierTable
+                suppliers={filteredSuppliers}
+                isAdmin={isAdmin}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                visibleColumnIds={visibleColumnIds}
+              />
             )}
           </CardContent>
         </Card>

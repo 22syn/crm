@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(async () => {
             try {
-              const [profileRes, rolesRes] = await Promise.all([
+              const [profileRes, rolesRes, legacyRolesRes] = await Promise.all([
                 supabase
                   .from("profiles")
                   .select("super_admin")
@@ -70,10 +70,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   .from("user_module_roles")
                   .select("module, role")
                   .eq("user_id", session.user.id),
+                supabase
+                  .from("user_roles")
+                  .select("role")
+                  .eq("user_id", session.user.id),
               ]);
 
               const prof = profileRes.data;
               const roles = rolesRes.data ?? [];
+              const legacyRoles = legacyRolesRes.data ?? [];
               setSuperAdmin(prof?.super_admin ?? false);
 
               const map: Partial<Record<Module, ModuleRole>> = {};
@@ -81,6 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 if (r.module && r.role && ["leads", "ad_agency", "system"].includes(r.module)) {
                   map[r.module as Module] = r.role as ModuleRole;
                 }
+              }
+              if (Object.keys(map).length === 0 && legacyRoles.length > 0) {
+                const isAdmin = legacyRoles.some((lr) => String(lr.role) === "admin");
+                map.leads = isAdmin ? "admin" : "user";
+              }
+              if (Object.keys(map).length === 0) {
+                map.leads = "user";
               }
               setModuleRoles(map);
             } catch {

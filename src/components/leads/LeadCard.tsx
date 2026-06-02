@@ -1,22 +1,23 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Phone, Mail, MessageSquare, GripVertical, FileText, Calendar, Eye, User, Flame, Thermometer, Snowflake, Clock, Banknote } from "lucide-react";
 import { getLeadPriority, getDaysSinceTouch, getStalenessLevel, type LeadPriority } from "@/utils/leadScore";
 import { getSourceConfig } from "@/utils/sourceIcons";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 import type { CrmTeamMember } from "@/hooks/useCrmTeam";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type Quote = Database["public"]["Tables"]["quotes"]["Row"];
 
-const PRIORITY_CONFIG: Record<LeadPriority, { label: string; icon: typeof Flame; className: string }> = {
-  hot: { label: "Hot", icon: Flame, className: "bg-red-500/15 text-red-600 border-red-500/30 dark:text-red-400" },
-  warm: { label: "Warm", icon: Thermometer, className: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400" },
-  cold: { label: "Cold", icon: Snowflake, className: "bg-slate-500/15 text-slate-600 border-slate-500/30 dark:text-slate-400" },
+const PRIORITY_CONFIG: Record<LeadPriority, { label: string; icon: typeof Flame; className: string; pillClass: string }> = {
+  hot: { label: "Hot", icon: Flame, className: "bg-red-500/15 text-red-600 border-red-500/30 dark:text-red-400", pillClass: "bg-orange-500/25 text-orange-400 border-0" },
+  warm: { label: "Warm", icon: Thermometer, className: "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400", pillClass: "bg-amber-500/25 text-amber-400 border-0" },
+  cold: { label: "Cold", icon: Snowflake, className: "bg-slate-500/15 text-slate-600 border-slate-500/30 dark:text-slate-400", pillClass: "bg-sky-500/25 text-sky-400 border-0" },
 };
 
 interface LeadCardProps {
@@ -29,9 +30,13 @@ interface LeadCardProps {
   quote?: Quote;
   onViewQuote?: (leadId: string) => void;
   onUnlinkQuote?: (leadId: string) => void;
+  /** Hadarya Dark Kanban v2: dark card, value prominent, "Updated X ago" */
+  variant?: "default" | "stitch-dark";
 }
 
-export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQuote, quote, onViewQuote, onUnlinkQuote }: LeadCardProps) {
+export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQuote, quote, onViewQuote, onUnlinkQuote, variant = "default" }: LeadCardProps) {
+  const { role } = useAuth();
+  const hidePhone = role === "sales";
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
   });
@@ -52,12 +57,125 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
   const staleness = getStalenessLevel(lead);
   const priorityConfig = PRIORITY_CONFIG[priority];
   const PriorityIcon = priorityConfig.icon;
+  const isDark = variant === "stitch-dark";
+  const updatedAt = lead.updated_at || lead.created_at;
+  const assignee = lead.assigned_to ? membersByUserId?.get(lead.assigned_to) : null;
+  const initials = assignee?.full_name
+    ? assignee.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : assignee?.email?.[0]?.toUpperCase() ?? "?";
+
+  if (isDark) {
+    return (
+      <Card
+        ref={setNodeRef}
+        style={style}
+        className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-xl cursor-grab active:cursor-grabbing bg-[#151938] border-white/10 shadow-md hover:border-accent-action/40 focus-within:ring-2 focus-within:ring-accent-action focus-within:ring-offset-2 focus-within:ring-offset-[#0f1025] motion-reduce:transition-none"
+      >
+        <CardHeader className="p-3 pb-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing text-white/50 hover:text-white/80 shrink-0"
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-sm font-semibold text-white truncate block">
+                  {onViewLead ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewLead(lead);
+                      }}
+                      className="text-left hover:underline focus:underline focus:outline-none"
+                    >
+                      {lead.customer_name}
+                    </button>
+                  ) : (
+                    lead.customer_name
+                  )}
+                </CardTitle>
+                <div className="text-sm font-medium text-accent-action mt-0.5">
+                  {quote ? (
+                    <span>₪{quote.total.toLocaleString("he-IL")}</span>
+                  ) : (
+                    <span className="text-white/40">—</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Badge className={`text-[10px] uppercase tracking-wide shrink-0 ${priorityConfig.pillClass}`}>
+              {priorityConfig.label}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0 text-white/50 hover:text-white/80"
+              onClick={() => onEdit(lead)}
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 mt-2 ml-6">
+            {assignee && (
+              <div className="flex items-center gap-1.5">
+                <div className="h-6 w-6 rounded-full bg-accent-action/30 flex items-center justify-center text-[10px] font-medium text-white shrink-0">
+                  {initials}
+                </div>
+                <span className="text-xs text-white/70 truncate max-w-[80px]">
+                  {assignee.full_name || assignee.email}
+                </span>
+              </div>
+            )}
+            <span className="text-[11px] text-white/50">
+              Updated {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          {quote ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs bg-white/5 border-white/15 hover:bg-white/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewQuote?.(lead.id);
+              }}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              View Quote
+            </Button>
+          ) : (
+            onCreateQuote &&
+            canCreateQuote && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-xs bg-white/5 border-white/15 hover:bg-white/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCreateQuote(lead);
+                }}
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                Create Quote
+              </Button>
+            )
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-sm cursor-grab active:cursor-grabbing transition-shadow duration-200 ease-out shadow-sm hover:shadow-lg focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-card motion-reduce:transition-none"
+      className="w-full min-w-0 flex-shrink-0 overflow-hidden rounded-xl cursor-grab active:cursor-grabbing transition-all duration-200 ease-out shadow-sm hover:shadow-md hover:border-accent-action/30 focus-within:ring-2 focus-within:ring-accent-action focus-within:ring-offset-2 motion-reduce:transition-none"
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -143,17 +261,50 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
         {lead.customer_phone && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
-            <span dir="ltr">{lead.customer_phone}</span>
-            <a
-              href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-600 hover:text-green-700 mr-1"
-              onClick={(e) => e.stopPropagation()}
-              title="Open WhatsApp"
-            >
-              💬
-            </a>
+            {hidePhone ? (
+              <>
+                <a
+                  href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                  className="text-primary hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                  title="חייג"
+                >
+                  חייג
+                </a>
+                <a
+                  href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-700 mr-1"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Open WhatsApp"
+                >
+                  💬
+                </a>
+              </>
+            ) : (
+              <>
+                <span dir="ltr">{lead.customer_phone}</span>
+                <a
+                  href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                  className="text-primary hover:underline mr-1"
+                  onClick={(e) => e.stopPropagation()}
+                  title="חייג"
+                >
+                  חייג
+                </a>
+                <a
+                  href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:text-green-700 mr-1"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Open WhatsApp"
+                >
+                  💬
+                </a>
+              </>
+            )}
           </div>
         )}
         {lead.customer_email && (

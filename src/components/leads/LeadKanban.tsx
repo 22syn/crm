@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useTheme } from "next-themes";
 import { EntityKanban } from "@/components/entity-page";
 import { LeadCard } from "./LeadCard";
 import type { Database } from "@/integrations/supabase/types";
 import type { CrmTeamMember } from "@/hooks/useCrmTeam";
 import { LEAD_STAGES } from "@/utils/leadStages";
-import { sortLeads, parseSortOption, type SortOption } from "@/utils/leadSort";
+import {
+  sortLeads,
+  parseSortOption,
+  SORT_OPTIONS,
+  type SortOption,
+} from "@/utils/leadSort";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
@@ -50,7 +55,14 @@ export function LeadKanban({
   sortOption,
   onSortOptionChange,
 }: LeadKanbanProps) {
+  const { resolvedTheme } = useTheme();
+  const variant = resolvedTheme === "dark" ? "stitch-dark" : "default";
   const { field: sortField, direction: sortDirection } = parseSortOption(sortOption);
+
+  const sortOptionsForKanban = SORT_OPTIONS.map((o) => ({
+    value: o.value,
+    label: o.label,
+  }));
 
   return (
     <EntityKanban<Lead>
@@ -69,14 +81,19 @@ export function LeadKanban({
           quote={leadQuotes[lead.id]}
           onViewQuote={onViewQuote}
           onUnlinkQuote={onUnlinkQuote}
+          variant={variant}
         />
       )}
       selectedColumns={selectedStatuses}
+      sortOptions={sortOptionsForKanban}
+      sortValue={sortOption}
+      onSortChange={(v) => onSortOptionChange(v as SortOption)}
       sortItems={(items) =>
         sortLeads(items, sortField, sortDirection, LEAD_STAGES)
       }
       isLoading={isLoading}
       emptyLabel="No leads"
+      variant={variant}
     />
   );
 }

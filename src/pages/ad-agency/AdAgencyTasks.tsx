@@ -221,7 +221,10 @@ export default function AdAgencyTasks() {
     { id: "title", header: "כותרת" },
     { id: "project", header: "פרויקט" },
     { id: "status", header: "סטטוס" },
+    { id: "assigned_to", header: "אחראי" },
+    { id: "start_date", header: "תאריך התחלה" },
     { id: "end_date", header: "תאריך סיום" },
+    { id: "notes", header: "הערות" },
   ];
   const handleClearFilters = () => {
     setSearchParams({});
@@ -310,11 +313,12 @@ export default function AdAgencyTasks() {
             onEdit={openEdit}
             onDelete={(task) => deleteMutation.mutate(task.id)}
             visibleColumnIds={visibleColumnIds}
+            profiles={profiles.map((p) => ({ user_id: p.user_id, full_name: p.full_name }))}
           />
         )}
 
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
-        <DialogContent>
+        <DialogContent dir="rtl">
           <DialogHeader>
             <DialogTitle>{editingTask ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
           </DialogHeader>
@@ -334,10 +338,10 @@ export default function AdAgencyTasks() {
                 onValueChange={(v) => setFormData((p) => ({ ...p, project_id: v }))}
                 disabled={!!editingTask}
               >
-                <SelectTrigger>
+                <SelectTrigger dir="rtl">
                   <SelectValue placeholder="בחר פרויקט" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent dir="rtl">
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.title}
@@ -352,10 +356,10 @@ export default function AdAgencyTasks() {
                 value={formData.status}
                 onValueChange={(v) => setFormData((p) => ({ ...p, status: v as TaskStatus }))}
               >
-                <SelectTrigger>
+                <SelectTrigger dir="rtl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent dir="rtl">
                   {TASK_STATUS_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>
                       {o.label}
@@ -370,10 +374,10 @@ export default function AdAgencyTasks() {
                 value={formData.assigned_to}
                 onValueChange={(v) => setFormData((p) => ({ ...p, assigned_to: v }))}
               >
-                <SelectTrigger>
+                <SelectTrigger dir="rtl">
                   <SelectValue placeholder="בחר" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent dir="rtl">
                   {profiles.map((pr) => (
                     <SelectItem key={pr.id} value={pr.user_id}>
                       {pr.full_name ?? pr.user_id}

@@ -31,18 +31,18 @@ export function LeadsEmptyState({
 }: LeadsEmptyStateProps) {
   if (hasActiveFilters) {
     return (
-      <div className="rounded-sm border border-dashed bg-muted/30 py-12 px-6 text-center">
+      <div className="rounded-xl border-2 border-dashed border-border bg-muted/30 py-12 px-6 text-center">
         <FilterX className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
         <p className="text-body font-medium text-foreground">No leads match your filters</p>
         <p className="text-meta text-muted-foreground mt-1">
           Try clearing or resetting your filters to see more leads.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-          <Button variant="outline" size="sm" className="rounded-sm" onClick={onClearFilters}>
+          <Button variant="outline" size="sm" className="rounded-lg" onClick={onClearFilters}>
             <FilterX className="h-4 w-4 mr-1" />
             Clear filters
           </Button>
-          <Button variant="outline" size="sm" className="rounded-sm" onClick={onResetFilters}>
+          <Button variant="outline" size="sm" className="rounded-lg" onClick={onResetFilters}>
             <RotateCcw className="h-4 w-4 mr-1" />
             Reset to default
           </Button>
@@ -52,7 +52,7 @@ export function LeadsEmptyState({
   }
 
   return (
-    <div className="rounded-sm border border-dashed bg-muted/30 py-12 px-6 text-center">
+    <div className="rounded-xl border-2 border-dashed border-border bg-muted/30 py-12 px-6 text-center">
       <Plus className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
       <p className="text-title font-medium text-foreground">Add your first lead</p>
       <p className="text-meta text-muted-foreground mt-1">
@@ -61,7 +61,7 @@ export function LeadsEmptyState({
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
         <Button
           variant="accent"
-          className="rounded-sm"
+          className="rounded-lg"
           size="sm"
           onClick={onAddFirstLead}
         >
@@ -72,7 +72,7 @@ export function LeadsEmptyState({
           <Button
             variant="outline"
             size="sm"
-            className="rounded-sm"
+            className="rounded-lg"
             onClick={onAddDemoLeads}
             disabled={addDemoLeadsPending}
           >

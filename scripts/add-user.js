@@ -11,8 +11,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.SUPABASE_URL || "https://fbtnhhurjwizcrmcisci.supabase.co";
-const key = process.env.SERVICE_ROLE_KEY;
+const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "https://fbtnhhurjwizcrmcisci.supabase.co";
+const key = process.env.SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 const email = process.env.USER_EMAIL;
 const password = process.env.USER_PASSWORD;
 const role = (process.env.USER_ROLE || "sales") === "admin" ? "admin" : "sales";
@@ -35,7 +35,16 @@ const existing = users?.find((u) => u.email?.toLowerCase() === email.toLowerCase
 let userId;
 if (existing) {
   userId = existing.id;
-  console.log(`User ${email} already exists. Adding role...`);
+  if (password) {
+    const { error: pwdErr } = await supabase.auth.admin.updateUserById(userId, { password });
+    if (pwdErr) {
+      console.error("Failed to update password:", pwdErr.message);
+      process.exit(1);
+    }
+    console.log(`User ${email} already exists. Password updated.`);
+  } else {
+    console.log(`User ${email} already exists. Adding role...`);
+  }
 } else if (password) {
   const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
     email,

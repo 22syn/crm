@@ -54,6 +54,7 @@ import { getSourceConfig } from "@/utils/sourceIcons";
 import { LEAD_STAGES } from "@/utils/leadStages";
 import { LeadComments } from "./LeadComments";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
@@ -97,6 +98,8 @@ const sourceOptions = [
 const statuses = LEAD_STAGES.map((s) => ({ value: s.value, label: s.label })) as { value: typeof LEAD_STAGES[number]["value"]; label: string }[];
 
 export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMembers = [], onCreateQuote, onViewQuote, onUnlinkQuote, onAssociateQuote, onViewExistingLead, onViewLead }: LeadDialogProps) {
+  const { role } = useAuth();
+  const hidePhoneInEdit = !!lead && role === "sales";
   const [unlinkConfirmOpen, setUnlinkConfirmOpen] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>("");
@@ -310,7 +313,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                 name="customer_phone"
                 rules={{ required: "Phone is required" }}
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className={hidePhoneInEdit ? "hidden" : undefined}>
                     <FormLabel>Phone *</FormLabel>
                     <FormControl>
                       <Input

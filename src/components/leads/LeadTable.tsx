@@ -36,6 +36,7 @@ import {
   type SortOption,
 } from "@/utils/leadSort";
 import { StatusPill, LEAD_STATUS_OPTIONS } from "./StatusPill";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Lead = Database["public"]["Tables"]["leads"]["Row"];
 type LeadStatus = Database["public"]["Enums"]["lead_status"];
@@ -61,6 +62,8 @@ interface LeadTableProps {
   /** Sort controlled from toolbar */
   sortOption: SortOption;
   onSortOptionChange: (value: SortOption) => void;
+  /** Footer slot (e.g. pagination) — Stitch design */
+  renderFooter?: React.ReactNode;
 }
 
 export function LeadTable({
@@ -80,7 +83,10 @@ export function LeadTable({
   onUnlinkQuote,
   sortOption,
   onSortOptionChange,
+  renderFooter,
 }: LeadTableProps) {
+  const { role } = useAuth();
+  const hidePhone = role === "sales";
   const { field: sortField, direction: sortDirection } = parseSortOption(sortOption);
   const [editingCell, setEditingCell] = useState<{ leadId: string; field: InlineEditField } | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -173,7 +179,7 @@ export function LeadTable({
       header: "Contact",
       render: (lead) => (
         <div className="flex flex-col gap-1">
-          {onInlineUpdate && editingCell?.leadId === lead.id && editingCell?.field === "customer_phone" ? (
+          {onInlineUpdate && !hidePhone && editingCell?.leadId === lead.id && editingCell?.field === "customer_phone" ? (
             <div className="flex items-center gap-1">
               <Phone className="h-3 w-3 shrink-0" />
               <Input
@@ -188,17 +194,27 @@ export function LeadTable({
             </div>
           ) : (
             <div
-              className={onInlineUpdate ? "flex items-center gap-2 text-body cursor-pointer rounded px-1 -mx-1 hover:bg-muted/80 min-h-[32px]" : "flex items-center gap-2 text-body"}
-              onClick={onInlineUpdate ? () => handleStartEdit(lead, "customer_phone") : undefined}
+              className={onInlineUpdate && !hidePhone ? "flex items-center gap-2 text-body cursor-pointer rounded px-1 -mx-1 hover:bg-muted/80 min-h-[32px]" : "flex items-center gap-2 text-body"}
+              onClick={onInlineUpdate && !hidePhone ? () => handleStartEdit(lead, "customer_phone") : undefined}
             >
               {lead.customer_phone ? (
                 <>
                   <Phone className="h-3 w-3 shrink-0" />
-                  <span dir="ltr">{lead.customer_phone}</span>
-                  <a href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700" onClick={(e) => e.stopPropagation()}>💬</a>
+                  {hidePhone ? (
+                    <>
+                      <a href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()} title="חייג">חייג</a>
+                      <a href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700" onClick={(e) => e.stopPropagation()}>💬</a>
+                    </>
+                  ) : (
+                    <>
+                      <span dir="ltr">{lead.customer_phone}</span>
+                      <a href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()} title="חייג">חייג</a>
+                      <a href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700" onClick={(e) => e.stopPropagation()}>💬</a>
+                    </>
+                  )}
                 </>
               ) : (
-                <span className="text-muted-foreground italic">{onInlineUpdate ? "Add phone" : "—"}</span>
+                <span className="text-muted-foreground italic">{onInlineUpdate && !hidePhone ? "Add phone" : "—"}</span>
               )}
             </div>
           )}
@@ -317,10 +333,11 @@ export function LeadTable({
         </span>
       ),
     },
-  ], [editingCell, editValue, savingCell, leadQuotes, membersByUserId, onInlineUpdate, onViewLead, onStatusChange, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown]);
+  ], [editingCell, editValue, savingCell, leadQuotes, membersByUserId, onInlineUpdate, onViewLead, onStatusChange, onAssigneeChange, onViewQuote, handleStartEdit, handleCommitEdit, handleKeyDown, hidePhone]);
 
   return (
     <DataTable<Lead>
+      variant="stitch"
       columns={columns}
       data={sortedLeads}
       getRowId={(l) => l.id}
@@ -331,6 +348,7 @@ export function LeadTable({
       enableSelection={!!onSelectionChange}
       selectedIds={selectedLeadIds}
       onSelectionChange={onSelectionChange}
+      renderFooter={renderFooter}
       renderActions={(lead) => {
         const quote = leadQuotes[lead.id];
         return (

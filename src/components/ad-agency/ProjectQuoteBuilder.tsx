@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Eye } from "lucide-react";
 import { QuotePreview } from "@/components/quotes/QuotePreview";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -39,6 +40,7 @@ interface ProjectQuoteBuilderProps {
 
 export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: ProjectQuoteBuilderProps) {
   const queryClient = useQueryClient();
+  const { data: company } = useCompanySettings("ad_agency");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
   const [validDays, setValidDays] = useState(14);
@@ -260,6 +262,17 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
         onOpenChange={setPreviewOpen}
         customerName={client?.name ?? ""}
         customerAddress={client?.address ?? undefined}
+        companyName={company?.name}
+        companyAddress={company?.address ?? undefined}
+        contactInfo={
+          company
+            ? {
+                email: company.email ?? undefined,
+                phone: company.phone ?? undefined,
+                website: company.website ?? undefined,
+              }
+            : undefined
+        }
         quoteNumber=""
         quoteDate={new Date()}
         items={quoteItems}

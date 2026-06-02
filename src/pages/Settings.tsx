@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Module, ModuleRole } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,27 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { MembersTable } from "@/components/settings/MembersTable";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Trash2, Pencil } from "lucide-react";
+import { Loader2, UserPlus, ChevronRight } from "lucide-react";
 import {
   ModulePermissionsSelector,
   type ModulePermissions,
 } from "@/components/settings/ModulePermissionsSelector";
-
-const MODULE_LABELS: Record<Module, string> = {
-  leads: "לידים",
-  ad_agency: "משרד פרסום",
-  system: "הגדרות מערכת",
-};
 
 interface TeamMember {
   user_id: string;
@@ -221,13 +209,13 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="hidden md:block">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">ניהול הגדרות מערכת והרשאות צוות</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Settings & Team Management</h1>
+        <p className="text-muted-foreground mt-2">ניהול הגדרות מערכת והרשאות צוות</p>
       </div>
 
-      <Card>
+      <Card className="rounded-xl border overflow-hidden">
         <CardHeader>
           <CardTitle>חברי צוות והרשאות</CardTitle>
           <CardDescription>
@@ -267,77 +255,22 @@ export default function Settings() {
             </div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>שם</TableHead>
-                <TableHead>אימייל</TableHead>
-                <TableHead>הרשאות</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                  </TableCell>
-                </TableRow>
-              ) : members.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    אין חברי צוות מוגדרים
-                  </TableCell>
-                </TableRow>
-              ) : (
-                members.map((m) => (
-                  <TableRow key={m.user_id}>
-                    <TableCell>{m.full_name || "—"}</TableCell>
-                    <TableCell>{m.email || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {(Object.entries(m.moduleRoles) as [Module, ModuleRole][]).map(
-                          ([mod, role]) => (
-                            <Badge
-                              key={mod}
-                              variant={role === "admin" ? "default" : "secondary"}
-                              className="text-xs"
-                            >
-                              {MODULE_LABELS[mod]}: {role === "admin" ? "Admin" : "User"}
-                            </Badge>
-                          )
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(m)}
-                          disabled={removeMutation.isPending}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm("להסיר את כל ההרשאות של המשתמש?")) {
-                              removeMutation.mutate(m.user_id);
-                            }
-                          }}
-                          disabled={removeMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <MembersTable
+              members={members}
+              onEdit={openEdit}
+              onRemove={(m) => {
+                if (confirm("להסיר את כל ההרשאות של המשתמש?")) {
+                  removeMutation.mutate(m.user_id);
+                }
+              }}
+              isRemoving={removeMutation.isPending}
+            />
+          )}
         </CardContent>
       </Card>
 

@@ -24,20 +24,34 @@ interface TaskWithProject {
   title: string;
   project_id: string;
   status: string;
+  assigned_to: string | null;
+  start_date: string | null;
   end_date: string | null;
+  notes: string | null;
   op_projects?: { id: string; title: string } | null;
+}
+
+interface ProfileMap {
+  user_id: string;
+  full_name: string | null;
 }
 
 interface TaskTableProps {
   tasks: TaskWithProject[];
   onEdit: (task: TaskWithProject) => void;
   onDelete: (task: TaskWithProject) => void;
+  profiles?: ProfileMap[];
   visibleColumnIds?: string[] | null;
 }
 
-export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds }: TaskTableProps) {
+export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds, profiles = [] }: TaskTableProps) {
   const [sortField, setSortField] = useState("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
+  const profileByUserId = useMemo(
+    () => new Map(profiles.map((p) => [p.user_id, p.full_name ?? "-"])),
+    [profiles]
+  );
 
   const columns: DataTableColumn<TaskWithProject>[] = useMemo(
     () => [
@@ -72,6 +86,24 @@ export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds }: TaskTab
           TASK_STATUS_OPTIONS.find((o) => o.value === t.status)?.label ?? t.status,
       },
       {
+        id: "assigned_to",
+        header: "אחראי",
+        sortable: true,
+        sortKey: "assigned_to",
+        render: (t) =>
+          t.assigned_to ? (profileByUserId.get(t.assigned_to) ?? "-") : "-",
+      },
+      {
+        id: "start_date",
+        header: "תאריך התחלה",
+        sortable: true,
+        sortKey: "start_date",
+        render: (t) =>
+          t.start_date
+            ? format(new Date(t.start_date), "d MMM yyyy", { locale: he })
+            : "-",
+      },
+      {
         id: "end_date",
         header: "תאריך סיום",
         sortable: true,
@@ -81,8 +113,16 @@ export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds }: TaskTab
             ? format(new Date(t.end_date), "d MMM yyyy", { locale: he })
             : "-",
       },
+      {
+        id: "notes",
+        header: "הערות",
+        sortable: false,
+        minWidth: "140px",
+        cellClassName: "max-w-[200px] truncate text-muted-foreground",
+        render: (t) => (t.notes ? String(t.notes).slice(0, 50) + (t.notes.length > 50 ? "…" : "") : "-"),
+      },
     ],
-    []
+    [profileByUserId]
   );
 
   const displayedColumns = useMemo(() => {
@@ -108,6 +148,12 @@ export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds }: TaskTab
       } else if (sortField === "end_date") {
         aVal = a.end_date ?? "";
         bVal = b.end_date ?? "";
+      } else if (sortField === "start_date") {
+        aVal = a.start_date ?? "";
+        bVal = b.start_date ?? "";
+      } else if (sortField === "assigned_to") {
+        aVal = profileByUserId.get(a.assigned_to ?? "") ?? "";
+        bVal = profileByUserId.get(b.assigned_to ?? "") ?? "";
       } else {
         aVal = (a as TaskWithProject & { created_at?: string }).created_at ?? "";
         bVal = (b as TaskWithProject & { created_at?: string }).created_at ?? "";
@@ -115,7 +161,7 @@ export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds }: TaskTab
       const cmp = String(aVal).localeCompare(String(bVal), "he");
       return sortDirection === "asc" ? cmp : -cmp;
     });
-  }, [tasks, sortField, sortDirection]);
+  }, [tasks, sortField, sortDirection, profileByUserId]);
 
   const handleHeaderSort = (field: string) => {
     if (sortField === field) {

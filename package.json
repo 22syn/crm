@@ -8,7 +8,9 @@
     "seed:run": "node scripts/run-seed-migration.js",
     "seed:fix-password": "node scripts/fix-admin-password.js",
     "seed:fix-auth": "node scripts/run-fix-auth.js",
-    "user:add": "node --env-file=.env scripts/add-user.js",
+    "user:add": "node --env-file=.env.local scripts/add-user.js",
+    "stitch:create-pages": "tsx scripts/create-stitch-pages.ts",
+    "stitch:run": "tsx scripts/run-stitch-prompts.ts",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
@@ -76,6 +78,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
