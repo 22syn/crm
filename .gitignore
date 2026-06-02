@@ -36,3 +36,4 @@ dist-ssr
 supabase/.temp/
 .vercel
 .env*.local
+.cursor/mcp.json
