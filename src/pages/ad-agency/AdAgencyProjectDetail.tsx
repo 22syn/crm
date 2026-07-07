@@ -164,7 +164,7 @@ export default function AdAgencyProjectDetail() {
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{project.title}</h1>
+            <h1 className="text-display font-semibold">{project.title}</h1>
             {project.op_clients?.name && (
               <p className="text-muted-foreground">לקוח: {project.op_clients.name}</p>
             )}

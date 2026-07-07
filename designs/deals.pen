@@ -1,0 +1,199 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "DlRoot",
+      "x": 0,
+      "y": 0,
+      "name": "Deals",
+      "width": 1440,
+      "height": "fit_content(1200)",
+      "fill": "#ffffff",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "DlHead",
+          "name": "header",
+          "width": "fill_container",
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "DlTitle",
+              "name": "titleBlock",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                { "type": "text", "id": "DlT1", "content": "Deals", "fill": "#1a1a1a", "fontSize": 28, "fontWeight": "600" },
+                { "type": "text", "id": "DlT2", "content": "Pipeline and sales pipeline", "fill": "#737373", "fontSize": 14 }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DlAddBtn",
+              "name": "addButton",
+              "height": 36,
+              "padding": [8, 16],
+              "fill": "hsl(262, 55%, 50%)",
+              "cornerRadius": 6,
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 8,
+              "children": [
+                { "type": "text", "id": "DlAddT", "content": "+ New Deal", "fill": "#ffffff", "fontSize": 14, "fontWeight": "500" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DlTabs",
+          "name": "viewTabs",
+          "width": "fill_container",
+          "layout": "horizontal",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "DlTabP",
+              "name": "pipelineTab",
+              "height": 36,
+              "padding": [8, 16],
+              "fill": "hsl(262, 55%, 50%)",
+              "cornerRadius": 6,
+              "layout": "horizontal",
+              "alignItems": "center",
+              "children": [
+                { "type": "text", "id": "DlTabPT", "content": "Pipeline", "fill": "#ffffff", "fontSize": 14, "fontWeight": "500" }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DlTabT",
+              "name": "tableTab",
+              "height": 36,
+              "padding": [8, 16],
+              "fill": "hsl(220, 15%, 95%)",
+              "cornerRadius": 6,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "layout": "horizontal",
+              "alignItems": "center",
+              "children": [
+                { "type": "text", "id": "DlTabTT", "content": "Table", "fill": "#4a4a4a", "fontSize": 14 }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DlTabR",
+              "name": "reportTab",
+              "height": 36,
+              "padding": [8, 16],
+              "fill": "hsl(220, 15%, 95%)",
+              "cornerRadius": 6,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "layout": "horizontal",
+              "alignItems": "center",
+              "children": [
+                { "type": "text", "id": "DlTabRT", "content": "Report", "fill": "#4a4a4a", "fontSize": 14 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DlKanban",
+          "name": "kanbanArea",
+          "width": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "DlCol1",
+              "name": "column1",
+              "width": 260,
+              "height": 400,
+              "layout": "vertical",
+              "fill": "hsl(220, 15%, 96%)",
+              "cornerRadius": 8,
+              "padding": 16,
+              "gap": 12,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "children": [
+                { "type": "text", "id": "DlC1T", "content": "Quote Approved", "fill": "#1a1a1a", "fontSize": 14, "fontWeight": "600" },
+                {
+                  "type": "frame",
+                  "id": "DlC1C1",
+                  "name": "card",
+                  "layout": "vertical",
+                  "fill": "hsl(220, 15%, 99%)",
+                  "cornerRadius": 8,
+                  "padding": 16,
+                  "gap": 8,
+                  "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+                  "children": [
+                    { "type": "text", "id": "DlC1C1n", "content": "Kitchen Renovation", "fill": "#1a1a1a", "fontSize": 14, "fontWeight": "500" },
+                    { "type": "text", "id": "DlC1C1a", "content": "₪45,000", "fill": "#4a4a4a", "fontSize": 14 }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DlCol2",
+              "name": "column2",
+              "width": 260,
+              "height": 400,
+              "layout": "vertical",
+              "fill": "hsl(220, 15%, 96%)",
+              "cornerRadius": 8,
+              "padding": 16,
+              "gap": 12,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "children": [
+                { "type": "text", "id": "DlC2T", "content": "In Production", "fill": "#1a1a1a", "fontSize": 14, "fontWeight": "600" },
+                {
+                  "type": "frame",
+                  "id": "DlC2C1",
+                  "name": "card",
+                  "layout": "vertical",
+                  "fill": "hsl(220, 15%, 99%)",
+                  "cornerRadius": 8,
+                  "padding": 16,
+                  "gap": 8,
+                  "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+                  "children": [
+                    { "type": "text", "id": "DlC2C1n", "content": "Bathroom Tiles", "fill": "#1a1a1a", "fontSize": 14, "fontWeight": "500" },
+                    { "type": "text", "id": "DlC2C1a", "content": "₪12,500", "fill": "#4a4a4a", "fontSize": 14 }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DlCol3",
+              "name": "column3",
+              "width": 260,
+              "height": 400,
+              "layout": "vertical",
+              "fill": "hsl(220, 15%, 96%)",
+              "cornerRadius": 8,
+              "padding": 16,
+              "gap": 12,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "children": [
+                { "type": "text", "id": "DlC3T", "content": "Ready for Delivery", "fill": "#1a1a1a", "fontSize": 14, "fontWeight": "600" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

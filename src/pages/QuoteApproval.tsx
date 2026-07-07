@@ -168,14 +168,14 @@ export default function QuoteApprovalPage() {
   if (!quote) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold">Contract not found</h2>
+        <h2 className="text-title font-semibold">Contract not found</h2>
         <Button className="mt-4" onClick={() => navigate("/contracts")}>Back to contracts</Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-section">
         <div>
           <Button variant="ghost" onClick={() => navigate("/contracts")} className="gap-2">
             <ArrowRight className="h-4 w-4" />
@@ -185,7 +185,7 @@ export default function QuoteApprovalPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Contract approval {quote.quote_number}</CardTitle>
+            <CardTitle className="text-title font-semibold">Contract approval {quote.quote_number}</CardTitle>
             <CardDescription>Upload payment proof to complete the process</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

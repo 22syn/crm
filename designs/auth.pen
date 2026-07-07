@@ -1,0 +1,138 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "authScreen",
+      "x": 0,
+      "y": 0,
+      "name": "Auth",
+      "width": 1440,
+      "height": 900,
+      "fill": "#ffffff",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "authCard",
+          "name": "authCard",
+          "width": 400,
+          "height": "fit_content(420)",
+          "fill": "hsl(220, 15%, 99%)",
+          "cornerRadius": 12,
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 32,
+          "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+          "children": [
+            {
+              "type": "text",
+              "id": "cardTitle",
+              "content": "Demo CRM",
+              "fill": "#1a1a1a",
+              "fontSize": 24,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "cardDesc",
+              "content": "Where leads become customers",
+              "fill": "#737373",
+              "fontSize": 14
+            },
+            {
+              "type": "frame",
+              "id": "formFrame",
+              "name": "formFrame",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "emailLabel",
+                  "content": "Email",
+                  "fill": "#4a4a4a",
+                  "fontSize": 14
+                },
+                {
+                  "type": "frame",
+                  "id": "emailInput",
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "#ffffff",
+                  "cornerRadius": 6,
+                  "padding": [8, 12],
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "emailPh",
+                      "content": "you@example.com",
+                      "fill": "#737373",
+                      "fontSize": 14
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "passLabel",
+                  "content": "Password",
+                  "fill": "#4a4a4a",
+                  "fontSize": 14
+                },
+                {
+                  "type": "frame",
+                  "id": "passInput",
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "#ffffff",
+                  "cornerRadius": 6,
+                  "padding": [8, 12],
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "passPh",
+                      "content": "••••••••",
+                      "fill": "#737373",
+                      "fontSize": 14
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "submitBtn",
+                  "width": "fill_container",
+                  "height": 40,
+                  "fill": "hsl(262, 55%, 50%)",
+                  "cornerRadius": 6,
+                  "padding": [10, 16],
+                  "layout": "horizontal",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "submitLabel",
+                      "content": "Sign in",
+                      "fill": "#ffffff",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

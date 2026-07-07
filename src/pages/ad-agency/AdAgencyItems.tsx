@@ -155,7 +155,7 @@ export default function AdAgencyItems() {
     <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
-            <h1 className="text-2xl font-bold">פריטים</h1>
+            <h1 className="text-display font-semibold">פריטים</h1>
             <p className="text-muted-foreground">קטלוג פריטים – סוג ומחיר</p>
           </div>
           <Button onClick={() => { setSelectedItem(null); setDialogOpen(true); }}>

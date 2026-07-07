@@ -207,7 +207,7 @@ export default function Customers() {
     <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
-            <h1 className="text-3xl font-bold">Customers</h1>
+            <h1 className="text-display font-semibold">Customers</h1>
             <p className="text-muted-foreground">Manage customer records</p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
@@ -316,7 +316,7 @@ export default function Customers() {
         ) : customers.length === 0 ? (
           <div className="text-center py-12">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No Customers</h3>
+            <h3 className="text-title font-medium">No Customers</h3>
             <p className="text-muted-foreground mt-1">Add your first customer</p>
           </div>
         ) : (

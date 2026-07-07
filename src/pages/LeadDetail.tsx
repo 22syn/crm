@@ -79,7 +79,7 @@ export default function LeadDetail() {
 
   return (
     <>
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-section">
         <Button variant="ghost" onClick={() => navigate("/leads")} className="gap-2 -ml-2">
           <ArrowLeft className="h-4 w-4" />
           Back to leads
@@ -87,9 +87,9 @@ export default function LeadDetail() {
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold hidden md:block">{lead.customer_name}</h1>
+            <h1 className="text-display font-semibold hidden md:block">{lead.customer_name}</h1>
             <p className="text-base font-medium md:hidden truncate">{lead.customer_name}</p>
-            <p className="text-sm text-muted-foreground mt-1 hidden md:block">
+            <p className="text-body text-muted-foreground mt-1 hidden md:block">
               Created {format(new Date(lead.created_at), "MMM d, yyyy")} · ID {lead.id.slice(0, 8)}
             </p>
           </div>
@@ -99,10 +99,10 @@ export default function LeadDetail() {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-section md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Details</CardTitle>
+              <CardTitle className="text-title font-semibold">Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {lead.customer_phone && (
@@ -166,7 +166,7 @@ export default function LeadDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Contracts</CardTitle>
+              <CardTitle className="text-title font-semibold">Contracts</CardTitle>
             </CardHeader>
             <CardContent>
               {quote ? (
@@ -185,7 +185,10 @@ export default function LeadDetail() {
         </div>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardHeader>
+            <CardTitle className="text-title font-semibold">Comments</CardTitle>
+          </CardHeader>
+          <CardContent>
             <LeadComments leadId={lead.id} />
           </CardContent>
         </Card>

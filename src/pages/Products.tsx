@@ -12,10 +12,10 @@ export default function Products() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
-            <h1 className="text-3xl font-bold">Products</h1>
+            <h1 className="text-display font-semibold">Products</h1>
             <p className="text-muted-foreground">Synced from Shopify</p>
           </div>
           <div className="flex items-center gap-3 md:ml-auto">
@@ -51,7 +51,7 @@ export default function Products() {
         {products && products.length === 0 && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No products found</h3>
+            <h3 className="text-title font-medium">No products found</h3>
             <p className="text-muted-foreground mt-1">
               Add products in your Shopify admin to see them here.
             </p>

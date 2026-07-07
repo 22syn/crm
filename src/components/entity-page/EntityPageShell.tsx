@@ -98,7 +98,7 @@ export function EntityPageShell({
             <div className="flex flex-wrap items-center gap-2 shrink-0 md:flex-1 md:justify-end">
               {headerActions}
               {addButtonText && onAddClick && (
-                <Button variant="accent" className="rounded-sm shrink-0" onClick={onAddClick}>
+                <Button variant="accent" className="shrink-0" onClick={onAddClick}>
                   <Plus className="h-4 w-4 mr-2 shrink-0" />
                   {addButtonText}
                 </Button>

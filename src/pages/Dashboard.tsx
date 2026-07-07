@@ -29,7 +29,7 @@ function DashboardContent() {
           </p>
         </div>
         <Select value={timeRange} onValueChange={(v: TimeRange) => setTimeRange(v)} className="md:ml-auto">
-          <SelectTrigger className="w-[160px] rounded-sm">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
@@ -43,12 +43,12 @@ function DashboardContent() {
 
       <StatsCards timeRange={timeRange} role={filterByMe ? "sales" : "admin"} userId={user?.id} />
 
-      <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "200ms" }}>
+      <div className="grid gap-6 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "200ms" }}>
         <OrdersChart assignedTo={filterByMe ? user?.id : undefined} />
         <LeadsBySourceChart assignedTo={filterByMe ? user?.id : undefined} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "300ms" }}>
+      <div className="grid gap-6 md:grid-cols-2 animate-card-enter opacity-0" style={{ animationDelay: "300ms" }}>
         <ActivityFeed assignedTo={filterByMe ? user?.id : undefined} />
         <QuickActions />
       </div>

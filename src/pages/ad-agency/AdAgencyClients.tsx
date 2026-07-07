@@ -186,7 +186,7 @@ export default function AdAgencyClients() {
     <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="hidden md:block">
-            <h1 className="text-2xl font-bold">לקוחות</h1>
+            <h1 className="text-display font-semibold">לקוחות</h1>
             <p className="text-muted-foreground">לקוחות משרד הפרסום</p>
           </div>
           <Button onClick={() => { setSelectedClient(null); setDialogOpen(true); }}>

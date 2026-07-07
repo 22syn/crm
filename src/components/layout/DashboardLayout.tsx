@@ -60,14 +60,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <DashboardSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:hidden">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4 md:hidden">
           <SidebarTrigger aria-label="Open menu" className="shrink-0" />
           <div className="flex-1 min-w-0 flex items-center">
             <MobileHeaderTitle />
           </div>
         </header>
         <main
-          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden"
+          className="flex-1 min-w-0 p-4 md:p-6 overflow-x-hidden bg-white"
           dir={mainDir}
         >
           {children}

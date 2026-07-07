@@ -135,7 +135,7 @@ export default function AdAgencyDashboard() {
 
   return (
     <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">דשבורד משרד פרסום</h1>
+        <h1 className="text-display font-semibold">דשבורד משרד פרסום</h1>
         <p className="text-muted-foreground">סיכום פיננסי, פרויקטים פעילים וטיוטה, משימות קריטיות</p>
 
         <div className="grid gap-4 md:grid-cols-4">

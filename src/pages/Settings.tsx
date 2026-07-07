@@ -213,7 +213,7 @@ export default function Settings() {
   if (!canManageSettings) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold hidden md:block">אין גישה</h1>
+        <h1 className="text-display font-semibold hidden md:block">אין גישה</h1>
         <p className="text-muted-foreground mt-2">רק מנהלי מערכת יכולים לגשת להגדרות.</p>
       </div>
     );
@@ -222,7 +222,7 @@ export default function Settings() {
   return (
     <div className="space-y-6 p-6">
       <div className="hidden md:block">
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-display font-semibold">Settings</h1>
         <p className="text-muted-foreground">ניהול הגדרות מערכת והרשאות צוות</p>
       </div>
 

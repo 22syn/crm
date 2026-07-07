@@ -219,7 +219,7 @@ export default function DesignRequests() {
         renderEmptyState={
           <div className="text-center py-12">
             <Palette className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium">No design requests</h3>
+            <h3 className="text-title font-medium">No design requests</h3>
             <p className="text-muted-foreground mt-1">
               Custom design requests will appear here after contract approval
             </p>
@@ -254,10 +254,10 @@ export default function DesignRequests() {
       renderToolbar={() => (
         <EntityToolbar>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="rounded-sm">
-              <TabsTrigger value="pending" className="rounded-sm">Pending ({pendingRequests.length})</TabsTrigger>
-              <TabsTrigger value="in_progress" className="rounded-sm">In Progress ({inProgressRequests.length})</TabsTrigger>
-              <TabsTrigger value="completed" className="rounded-sm">Completed ({completedRequests.length})</TabsTrigger>
+            <TabsList>
+              <TabsTrigger value="pending">Pending ({pendingRequests.length})</TabsTrigger>
+              <TabsTrigger value="in_progress">In Progress ({inProgressRequests.length})</TabsTrigger>
+              <TabsTrigger value="completed">Completed ({completedRequests.length})</TabsTrigger>
             </TabsList>
           </Tabs>
         </EntityToolbar>

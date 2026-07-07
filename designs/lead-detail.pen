@@ -1,0 +1,192 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "LdDRoot",
+      "x": 0,
+      "y": 0,
+      "name": "Lead Detail",
+      "width": 960,
+      "height": "fit_content(1000)",
+      "fill": "#ffffff",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "LdBkBtn",
+          "name": "backButton",
+          "layout": "horizontal",
+          "alignItems": "center",
+          "gap": 8,
+          "children": [
+            { "type": "text", "id": "LdBkT", "content": "← Back to leads", "fill": "#4a4a4a", "fontSize": 14 }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LdDHead",
+          "name": "header",
+          "width": "fill_container",
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "flex-start",
+          "children": [
+            {
+              "type": "frame",
+              "id": "LdDTitle",
+              "name": "titleBlock",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                { "type": "text", "id": "LdDT1", "content": "Yael Cohen", "fill": "#1a1a1a", "fontSize": 28, "fontWeight": "600" },
+                { "type": "text", "id": "LdDT2", "content": "Created Mar 2, 2026 · ID a1b2c3d4", "fill": "#737373", "fontSize": 14 }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "LdDEdit",
+              "name": "editButton",
+              "height": 36,
+              "padding": [8, 16],
+              "fill": "hsl(262, 55%, 50%)",
+              "cornerRadius": 6,
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 8,
+              "children": [
+                { "type": "text", "id": "LdDEditT", "content": "Edit", "fill": "#ffffff", "fontSize": 14, "fontWeight": "500" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LdDCards",
+          "name": "cardsRow",
+          "width": "fill_container",
+          "layout": "horizontal",
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "LdDDetails",
+              "name": "detailsCard",
+              "width": "fill_container",
+              "layout": "vertical",
+              "fill": "hsl(220, 15%, 99%)",
+              "cornerRadius": 8,
+              "padding": 24,
+              "gap": 16,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "children": [
+                { "type": "text", "id": "LdDDetT", "content": "Details", "fill": "#1a1a1a", "fontSize": 18, "fontWeight": "600" },
+                {
+                  "type": "frame",
+                  "id": "LdDDet1",
+                  "name": "phoneRow",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 12,
+                  "children": [
+                    { "type": "text", "id": "LdDIco1", "content": "📞", "fill": "#737373", "fontSize": 14 },
+                    { "type": "text", "id": "LdDPh", "content": "+972-50-111-2233", "fill": "#1a1a1a", "fontSize": 14 }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LdDDet2",
+                  "name": "emailRow",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 12,
+                  "children": [
+                    { "type": "text", "id": "LdDIco2", "content": "✉", "fill": "#737373", "fontSize": 14 },
+                    { "type": "text", "id": "LdDEm", "content": "yael.c@example.com", "fill": "#1a1a1a", "fontSize": 14 }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LdDDet3",
+                  "name": "sourceRow",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 12,
+                  "children": [
+                    { "type": "text", "id": "LdDSrcL", "content": "Source", "fill": "#737373", "fontSize": 14 },
+                    {
+                      "type": "frame",
+                      "id": "LdDSrcB",
+                      "name": "badge",
+                      "padding": [4, 8],
+                      "fill": "hsl(220, 20%, 95%)",
+                      "cornerRadius": 4,
+                      "children": [
+                        { "type": "text", "id": "LdDSrcT", "content": "Instagram", "fill": "#4a4a4a", "fontSize": 12 }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LdDDet4",
+                  "name": "statusRow",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 12,
+                  "children": [
+                    { "type": "text", "id": "LdDStsL", "content": "Status", "fill": "#737373", "fontSize": 14 },
+                    {
+                      "type": "frame",
+                      "id": "LdDStsB",
+                      "name": "badge",
+                      "padding": [4, 8],
+                      "fill": "hsl(220, 20%, 95%)",
+                      "cornerRadius": 4,
+                      "children": [
+                        { "type": "text", "id": "LdDStsT", "content": "New", "fill": "#4a4a4a", "fontSize": 12 }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "LdDContracts",
+              "name": "contractsCard",
+              "width": "fill_container",
+              "layout": "vertical",
+              "fill": "hsl(220, 15%, 99%)",
+              "cornerRadius": 8,
+              "padding": 24,
+              "gap": 16,
+              "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+              "children": [
+                { "type": "text", "id": "LdDConT", "content": "Contracts", "fill": "#1a1a1a", "fontSize": 18, "fontWeight": "600" },
+                { "type": "text", "id": "LdDConD", "content": "No contract yet.", "fill": "#737373", "fontSize": 14 }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "LdDComments",
+          "name": "commentsCard",
+          "width": "fill_container",
+          "layout": "vertical",
+          "fill": "hsl(220, 15%, 99%)",
+          "cornerRadius": 8,
+          "padding": 24,
+          "stroke": { "align": "inside", "thickness": 1, "fill": "hsl(220, 15%, 90%)" },
+          "children": [
+            { "type": "text", "id": "LdDCmT", "content": "Comments", "fill": "#1a1a1a", "fontSize": 18, "fontWeight": "600" },
+            { "type": "text", "id": "LdDCmP", "content": "Add a comment…", "fill": "#737373", "fontSize": 14 }
+          ]
+        }
+      ]
+    }
+  ]
+}
