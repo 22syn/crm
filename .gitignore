@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# npm is canonical (package-lock.json) — bun.lockb is a stale template leftover
+bun.lockb
+
 node_modules
 dist
 dist-ssr
