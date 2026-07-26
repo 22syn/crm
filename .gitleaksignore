@@ -1,0 +1,7 @@
+# Known historical findings, already confirmed not present in current HEAD.
+# CRM is on-hold; git history has not been rewritten (would require a force-push
+# and break every clone) since the exposure is already historical-only.
+# Format: <commit>:<file>:<rule-id>:<start-line>
+07c56edde8d5662a5e257ea1809798ec9c820cff:.cursor/mcp.json:generic-api-key:20
+daecb4ae4243ca1b045ce13e0a4dbc70761ef133:src/lib/shopify.ts:generic-api-key:5
+12adcc66fcd66b50e82a6e54f58b7a4dd7ee2468:.env:jwt:2
