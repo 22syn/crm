@@ -33,3 +33,11 @@ jobs:
       - name: Typecheck (non-blocking)
         run: npm run typecheck
         continue-on-error: true
+
+  secrets-scan:
+    uses: 22syn/ci-templates/.github/workflows/node-ci.yml@main
+    with:
+      run-lint: false
+      run-test: false
+      run-build: false
+      run-secrets-scan: true
