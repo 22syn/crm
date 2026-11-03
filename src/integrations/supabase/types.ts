@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      company_settings: {
+        Row: {
+          address: string | null
+          email: string | null
+          features: Json
+          id: string
+          logo_url: string | null
+          module: string
+          name: string | null
+          phone: string | null
+          primary_color: string | null
+          sender_email: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          email?: string | null
+          features?: Json
+          id?: string
+          logo_url?: string | null
+          module: string
+          name?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          sender_email?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          email?: string | null
+          features?: Json
+          id?: string
+          logo_url?: string | null
+          module?: string
+          name?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          sender_email?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           contract_number: string
@@ -64,39 +109,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      company_settings: {
-        Row: {
-          id: string
-          module: string
-          name: string | null
-          address: string | null
-          email: string | null
-          phone: string | null
-          website: string | null
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          module: string
-          name?: string | null
-          address?: string | null
-          email?: string | null
-          phone?: string | null
-          website?: string | null
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          module?: string
-          name?: string | null
-          address?: string | null
-          email?: string | null
-          phone?: string | null
-          website?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       customers: {
         Row: {
@@ -358,6 +370,27 @@ export type Database = {
           },
         ]
       }
+      op_budget_sections: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       op_clients: {
         Row: {
           address: string | null
@@ -408,6 +441,7 @@ export type Database = {
           created_at: string
           id: string
           price: number
+          section_id: string | null
           type: string
           updated_at: string
         }
@@ -415,6 +449,7 @@ export type Database = {
           created_at?: string
           id?: string
           price?: number
+          section_id?: string | null
           type: string
           updated_at?: string
         }
@@ -422,33 +457,48 @@ export type Database = {
           created_at?: string
           id?: string
           price?: number
+          section_id?: string | null
           type?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "op_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "op_budget_sections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       op_project_items: {
         Row: {
           created_at: string
           days: number
+          extras: number
           id: string
           item_id: string
+          prep_days: number
           project_id: string
           quantity: number
         }
         Insert: {
           created_at?: string
           days?: number
+          extras?: number
           id?: string
           item_id: string
+          prep_days?: number
           project_id: string
           quantity?: number
         }
         Update: {
           created_at?: string
           days?: number
+          extras?: number
           id?: string
           item_id?: string
+          prep_days?: number
           project_id?: string
           quantity?: number
         }
@@ -522,9 +572,15 @@ export type Database = {
           budget_required: number | null
           client_id: string
           created_at: string
+          deliverables: string | null
+          description: string | null
+          discount: number
           end_date: string | null
           id: string
+          insurance: number
+          locations_schedule: string | null
           notes: string | null
+          production_fee_percent: number
           start_date: string | null
           status: Database["public"]["Enums"]["op_project_status"]
           title: string
@@ -535,9 +591,15 @@ export type Database = {
           budget_required?: number | null
           client_id: string
           created_at?: string
+          deliverables?: string | null
+          description?: string | null
+          discount?: number
           end_date?: string | null
           id?: string
+          insurance?: number
+          locations_schedule?: string | null
           notes?: string | null
+          production_fee_percent?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["op_project_status"]
           title: string
@@ -548,9 +610,15 @@ export type Database = {
           budget_required?: number | null
           client_id?: string
           created_at?: string
+          deliverables?: string | null
+          description?: string | null
+          discount?: number
           end_date?: string | null
           id?: string
+          insurance?: number
+          locations_schedule?: string | null
           notes?: string | null
+          production_fee_percent?: number
           start_date?: string | null
           status?: Database["public"]["Enums"]["op_project_status"]
           title?: string
@@ -647,6 +715,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          super_admin: boolean
           updated_at: string
           user_id: string
         }
@@ -656,6 +725,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          super_admin?: boolean
           updated_at?: string
           user_id: string
         }
@@ -665,6 +735,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          super_admin?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -858,6 +929,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_module_roles: {
+        Row: {
+          created_at: string
+          id: string
+          module: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -914,7 +1009,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_branding: {
+        Args: { _module: string }
+        Returns: {
+          logo_url: string | null
+          name: string | null
+          primary_color: string | null
+        }[]
+      }
       has_crm_access: { Args: { _user_id: string }; Returns: boolean }
+      has_module_access: {
+        Args: { _module: string; _user_id: string }
+        Returns: boolean
+      }
+      has_module_admin: {
+        Args: { _module: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -922,6 +1033,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "sales"
@@ -983,12 +1095,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1012,11 +1124,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1037,11 +1149,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1062,11 +1174,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1079,11 +1191,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

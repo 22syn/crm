@@ -18,6 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MembersTable } from "@/components/settings/MembersTable";
+import { CompanyBrandingCard } from "@/components/settings/CompanyBrandingCard";
+import { COMPANY_MODULES } from "@/lib/branding";
+import { isShopifyConfigured } from "@/lib/shopify";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ChevronRight } from "lucide-react";
 import {
@@ -59,7 +62,8 @@ function syncModuleRolesToDb(
 
 export default function Settings() {
   const { superAdmin, isModuleAdmin } = useAuth();
-  const canManageSettings = superAdmin || isModuleAdmin("system");
+  const canManageTeam = superAdmin || isModuleAdmin("system");
+  const brandingModules = COMPANY_MODULES.filter((module) => isModuleAdmin(module));
   const queryClient = useQueryClient();
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPermissions, setNewUserPermissions] = useState<ModulePermissions>({
@@ -101,7 +105,7 @@ export default function Settings() {
         moduleRoles: byUser.get(user_id) ?? {},
       }));
     },
-    enabled: canManageSettings,
+    enabled: canManageTeam,
   });
 
   const inviteMutation = useMutation({
@@ -199,11 +203,11 @@ export default function Settings() {
     });
   };
 
-  if (!canManageSettings) {
+  if (!canManageTeam && brandingModules.length === 0) {
     return (
       <div className="text-center py-12">
         <h1 className="text-2xl font-bold hidden md:block">אין גישה</h1>
-        <p className="text-muted-foreground mt-2">רק מנהלי מערכת יכולים לגשת להגדרות.</p>
+        <p className="text-muted-foreground mt-2">רק מנהלי מערכת או מנהלי מודול יכולים לגשת להגדרות.</p>
       </div>
     );
   }
@@ -215,137 +219,143 @@ export default function Settings() {
         <p className="text-muted-foreground mt-2">ניהול הגדרות מערכת והרשאות צוות</p>
       </div>
 
-      <Card className="rounded-xl border overflow-hidden">
-        <CardHeader>
-          <CardTitle>חברי צוות והרשאות</CardTitle>
-          <CardDescription>
-            הזמנת משתמשים חדשים וניהול הרשאות. רק אדמין יכול להוסיף ולהסיר יוזרים. המשתמש יקבל מייל הזמנה עם קישור להגדרת סיסמה.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <Label>הזמן משתמש חדש</Label>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-              <div className="flex-1 w-full sm:max-w-xs space-y-2">
-                <Input
-                  type="email"
-                  placeholder="כתובת אימייל"
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                />
+      <CompanyBrandingCard modules={brandingModules} canEditFeatures={superAdmin} />
+
+      {canManageTeam && (
+        <>
+          <Card className="rounded-xl border overflow-hidden">
+            <CardHeader>
+              <CardTitle>חברי צוות והרשאות</CardTitle>
+              <CardDescription>
+                הזמנת משתמשים חדשים וניהול הרשאות. רק אדמין יכול להוסיף ולהסיר יוזרים. המשתמש יקבל מייל הזמנה עם קישור להגדרת סיסמה.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <Label>הזמן משתמש חדש</Label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                  <div className="flex-1 w-full sm:max-w-xs space-y-2">
+                    <Input
+                      type="email"
+                      placeholder="כתובת אימייל"
+                      value={newUserEmail}
+                      onChange={(e) => setNewUserEmail(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleInvite}
+                    disabled={!newUserEmail.trim() || inviteMutation.isPending}
+                  >
+                    {inviteMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="h-4 w-4" />
+                    )}
+                    הזמן
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">הרשאות מודולים</Label>
+                  <ModulePermissionsSelector
+                    value={newUserPermissions}
+                    onChange={setNewUserPermissions}
+                  />
+                </div>
               </div>
-              <Button
-                onClick={handleInvite}
-                disabled={!newUserEmail.trim() || inviteMutation.isPending}
-              >
-                {inviteMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <UserPlus className="h-4 w-4" />
-                )}
-                הזמן
-              </Button>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">הרשאות מודולים</Label>
-              <ModulePermissionsSelector
-                value={newUserPermissions}
-                onChange={setNewUserPermissions}
-              />
-            </div>
-          </div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <MembersTable
-              members={members}
-              onEdit={openEdit}
-              onRemove={(m) => {
-                if (confirm("להסיר את כל ההרשאות של המשתמש?")) {
-                  removeMutation.mutate(m.user_id);
-                }
-              }}
-              isRemoving={removeMutation.isPending}
-            />
-          )}
-        </CardContent>
-      </Card>
-
-      <Dialog open={!!editingUser} onOpenChange={(o) => !o && setEditingUser(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>עריכת הרשאות</DialogTitle>
-          </DialogHeader>
-          {editingUser && (
-            <>
-              <p className="text-sm text-muted-foreground">
-                {editingUser.full_name || "—"} ({editingUser.email})
-              </p>
-              <ModulePermissionsSelector
-                value={editPermissions}
-                onChange={setEditPermissions}
-              />
-            </>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingUser(null)}>
-              ביטול
-            </Button>
-            <Button
-              onClick={saveEdit}
-              disabled={
-                updateMutation.isPending || Object.keys(editPermissions).length === 0
-              }
-            >
-              {updateMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
               ) : (
-                "שמור"
+                <MembersTable
+                  members={members}
+                  onEdit={openEdit}
+                  onRemove={(m) => {
+                    if (confirm("להסיר את כל ההרשאות של המשתמש?")) {
+                      removeMutation.mutate(m.user_id);
+                    }
+                  }}
+                  isRemoving={removeMutation.isPending}
+                />
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>אינטגרציות</CardTitle>
-          <CardDescription>חיבור שירותים חיצוניים</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">Shopify</h3>
-              <p className="text-sm text-muted-foreground">סנכרון מוצרים והזמנות</p>
-            </div>
-            <Badge>מחובר</Badge>
-          </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">Green Invoice</h3>
-              <p className="text-sm text-muted-foreground">יצירת חשבוניות מס</p>
-            </div>
-            <Badge variant="outline">בקרוב</Badge>
-          </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">Resend (Email)</h3>
-              <p className="text-sm text-muted-foreground">שליחת הצעות ועדכונים במייל</p>
-            </div>
-            <Badge>מחובר</Badge>
-          </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-              <h3 className="font-medium">WhatsApp</h3>
-              <p className="text-sm text-muted-foreground">שליחת הודעות ללקוחות</p>
-            </div>
-            <Badge>פעיל (קישורים ידניים)</Badge>
-          </div>
-        </CardContent>
-      </Card>
+          <Dialog open={!!editingUser} onOpenChange={(o) => !o && setEditingUser(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>עריכת הרשאות</DialogTitle>
+              </DialogHeader>
+              {editingUser && (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {editingUser.full_name || "—"} ({editingUser.email})
+                  </p>
+                  <ModulePermissionsSelector
+                    value={editPermissions}
+                    onChange={setEditPermissions}
+                  />
+                </>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditingUser(null)}>
+                  ביטול
+                </Button>
+                <Button
+                  onClick={saveEdit}
+                  disabled={
+                    updateMutation.isPending || Object.keys(editPermissions).length === 0
+                  }
+                >
+                  {updateMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "שמור"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>אינטגרציות</CardTitle>
+              <CardDescription>חיבור שירותים חיצוניים</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">Shopify</h3>
+                  <p className="text-sm text-muted-foreground">סנכרון מוצרים והזמנות</p>
+                </div>
+                {isShopifyConfigured() ? <Badge>מחובר</Badge> : <Badge variant="outline">לא מחובר</Badge>}
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">Green Invoice</h3>
+                  <p className="text-sm text-muted-foreground">יצירת חשבוניות מס</p>
+                </div>
+                <Badge variant="outline">בקרוב</Badge>
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">Resend (Email)</h3>
+                  <p className="text-sm text-muted-foreground">שליחת הצעות ועדכונים במייל</p>
+                </div>
+                <Badge>מחובר</Badge>
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-medium">WhatsApp</h3>
+                  <p className="text-sm text-muted-foreground">שליחת הודעות ללקוחות</p>
+                </div>
+                <Badge>פעיל (קישורים ידניים)</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

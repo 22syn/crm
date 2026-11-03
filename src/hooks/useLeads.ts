@@ -41,7 +41,7 @@ export function useLeads() {
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-  const [quoteItems, setQuoteItems] = useState<Tables<"quote_items">["Row"][]>([]);
+  const [quoteItems, setQuoteItems] = useState<Tables<"quote_items">[]>([]);
 
   const queryClient = useQueryClient();
   const location = useLocation();

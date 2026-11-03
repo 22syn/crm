@@ -44,7 +44,7 @@ export interface LeadDialogsOrchestratorProps {
   previewOpen: boolean;
   setPreviewOpen: (v: boolean) => void;
   selectedQuote: Quote | null;
-  quoteItems: Tables<"quote_items">["Row"][];
+  quoteItems: Tables<"quote_items">[];
 
   /** Save view dialog */
   saveViewDialogOpen: boolean;
