@@ -19,7 +19,7 @@ import {
   getBrandingUpdate,
 } from "./companyBrandingSchema";
 
-const BRANDING_MIGRATION = "20261103120000_company_settings_branding.sql";
+const BRANDING_MIGRATION = "20261103130626_company_settings_branding.sql";
 
 interface CompanyBrandingFormProps {
   readonly module: CompanyModule;
