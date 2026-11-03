@@ -15,7 +15,10 @@ bun run dev          # local dev server
 bun run build        # production build
 bun run test         # vitest
 bun run lint         # eslint
+npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads --dry-run   # new client (see scripts/README.md)
 ```
+
+**Per-client model:** the live project (`fbtnhhurjwizcrmcisci`) is the Xsheva demo (Hadarya + הר סיני are both demos). Real clients get their own Supabase + Vercel project via `scripts/setup-client/` (README: `scripts/README.md`). Its end-to-end test: `bash scripts/setup-client/local-test/run.sh`.
 
 **Required env vars** (copy `.env.example` → `.env.local`):
 - `VITE_SUPABASE_URL` — https://fbtnhhurjwizcrmcisci.supabase.co

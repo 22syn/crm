@@ -1,5 +1,52 @@
 # Scripts
 
+## Set up a new client (`npm run client:setup`)
+
+Each client gets **its own Supabase project and its own Vercel project**, running this same code.
+This script prepares a new, empty Supabase project for one client:
+
+1. Applies every migration in `supabase/migrations/` in order and records it the way the Supabase CLI does,
+   so `supabase db push` later sees the project as up to date.
+   Two demo-data migrations are **recorded but not run** (see `SEED_ONLY_MIGRATIONS` in `setup-client/plan.ts`):
+   the demo deals and the demo admin + 100 sample leads.
+2. Replaces the demo company rows (Hadarya / הר סיני) with the client's name, logo, color and sender email.
+3. Sends an invite email to the client's first admin (admin of each chosen module + team settings).
+4. Optionally invites Xsheva's support account as super admin. That is the only role allowed to change feature flags.
+5. Prints the env vars for the client's Vercel project.
+
+It refuses to run against the shared demo project (`fbtnhhurjwizcrmcisci`). It is safe to re-run:
+applied migrations are skipped, branding is updated, existing users and feature flags are kept.
+
+**Before:** create the client's Supabase project (Kobi; it may cost money). Put its secrets in the client's
+Infisical project: `DATABASE_URL` (Project Settings → Database → connection string, session mode),
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+```bash
+# See the plan first; touches nothing
+npm run client:setup -- --name "Acme Furniture" --admin-email owner@acme.com --modules leads --dry-run
+
+# Run it (secrets injected by Infisical, never typed or printed)
+infisical run -- npm run client:setup -- \
+  --name "Acme Furniture" --admin-email owner@acme.com --modules leads \
+  --primary-color "#0F766E" --logo-url https://acme.com/logo.png \
+  --sender-email quotes@acme.com --super-admin-email kobi@leadslords.com \
+  --site-url https://crm.acme.com
+```
+
+`--modules` takes `leads`, `ad_agency` or both (comma-separated).
+
+**After, by hand** (the script prints these): create the Vercel project with the printed env vars, set the
+Supabase Auth **Site URL** to the client's address, and deploy the edge functions
+(`supabase functions deploy --project-ref <ref>`).
+
+**Test it locally** (no Supabase needed; uses a throwaway Postgres):
+
+```bash
+bash scripts/setup-client/local-test/run.sh
+```
+
+---
+
 ## Seed admin + 100 leads (`npm run seed:run`)
 
 Runs the seed migration via pooler (uses `supabase/.temp/pooler-url` when linked).
