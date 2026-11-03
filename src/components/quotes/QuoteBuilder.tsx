@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchShopifyProducts, type ShopifyProduct } from "@/lib/shopify";
+import { fetchShopifyProducts, isShopifyConfigured, type ShopifyProduct } from "@/lib/shopify";
 import {
   Dialog,
   DialogContent,
@@ -80,10 +80,11 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  const isShopifyConnected = isShopifyConfigured();
   const { data: products, isLoading: productsLoading } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products-quote"],
     queryFn: () => fetchShopifyProducts(50),
-    enabled: open,
+    enabled: open && isShopifyConnected,
   });
 
   // Update customer info when lead changes or dialog opens
@@ -362,7 +363,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             </div>
             
             <ScrollArea className="flex-1 border rounded-md p-2">
-              {productsLoading ? (
+              {!isShopifyConnected ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="h-8 w-8 mx-auto mb-2" />
+                  <p>Shopify is not connected, so there is no product catalog.</p>
+                </div>
+              ) : productsLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin" />
                 </div>

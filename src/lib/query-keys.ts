@@ -35,4 +35,9 @@ export const queryKeys = {
     all: ["customers"] as const,
     list: (filters?: Record<string, unknown>) => ["customers", "list", filters ?? {}] as const,
   },
+  companySettings: {
+    all: ["company-settings"] as const,
+    byModule: (module: string) => ["company-settings", "module", module] as const,
+    publicBranding: (module: string) => ["company-settings", "public-branding", module] as const,
+  },
 };

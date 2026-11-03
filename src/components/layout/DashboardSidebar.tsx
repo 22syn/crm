@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAppBranding } from "@/hooks/useAppBranding";
 import {
   Sidebar,
   SidebarContent,
@@ -104,10 +105,14 @@ function NavItems({
 export function DashboardSidebar() {
   const location = useLocation();
   const { canAccessModule, isModuleAdmin } = useAuth();
+  const { branding, isLoading: brandingLoading } = useAppBranding();
 
   const canShowCatalogItem = (item: (typeof catalogSubItems)[0]) =>
     item.module === "leads" ? canAccessModule("leads") : isModuleAdmin("system");
-  const canShowAdminItem = (item: (typeof adminItems)[0]) => isModuleAdmin("system");
+  // Module admins reach Settings to edit their own company branding.
+  const canShowAdminItem = (item: (typeof adminItems)[0]) =>
+    isModuleAdmin("system") ||
+    (item.url === "/settings" && (isModuleAdmin("leads") || isModuleAdmin("ad_agency")));
 
   const adminItemsVisible = adminItems.filter(canShowAdminItem);
 
@@ -116,15 +121,15 @@ export function DashboardSidebar() {
       <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center gap-2 px-3 group-data-[collapsible=icon]:px-2">
         <Link
           to="/dashboard"
-          className="flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:flex-initial"
+          className={`flex min-w-0 flex-1 items-center gap-3 group-data-[collapsible=icon]:flex-initial ${brandingLoading ? "invisible" : ""}`}
         >
           <img
-            src="/logo.png"
-            alt="Company logo"
+            src={branding.logoUrl}
+            alt={`${branding.name} logo`}
             className="w-8 h-8 shrink-0 rounded-lg object-cover"
           />
           <div className="flex min-w-0 flex-1 flex-col items-start group-data-[collapsible=icon]:hidden">
-            <span className="text-white font-semibold text-xl tracking-tight truncate">Xsheva CRM</span>
+            <span className="text-white font-semibold text-xl tracking-tight truncate">{branding.name}</span>
           </div>
         </Link>
         <SidebarTrigger className="shrink-0 cursor-pointer text-sidebar-foreground/70 transition-colors duration-200 hover:text-sidebar-foreground hover:bg-sidebar-accent group-data-[collapsible=icon]:hidden" />

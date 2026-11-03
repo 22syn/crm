@@ -23,8 +23,8 @@ import { Plus, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type QuoteRow = Tables<"quotes">["Row"];
-type QuoteItemRow = Tables<"quote_items">["Row"];
+type QuoteRow = Tables<"quotes">;
+type QuoteItemRow = Tables<"quote_items">;
 
 export default function Quotes() {
   const queryClient = useQueryClient();

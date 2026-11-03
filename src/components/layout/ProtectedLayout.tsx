@@ -8,7 +8,9 @@ const LEADS_PATHS = ["/dashboard", "/leads", "/deals", "/design-requests", "/pro
 /** Routes that require ad_agency module */
 const AD_AGENCY_PREFIX = "/ad-agency";
 /** Routes that require system admin */
-const SYSTEM_PATHS = ["/suppliers", "/automations", "/settings"];
+const SYSTEM_PATHS = ["/suppliers", "/automations"];
+/** Settings: system admins manage the team; module admins edit their company branding */
+const SETTINGS_PATH = "/settings";
 /** Shared routes - accessible by leads OR ad_agency */
 const SHARED_PATHS = ["/contracts"];
 
@@ -47,6 +49,10 @@ export function ProtectedLayout() {
   // Ad agency routes - require ad_agency
   if (pathname.startsWith(AD_AGENCY_PREFIX)) {
     if (!canAccessModule("ad_agency")) return <Navigate to={defaultRedirect} replace />;
+  }
+  else if (pathname === SETTINGS_PATH || pathname.startsWith(SETTINGS_PATH + "/")) {
+    const canOpenSettings = isModuleAdmin("system") || isModuleAdmin("leads") || isModuleAdmin("ad_agency");
+    if (!canOpenSettings) return <Navigate to={defaultRedirect} replace />;
   }
   // System routes - require system admin
   else if (SYSTEM_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {

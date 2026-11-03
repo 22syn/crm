@@ -2,20 +2,22 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLoginBranding } from "@/hooks/useAppBranding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Database, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function Auth() {
   const { session, loading } = useAuth();
+  const { branding, isLoading: brandingLoading } = useLoginBranding();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  if (loading) {
+  if (loading || brandingLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -53,15 +55,15 @@ export default function Auth() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3 mb-6">
               <img
-                src="/logo.png"
-                alt="Company logo"
+                src={branding.logoUrl}
+                alt={`${branding.name} logo`}
                 className="size-10 rounded-lg object-cover shrink-0"
               />
-              <h2 className="text-2xl font-bold tracking-tight">Xsheva CRM</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{branding.name}</h2>
             </div>
             <h3 className="text-3xl font-bold tracking-tight">Welcome back</h3>
             <p className="text-muted-foreground">
-              Please enter your details to sign in to your Xsheva CRM account.
+              Please enter your details to sign in to your {branding.name} account.
             </p>
           </div>
 
@@ -129,7 +131,10 @@ export default function Auth() {
       </div>
 
       {/* Right: Brand gradient panel - Stitch design */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#1337ec] items-center justify-center p-12 overflow-hidden">
+      <div
+        className="hidden lg:flex lg:w-1/2 relative bg-[#1337ec] items-center justify-center p-12 overflow-hidden"
+        style={branding.primaryColor ? { backgroundColor: branding.primaryColor } : undefined}
+      >
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
           style={{
@@ -140,8 +145,8 @@ export default function Auth() {
         <div className="relative z-10 max-w-lg text-center">
           <div className="mb-8 inline-flex items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
             <img
-              src="/logo.png"
-              alt="Company logo"
+              src={branding.logoUrl}
+              alt={`${branding.name} logo`}
               className="w-16 h-16 rounded-xl object-cover"
             />
           </div>
@@ -150,11 +155,11 @@ export default function Auth() {
           </h1>
           <p className="text-white/80 text-lg font-medium leading-relaxed">
             Streamline your sales process, manage customer relationships, and scale your business
-            with Xsheva CRM&apos;s intelligent platform.
+            with {branding.name}&apos;s intelligent platform.
           </p>
         </div>
         <div className="absolute bottom-12 left-12 flex items-center gap-2 text-white/60 text-sm">
-          <span>© 2024 Xsheva CRM. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} {branding.name}. All rights reserved.</span>
         </div>
       </div>
     </div>

@@ -1,14 +1,16 @@
 import { ProductCard } from "@/components/products/ProductCard";
-import { fetchShopifyProducts, type ShopifyProduct } from "@/lib/shopify";
+import { fetchShopifyProducts, isShopifyConfigured, type ShopifyProduct } from "@/lib/shopify";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Package, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export default function Products() {
+  const isConnected = isShopifyConfigured();
   const { data: products, isLoading, error, refetch } = useQuery<ShopifyProduct[]>({
     queryKey: ["shopify-products"],
     queryFn: () => fetchShopifyProducts(50),
+    enabled: isConnected,
   });
 
   return (
@@ -20,8 +22,8 @@ export default function Products() {
           </div>
           <div className="flex items-center gap-3 md:ml-auto">
             <Badge variant="outline" className="gap-1">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              Connected
+              <span className={`h-2 w-2 rounded-full ${isConnected ? "bg-green-500" : "bg-muted-foreground"}`} />
+              {isConnected ? "Connected" : "Not connected"}
             </Badge>
             <Button variant="outline" size="sm" asChild>
               <a 
@@ -35,6 +37,16 @@ export default function Products() {
             </Button>
           </div>
         </div>
+
+        {!isConnected && (
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium">Shopify is not connected</h3>
+            <p className="text-muted-foreground mt-1">
+              Set VITE_SHOPIFY_STORE_DOMAIN and VITE_SHOPIFY_STOREFRONT_TOKEN to show your store's products here.
+            </p>
+          </div>
+        )}
 
         {isLoading && (
           <div className="flex items-center justify-center py-12">

@@ -1,8 +1,13 @@
 // Shopify Storefront API Configuration
+// Per-client: set both env vars to connect a store. Without them the Products page and
+// quote builder show a "not connected" state instead of calling Shopify.
 const SHOPIFY_API_VERSION = '2025-07';
-const SHOPIFY_STORE_PERMANENT_DOMAIN = 'r9bxmb-wa.myshopify.com';
-const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
+const SHOPIFY_STORE_DOMAIN = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN?.trim() || undefined;
+const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN?.trim() || undefined;
+
+export function isShopifyConfigured(): boolean {
+  return SHOPIFY_STORE_DOMAIN !== undefined && SHOPIFY_STOREFRONT_TOKEN !== undefined;
+}
 
 export interface ShopifyProduct {
   node: {
@@ -106,10 +111,11 @@ const STOREFRONT_PRODUCTS_QUERY = `
 
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
   const token = SHOPIFY_STOREFRONT_TOKEN;
-  if (!token) {
-    throw new Error('VITE_SHOPIFY_STOREFRONT_TOKEN is required. Add it to .env');
+  if (!SHOPIFY_STORE_DOMAIN || !token) {
+    throw new Error('Shopify is not configured. Set VITE_SHOPIFY_STORE_DOMAIN and VITE_SHOPIFY_STOREFRONT_TOKEN.');
   }
-  const response = await fetch(SHOPIFY_STOREFRONT_URL, {
+  const storefrontUrl = `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
+  const response = await fetch(storefrontUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
