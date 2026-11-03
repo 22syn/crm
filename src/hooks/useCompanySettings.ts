@@ -56,10 +56,11 @@ async function fetchPublicBranding(module: CompanyModule): Promise<BrandingSourc
 }
 
 /** Brand fields readable before sign-in (RLS hides company_settings from anonymous users). */
-export function usePublicBranding(module: CompanyModule) {
+export function usePublicBranding(module: CompanyModule | undefined) {
   return useQuery({
-    queryKey: queryKeys.companySettings.publicBranding(module),
-    queryFn: () => fetchPublicBranding(module),
+    queryKey: queryKeys.companySettings.publicBranding(module ?? "none"),
+    queryFn: () => fetchPublicBranding(module as CompanyModule), // Safe: query is disabled without a module.
+    enabled: module !== undefined,
     retry: false,
   });
 }

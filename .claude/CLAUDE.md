@@ -22,7 +22,7 @@ bun run lint         # eslint
 - `VITE_SUPABASE_PUBLISHABLE_KEY` — from Supabase dashboard
 - `VITE_SUPABASE_PROJECT_ID` — `fbtnhhurjwizcrmcisci`
 - `VITE_SHOPIFY_STORE_DOMAIN` + `VITE_SHOPIFY_STOREFRONT_TOKEN` — optional, per client; without both, Products and the quote builder show "not connected"
-- `VITE_BRAND_MODULE` — optional; which module's `company_settings` branding the login page shows (default `leads`)
+- `VITE_BRAND_MODULE` — optional; which module's `company_settings` branding the login page shows; unset (shared deployment) = Xsheva defaults
 
 Branding (name, logo, color) comes from `company_settings` via `src/lib/branding.ts`, falling back to "Xsheva CRM". Feature flags: `company_settings.features` + `isFeatureEnabled()` in `src/lib/featureFlags.ts`.
 

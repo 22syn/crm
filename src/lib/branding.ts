@@ -8,9 +8,6 @@ export const DEFAULT_LOGO_URL = "/logo.png";
 export const COMPANY_MODULES = ["leads", "ad_agency"] as const;
 export type CompanyModule = (typeof COMPANY_MODULES)[number];
 
-/** Module whose branding the public login page shows. */
-const DEFAULT_LOGIN_BRAND_MODULE: CompanyModule = "leads";
-
 const HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 // https URLs or same-origin paths; rejects protocol-relative "//host" and javascript: URLs.
 const SAFE_LOGO_URL_PATTERN = /^(https:\/\/|\/[^/])/;
@@ -47,8 +44,12 @@ export function getBranding(source: BrandingSource | null | undefined): Branding
   };
 }
 
-export function getLoginBrandModule(envValue: string | undefined): CompanyModule {
-  return COMPANY_MODULES.find((module) => module === envValue) ?? DEFAULT_LOGIN_BRAND_MODULE;
+/**
+ * Module whose branding the public login page shows. Unset means a deployment shared by
+ * several clients: the login page can't know who is signing in, so it stays on the defaults.
+ */
+export function getLoginBrandModule(envValue: string | undefined): CompanyModule | undefined {
+  return COMPANY_MODULES.find((module) => module === envValue);
 }
 
 /** The sidebar brands the app after the first module the user can open. */

@@ -40,10 +40,14 @@ describe("getBranding", () => {
 });
 
 describe("getLoginBrandModule", () => {
-  it("uses a known module from env and defaults to leads", () => {
+  it("uses a known module from env", () => {
     expect(getLoginBrandModule("ad_agency")).toBe("ad_agency");
-    expect(getLoginBrandModule(undefined)).toBe("leads");
-    expect(getLoginBrandModule("system")).toBe("leads");
+    expect(getLoginBrandModule("leads")).toBe("leads");
+  });
+  it("returns no module when unset or unknown, so a shared deployment shows defaults", () => {
+    expect(getLoginBrandModule(undefined)).toBeUndefined();
+    expect(getLoginBrandModule("")).toBeUndefined();
+    expect(getLoginBrandModule("system")).toBeUndefined();
   });
 });
 
