@@ -2,7 +2,7 @@
  * Sets up a NEW client's Supabase project: schema, branding, first admin.
  * Usage and safety notes: scripts/README.md → "Set up a new client".
  *
- *   infisical run -- npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads
+ *   infisical run -- npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads --language he
  */
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -38,7 +38,7 @@ const ACTION_LABELS: Readonly<Record<MigrationStep["action"], string>> = {
 };
 
 function printPlan(config: ClientConfig, steps: readonly MigrationStep[]): void {
-  console.log(`Client: ${config.name} | modules: ${config.modules.join(", ")}`);
+  console.log(`Client: ${config.name} | modules: ${config.modules.join(", ")} | language: ${config.language}`);
   console.log(`Migrations (${steps.length}):`);
   for (const { file, action } of steps) {
     const reason = action === "record-only" ? ` — ${SEED_ONLY_MIGRATIONS.get(file.fileName)}` : "";

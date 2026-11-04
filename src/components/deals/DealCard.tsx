@@ -103,7 +103,7 @@ export const DealCard = React.memo(function DealCard({
               <Pencil className="h-3 w-3" />
             </Button>
           </div>
-          <div className="flex items-center justify-between gap-2 mt-2 ml-6">
+          <div className="flex items-center justify-between gap-2 mt-2 ms-6">
             {deal.expected_close_date && (
               <div className="flex items-center gap-1.5 text-xs text-white/70">
                 <Calendar className="h-3 w-3" />

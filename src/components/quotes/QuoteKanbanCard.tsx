@@ -73,7 +73,7 @@ export function QuoteKanbanCard({ quote, onView, onEdit }: QuoteKanbanCardProps)
         <div className="text-xs text-muted-foreground">
           {format(new Date(quote.created_at), "d MMM yyyy")}
           {quote.valid_until && (
-            <span className="ml-1">• Valid {format(new Date(quote.valid_until), "dd/MM/yy")}</span>
+            <span className="ms-1">• Valid {format(new Date(quote.valid_until), "dd/MM/yy")}</span>
           )}
         </div>
         {onEdit && quote.status === "draft" && (
@@ -86,7 +86,7 @@ export function QuoteKanbanCard({ quote, onView, onEdit }: QuoteKanbanCardProps)
               onEdit(quote);
             }}
           >
-            <Pencil className="h-3 w-3 mr-1" />
+            <Pencil className="h-3 w-3 me-1" />
             Edit
           </Button>
         )}

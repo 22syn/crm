@@ -212,7 +212,7 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
       <div className="flex items-center justify-between">
         <h3 className="font-medium">משימות</h3>
         <Button size="sm" onClick={() => { resetForm(); setTaskDialogOpen(true); }}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 ms-2" />
           הוסף משימה
         </Button>
       </div>
@@ -234,10 +234,10 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="space-y-2 pl-4">
+                <div className="space-y-2 pe-4">
                   <div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(task)}>
-                      <Pencil className="h-3 w-3 mr-1" />
+                      <Pencil className="h-3 w-3 ms-1" />
                       עריכה
                     </Button>
                     <Button
@@ -248,7 +248,7 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
                         if (confirm("למחוק משימה?")) deleteTaskMutation.mutate(task.id);
                       }}
                     >
-                      <Trash2 className="h-3 w-3 mr-1" />
+                      <Trash2 className="h-3 w-3 ms-1" />
                       מחיקה
                     </Button>
                   </div>
@@ -266,7 +266,7 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
       )}
 
       <Dialog open={taskDialogOpen} onOpenChange={(o) => { setTaskDialogOpen(o); if (!o) resetForm(); }}>
-        <DialogContent dir="rtl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingTask ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
           </DialogHeader>
@@ -278,10 +278,10 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
             <div className="space-y-2">
               <Label>סטטוס</Label>
               <Select value={formData.status} onValueChange={(v) => setFormData((p) => ({ ...p, status: v as TaskStatus }))}>
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {TASK_STATUS_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                   ))}
@@ -291,10 +291,10 @@ export function ProjectTasksSection({ projectId }: ProjectTasksSectionProps) {
             <div className="space-y-2">
               <Label>אחראי</Label>
               <Select value={formData.assigned_to} onValueChange={(v) => setFormData((p) => ({ ...p, assigned_to: v }))}>
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue placeholder="בחר" />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {profiles.map((pr) => (
                     <SelectItem key={pr.id} value={pr.user_id}>{pr.full_name ?? pr.user_id}</SelectItem>
                   ))}

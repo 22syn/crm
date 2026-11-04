@@ -16,6 +16,7 @@ export interface BrandingSource {
   name?: string | null;
   logo_url?: string | null;
   primary_color?: string | null;
+  language?: string | null;
 }
 
 export interface Branding {

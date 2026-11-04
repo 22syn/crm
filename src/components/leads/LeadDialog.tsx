@@ -256,14 +256,14 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
             </div>
             {lead && onViewLead && (
               <Button variant="outline" size="sm" onClick={() => { onViewLead(lead.id); onOpenChange(false); }}>
-                <ExternalLink className="h-3 w-3 mr-1" />
+                <ExternalLink className="h-3 w-3 me-1" />
                 View
               </Button>
             )}
           </div>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 overflow-y-auto pe-1">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -355,7 +355,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                       onOpenChange(false);
                     }}
                   >
-                    <ExternalLink className="h-3 w-3 mr-1" />
+                    <ExternalLink className="h-3 w-3 me-1" />
                     View existing lead
                   </Button>
                 )}
@@ -481,11 +481,11 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal",
+                            "w-full justify-start text-start font-normal",
                             !field.value && "text-muted-foreground"
                           )}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          <CalendarIcon className="me-2 h-4 w-4" />
                           {field.value ? (
                             format(new Date(field.value), "PPP")
                           ) : (
@@ -526,7 +526,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                           onViewQuote?.(lead.id);
                         }}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 me-2" />
                         View Contract ({quote.quote_number})
                       </Button>
                       <Button
@@ -536,7 +536,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                         className="text-destructive hover:text-destructive"
                         onClick={() => setUnlinkConfirmOpen(true)}
                       >
-                        <Unlink className="h-4 w-4 mr-2" />
+                        <Unlink className="h-4 w-4 me-2" />
                         Unlink
                       </Button>
                     </div>
@@ -601,7 +601,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                         }}
                         disabled={!canCreateQuote}
                       >
-                        <FileText className="h-4 w-4 mr-2" />
+                        <FileText className="h-4 w-4 me-2" />
                         Create Contract
                       </Button>
                       <Button
@@ -611,7 +611,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                         className="flex-1"
                         onClick={() => setIsLinking(true)}
                       >
-                        <Unlink className="h-4 w-4 rotate-180 mr-2" />
+                        <Unlink className="h-4 w-4 rotate-180 me-2" />
                         Link Existing
                       </Button>
                     </div>
@@ -650,7 +650,7 @@ export function LeadDialog({ open, onOpenChange, lead, onSave, isLoading, teamMe
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading || !!duplicateLead}>
-                {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin me-2" />}
                 {lead ? "Update Lead" : "Create Lead"}
               </Button>
             </div>

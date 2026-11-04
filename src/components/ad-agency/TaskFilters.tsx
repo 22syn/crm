@@ -55,14 +55,14 @@ export function TaskFilters({
         : `${statusFilter.length} סטטוסים`;
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0" dir="rtl">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
       {showSearch && (
         <div className="relative flex-1 min-w-0 sm:max-w-[200px]">
           <Input
             placeholder="חיפוש משימות..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pr-3 h-9 rounded-md text-sm"
+            className="ps-3 h-9 rounded-md text-sm"
           />
         </div>
       )}
@@ -96,7 +96,6 @@ export function TaskFilters({
               <div className="space-y-1">
                 <label
                   className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-muted cursor-pointer"
-                  dir="rtl"
                 >
                   <Checkbox
                     checked={statusFilter.length === 0}
@@ -108,7 +107,6 @@ export function TaskFilters({
                   <label
                     key={s.value}
                     className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-muted cursor-pointer"
-                    dir="rtl"
                   >
                     <Checkbox
                       checked={statusFilter.includes(s.value)}

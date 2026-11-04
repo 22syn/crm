@@ -192,12 +192,12 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
               onClick={() => saveAllMutation.mutate(pendingItems)}
               disabled={saveAllMutation.isPending}
             >
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 ms-2" />
               שמור {pendingItems.length} פריטים
             </Button>
           )}
           <Button size="sm" onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 ms-2" />
             הוסף פריט
           </Button>
         </div>
@@ -272,7 +272,7 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
         <p className="text-sm font-medium">
           סה״כ פריטים: ₪{totalItems.toLocaleString("he-IL")}
           {hasPending && (
-            <span className="text-muted-foreground font-normal mr-2">
+            <span className="text-muted-foreground font-normal ms-2">
               ({pendingItems.length} מחכים לשמירה)
             </span>
           )}
@@ -287,12 +287,12 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
           <div className="flex flex-col gap-4 min-h-0 flex-1">
             <div className="space-y-2">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="חפש פריט לפי סוג..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-9 h-9"
+                  className="ps-9 h-9"
                 />
               </div>
               <p className="text-sm text-muted-foreground">בחר פריט להוספה</p>

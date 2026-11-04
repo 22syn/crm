@@ -126,12 +126,12 @@ export function ItemTable({ items, sections = [], isAdmin, onEdit, onDelete, vis
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(item)}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="h-4 w-4 ms-2" />
               עריכה
             </DropdownMenuItem>
             {isAdmin && (
               <DropdownMenuItem onClick={() => onDelete(item)} className="text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 ms-2" />
                 מחיקה
               </DropdownMenuItem>
             )}

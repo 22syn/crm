@@ -181,7 +181,7 @@ export default function Suppliers() {
           </div>
           {isAdmin && (
             <Button onClick={() => { setSelectedSupplier(null); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               New Supplier
             </Button>
           )}

@@ -84,8 +84,8 @@ export default function LeadDetail() {
   return (
     <>
     <div className="max-w-4xl mx-auto space-y-6">
-        <Button variant="ghost" size="sm" className="-ml-2 mb-2" onClick={() => navigate("/leads")}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
+        <Button variant="ghost" size="sm" className="-ms-2 mb-2" onClick={() => navigate("/leads")}>
+          <ArrowLeft className="h-4 w-4 me-1 rtl:-scale-x-100" />
           Back
         </Button>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -95,7 +95,7 @@ export default function LeadDetail() {
               Created {format(new Date(lead.created_at), "MMM d, yyyy")} · ID {lead.id.slice(0, 8)}
             </p>
           </div>
-          <Button onClick={() => setEditOpen(true)} variant="accent" className="gap-2 shrink-0 md:ml-auto rounded-lg">
+          <Button onClick={() => setEditOpen(true)} variant="accent" className="gap-2 shrink-0 md:ms-auto rounded-lg">
             <Pencil className="h-4 w-4" />
             Edit
           </Button>
@@ -221,7 +221,7 @@ export default function LeadDetail() {
                 <div className="flex items-center justify-between">
                   <span>{quote.quote_number} — ₪{quote.total.toLocaleString()}</span>
                   <Button variant="outline" size="sm" onClick={() => navigate("/contracts")}>
-                    <Eye className="h-3 w-3 mr-1" />
+                    <Eye className="h-3 w-3 me-1" />
                     View
                   </Button>
                 </div>
@@ -244,7 +244,7 @@ export default function LeadDetail() {
                     <span className="text-lg font-semibold">₪{quote.total.toLocaleString()}</span>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => navigate("/contracts")} className="rounded-lg">
-                    <Eye className="h-3 w-3 mr-1" />
+                    <Eye className="h-3 w-3 me-1" />
                     View Contract
                   </Button>
                 </CardContent>

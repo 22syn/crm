@@ -20,7 +20,7 @@ export default function Products() {
             <h1 className="text-3xl font-bold tracking-tight">Products</h1>
             <p className="text-muted-foreground mt-2">Synced from Shopify</p>
           </div>
-          <div className="flex items-center gap-3 md:ml-auto">
+          <div className="flex items-center gap-3 md:ms-auto">
             <Badge variant="outline" className="gap-1">
               <span className={`h-2 w-2 rounded-full ${isConnected ? "bg-green-500" : "bg-muted-foreground"}`} />
               {isConnected ? "Connected" : "Not connected"}
@@ -31,7 +31,7 @@ export default function Products() {
                 target="_blank" 
                 rel="noopener noreferrer"
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <ExternalLink className="h-4 w-4 me-2" />
                 Shopify Admin
               </a>
             </Button>

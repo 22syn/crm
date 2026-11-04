@@ -349,7 +349,7 @@ export default function Customers() {
                   onClick={() => saveMutation.mutate(!!editingCustomer)}
                   disabled={!isFormValid || saveMutation.isPending}
                 >
-                  {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
                   {editingCustomer ? "Update Customer" : "Add Customer"}
                 </Button>
               </div>
@@ -369,7 +369,7 @@ export default function Customers() {
             <h3 className="text-lg font-semibold">No contacts yet</h3>
             <p className="text-muted-foreground mt-1">Add your first customer to get started</p>
             <Button variant="accent" className="mt-4" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               Add Contact
             </Button>
           </div>
@@ -389,7 +389,7 @@ export default function Customers() {
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     disabled={page === 0 || isLoading}
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-4 w-4 rtl:-scale-x-100" />
                   </Button>
                   {totalPages > 0 &&
                     Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -435,7 +435,7 @@ export default function Customers() {
                     onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                     disabled={page >= totalPages - 1 || isLoading}
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 rtl:-scale-x-100" />
                   </Button>
                 </div>
                 <div className="text-xs text-muted-foreground">Rows per page: {PAGE_SIZE}</div>

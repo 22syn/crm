@@ -1,7 +1,9 @@
 import type { LucideIcon } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
+import { useDirection } from "@radix-ui/react-direction";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppBranding } from "@/hooks/useAppBranding";
+import { useModuleDirection } from "@/hooks/useAppLanguage";
 import {
   Sidebar,
   SidebarContent,
@@ -106,6 +108,11 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { canAccessModule, isModuleAdmin } = useAuth();
   const { branding, isLoading: brandingLoading } = useAppBranding();
+  // Menu sits on the reading-start side: right for Hebrew clients, left for English ones.
+  const side = useDirection() === "rtl" ? "right" : "left";
+  // In the shared demo the two modules differ in language, so each group keeps its own direction.
+  const leadsDir = useModuleDirection(canAccessModule("leads") ? "leads" : undefined);
+  const adAgencyDir = useModuleDirection(canAccessModule("ad_agency") ? "ad_agency" : undefined);
 
   const canShowCatalogItem = (item: (typeof catalogSubItems)[0]) =>
     item.module === "leads" ? canAccessModule("leads") : isModuleAdmin("system");
@@ -117,7 +124,7 @@ export function DashboardSidebar() {
   const adminItemsVisible = adminItems.filter(canShowAdminItem);
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" side={side}>
       <SidebarHeader className="border-b border-sidebar-border h-16 flex items-center gap-2 px-3 group-data-[collapsible=icon]:px-2">
         <Link
           to="/dashboard"
@@ -137,7 +144,7 @@ export function DashboardSidebar() {
 
       <SidebarContent className="gap-1">
         {canAccessModule("leads") && (
-          <SidebarGroup className="p-1.5">
+          <SidebarGroup className="p-1.5" dir={leadsDir}>
             <SidebarGroupLabel className="text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:hidden">Hadarya</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -157,7 +164,7 @@ export function DashboardSidebar() {
         )}
 
         {canAccessModule("ad_agency") && (
-          <SidebarGroup className="mt-2 p-1.5" dir="rtl">
+          <SidebarGroup className="mt-2 p-1.5" dir={adAgencyDir}>
             <SidebarGroupLabel>משרד פרסום</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>

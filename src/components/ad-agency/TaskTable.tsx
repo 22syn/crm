@@ -200,7 +200,7 @@ export function TaskTable({ tasks, onEdit, onDelete, visibleColumnIds, profiles 
                   if (confirm("למחוק משימה?")) onDelete(task);
                 }}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 ms-2" />
                 מחיקה
               </DropdownMenuItem>
             </DropdownMenuContent>

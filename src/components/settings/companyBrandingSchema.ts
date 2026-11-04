@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { isSafeLogoUrl, isValidHexColor } from "@/lib/branding";
+import { COMPANY_MODULES, isSafeLogoUrl, isValidHexColor } from "@/lib/branding";
+import { APP_LANGUAGES, getLanguage } from "@/lib/locale";
 import { type FeatureFlags, parseFeaturesJson } from "@/lib/featureFlags";
 import type { CompanySettings, CompanySettingsUpdate } from "@/hooks/useCompanySettings";
 
@@ -25,6 +26,7 @@ export const companyBrandingSchema = z.object({
     .trim()
     .refine((v) => v === "" || isValidHexColor(v), "Use a hex color like #1337EC"),
   senderEmail: z.union([z.literal(""), z.string().trim().email("Enter a valid email")]),
+  language: z.enum(APP_LANGUAGES),
   featuresJson: z
     .string()
     .refine(isParsableFeatures, 'Use a JSON object of true/false values, e.g. {"quotes": true}'),
@@ -42,6 +44,7 @@ export function getBrandingFormValues(settings: CompanySettings | null | undefin
     logoUrl: settings?.logo_url ?? "",
     primaryColor: settings?.primary_color ?? "",
     senderEmail: settings?.sender_email ?? "",
+    language: getLanguage(settings?.language, COMPANY_MODULES.find((module) => module === settings?.module)),
     featuresJson: formatFeatures(settings?.features ?? {}),
   };
 }
@@ -56,6 +59,7 @@ export function getBrandingUpdate(
     logo_url: values.logoUrl.trim() || null,
     primary_color: values.primaryColor.trim() || null,
     sender_email: values.senderEmail.trim() || null,
+    language: values.language,
   };
   return canEditFeatures ? { ...update, features: parseFeaturesJson(values.featuresJson) } : update;
 }

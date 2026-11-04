@@ -237,7 +237,7 @@ export function DealTable({ deals, onEdit, onStageChange }: DealTableProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(deal)}>
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="h-4 w-4 me-2" />
                 Edit
               </DropdownMenuItem>
             </DropdownMenuContent>

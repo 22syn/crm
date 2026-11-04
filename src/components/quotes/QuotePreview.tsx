@@ -320,7 +320,7 @@ export function QuotePreview({
               <thead>
                 <tr className="bg-slate-100 text-slate-600">
                   <th
-                    className={`px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-lg ${
+                    className={`px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-ss-lg ${
                       isRtl ? "text-right" : "text-left"
                     }`}
                   >
@@ -337,7 +337,7 @@ export function QuotePreview({
                     {t.unitPrice}
                   </th>
                   <th
-                    className={`px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tr-lg ${
+                    className={`px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-se-lg ${
                       isRtl ? "text-left" : "text-right"
                     }`}
                   >

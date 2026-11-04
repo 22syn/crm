@@ -337,12 +337,12 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             {/* Search and Filter Controls */}
             <div className="space-y-2 mb-2">
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute start-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search products..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-8"
+                  className="ps-8 h-8"
                 />
               </div>
               {categories.length > 0 && (
@@ -575,7 +575,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
                   type="number"
                   value={discount}
                   onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                  className="w-24 h-7 text-right"
+                  className="w-24 h-7 text-end"
                   min={0}
                 />
               </div>
@@ -603,7 +603,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             onClick={() => setPreviewOpen(true)}
             disabled={items.length === 0}
           >
-            <Eye className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 me-2" />
             Preview
           </Button>
 
@@ -612,8 +612,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             onClick={() => saveMutation.mutate(false)}
             disabled={items.length === 0 || saveMutation.isPending}
           >
-            {saveMutation.isPending && !isSending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            <Save className="h-4 w-4 mr-2" />
+            {saveMutation.isPending && !isSending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+            <Save className="h-4 w-4 me-2" />
             Save
           </Button>
           
@@ -621,8 +621,8 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
             onClick={() => saveMutation.mutate(true)}
             disabled={items.length === 0 || !customerEmail || saveMutation.isPending}
           >
-            {isSending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            <Mail className="h-4 w-4 mr-2" />
+            {isSending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+            <Mail className="h-4 w-4 me-2" />
             Send Email
           </Button>
 
@@ -633,7 +633,7 @@ export function QuoteBuilder({ open, onOpenChange, lead }: QuoteBuilderProps) {
               disabled={items.length === 0}
             >
               <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="h-4 w-4 mr-2" />
+                <MessageCircle className="h-4 w-4 me-2" />
                 Send WhatsApp
               </a>
             </Button>

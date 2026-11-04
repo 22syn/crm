@@ -81,15 +81,15 @@ export function ActivityFeedStitch({ assignedTo }: ActivityFeedStitchProps = {})
   return (
     <div className="bg-card border border-border p-5 rounded-xl shadow-lg overflow-hidden flex flex-col">
       <h3 className="font-semibold text-muted-foreground mb-4">Recent Activity</h3>
-      <div className="overflow-y-auto custom-scrollbar dark:custom-scrollbar-dark pr-2 flex-1 max-h-[280px]">
+      <div className="overflow-y-auto custom-scrollbar dark:custom-scrollbar-dark pe-2 flex-1 max-h-[280px]">
         {!activities || activities.length === 0 ? (
           <p className="text-muted-foreground text-sm">No activity yet</p>
         ) : (
-          <ul className="relative border-l border-border ml-2 space-y-6 pb-2">
+          <ul className="relative border-s border-border ms-2 space-y-6 pb-2">
             {activities.map((activity, index) => (
-              <li key={`${activity.type}-${activity.id}`} className="ml-6 relative">
+              <li key={`${activity.type}-${activity.id}`} className="ms-6 relative">
                 <span
-                  className={`absolute flex items-center justify-center w-3 h-3 rounded-full -left-[1.6rem] ring-4 ring-card ${
+                  className={`absolute flex items-center justify-center w-3 h-3 rounded-full -start-[1.6rem] ring-4 ring-card ${
                     index === 0 ? "bg-accent-action" : "bg-muted"
                   }`}
                 />

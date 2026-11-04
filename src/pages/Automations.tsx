@@ -72,7 +72,7 @@ const AutomationCard = ({ automation }: { automation: Automation }) => {
   
   return (
     <Card className="relative overflow-hidden">
-      <div className={`absolute top-0 left-0 w-1 h-full ${
+      <div className={`absolute top-0 start-0 w-1 h-full ${
         automation.status === "active" ? "bg-green-500" : "bg-muted"
       }`} />
       <CardHeader className="pb-3">
@@ -114,19 +114,19 @@ const AutomationCard = ({ automation }: { automation: Automation }) => {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {automation.type === "webhook" && (
               <Badge variant="outline" className="text-xs">
-                <Zap className="h-3 w-3 mr-1" />
+                <Zap className="h-3 w-3 me-1" />
                 Webhook
               </Badge>
             )}
             {automation.type === "scheduled" && (
               <Badge variant="outline" className="text-xs">
-                <Clock className="h-3 w-3 mr-1" />
+                <Clock className="h-3 w-3 me-1" />
                 Scheduled
               </Badge>
             )}
             {automation.type === "system" && (
               <Badge variant="outline" className="text-xs">
-                <CheckCircle className="h-3 w-3 mr-1" />
+                <CheckCircle className="h-3 w-3 me-1" />
                 System
               </Badge>
             )}
@@ -154,9 +154,9 @@ const Automations = () => {
               View all active automations in the system
             </p>
           </div>
-          <div className="flex items-center gap-2 md:ml-auto">
+          <div className="flex items-center gap-2 md:ms-auto">
             <Badge variant="outline" className="text-sm py-1 px-3">
-              <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+              <CheckCircle className="h-4 w-4 me-2 text-green-500" />
               {activeCount} active automations
             </Badge>
           </div>

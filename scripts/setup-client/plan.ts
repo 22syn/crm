@@ -1,4 +1,5 @@
 import type { CompanyModule } from "../../src/lib/branding";
+import type { AppLanguage } from "../../src/lib/locale";
 import type { ClientConfig } from "./config";
 
 /**
@@ -58,6 +59,7 @@ export interface CompanySettingsSeed {
   readonly logo_url: string | null;
   readonly primary_color: string | null;
   readonly sender_email: string | null;
+  readonly language: AppLanguage;
 }
 
 /** One branding row per enabled module; contact fields start empty (the client fills them in Settings). */
@@ -68,6 +70,7 @@ export function buildCompanySettingsRows(config: ClientConfig): CompanySettingsS
     logo_url: config.logoUrl ?? null,
     primary_color: config.primaryColor ?? null,
     sender_email: config.senderEmail ?? null,
+    language: config.language,
   }));
 }
 

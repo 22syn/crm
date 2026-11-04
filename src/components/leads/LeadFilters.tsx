@@ -76,12 +76,12 @@ export function LeadFilters({
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
       {showSearch && (
         <div className="relative flex-1 min-w-0 sm:max-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search leads..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 h-9 rounded-md text-sm"
+            className="ps-9 h-9 rounded-md text-sm"
           />
         </div>
       )}
@@ -92,7 +92,7 @@ export function LeadFilters({
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="w-full sm:w-[160px] h-9 justify-between rounded-md font-normal shrink-0">
                 <span className="truncate">{statusTriggerLabel}</span>
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <ChevronDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[220px] p-2" align="start">

@@ -144,19 +144,19 @@ export function ClientTable({ clients, isAdmin, onEdit, onDelete, onSetActive, v
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(client)}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="h-4 w-4 ms-2" />
               עריכה
             </DropdownMenuItem>
             {onSetActive && (
               <DropdownMenuItem onClick={() => onSetActive(client, !(client.is_active ?? true))}>
                 {(client.is_active ?? true) ? (
                   <>
-                    <UserX className="h-4 w-4 mr-2" />
+                    <UserX className="h-4 w-4 ms-2" />
                     הפוך ללא פעיל
                   </>
                 ) : (
                   <>
-                    <UserCheck className="h-4 w-4 mr-2" />
+                    <UserCheck className="h-4 w-4 ms-2" />
                     הפוך לפעיל
                   </>
                 )}
@@ -164,7 +164,7 @@ export function ClientTable({ clients, isAdmin, onEdit, onDelete, onSetActive, v
             )}
             {isAdmin && (
               <DropdownMenuItem onClick={() => onDelete(client)} className="text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 ms-2" />
                 מחיקה
               </DropdownMenuItem>
             )}

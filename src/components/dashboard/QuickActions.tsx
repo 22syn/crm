@@ -17,7 +17,7 @@ export function QuickActions() {
           variant="outline"
           onClick={() => navigate("/leads")}
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 me-2" />
           New Lead
         </Button>
         <Button 
@@ -25,7 +25,7 @@ export function QuickActions() {
           variant="outline"
           onClick={() => navigate("/contracts")}
         >
-          <FileText className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 me-2" />
           New Quote
         </Button>
         <Button 
@@ -33,7 +33,7 @@ export function QuickActions() {
           variant="outline"
           onClick={() => navigate("/leads?filter=no-meeting")}
         >
-          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertCircle className="h-4 w-4 me-2" />
           Leads to Follow Up
         </Button>
       </CardContent>

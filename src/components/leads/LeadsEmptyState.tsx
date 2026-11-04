@@ -39,11 +39,11 @@ export function LeadsEmptyState({
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
           <Button variant="outline" size="sm" className="rounded-lg" onClick={onClearFilters}>
-            <FilterX className="h-4 w-4 mr-1" />
+            <FilterX className="h-4 w-4 me-1" />
             Clear filters
           </Button>
           <Button variant="outline" size="sm" className="rounded-lg" onClick={onResetFilters}>
-            <RotateCcw className="h-4 w-4 mr-1" />
+            <RotateCcw className="h-4 w-4 me-1" />
             Reset to default
           </Button>
         </div>
@@ -65,7 +65,7 @@ export function LeadsEmptyState({
           size="sm"
           onClick={onAddFirstLead}
         >
-          <Plus className="h-4 w-4 mr-1" />
+          <Plus className="h-4 w-4 me-1" />
           Add your first lead
         </Button>
         {onAddDemoLeads && (
@@ -76,7 +76,7 @@ export function LeadsEmptyState({
             onClick={onAddDemoLeads}
             disabled={addDemoLeadsPending}
           >
-            <Sparkles className="h-4 w-4 mr-1" />
+            <Sparkles className="h-4 w-4 me-1" />
             {addDemoLeadsPending ? "Adding…" : "Add 50 demo leads"}
           </Button>
         )}

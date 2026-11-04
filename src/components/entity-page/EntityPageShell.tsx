@@ -106,7 +106,7 @@ export function EntityPageShell({
               {headerActions}
               {addButtonText && onAddClick && (
                 <Button variant="accent" className="rounded-lg shrink-0" onClick={onAddClick}>
-                  <Plus className="h-4 w-4 mr-2 shrink-0" />
+                  <Plus className="h-4 w-4 me-2 shrink-0" />
                   {addButtonText}
                 </Button>
               )}
@@ -121,7 +121,7 @@ export function EntityPageShell({
               <LayoutGrid className="h-4 w-4" />
               {kanbanTabLabel}
               {kanbanCount != null && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
                   {kanbanCount}
                 </Badge>
               )}
@@ -130,7 +130,7 @@ export function EntityPageShell({
               <List className="h-4 w-4" />
               {tableTabLabel}
               {tableCount != null && (
-                <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
+                <Badge variant="secondary" className="ms-1 h-5 min-w-5 px-1.5 text-xs font-normal bg-white/15 text-white/90 border-0">
                   {tableCount}
                 </Badge>
               )}

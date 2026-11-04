@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { AppLanguage } from "@/lib/locale";
 import {
   type CompanyModule,
   type CompanySettings,
@@ -19,7 +21,10 @@ import {
   getBrandingUpdate,
 } from "./companyBrandingSchema";
 
-const BRANDING_MIGRATION = "20261103130626_company_settings_branding.sql";
+const LANGUAGE_LABELS: Readonly<Record<AppLanguage, string>> = {
+  he: "עברית: Hebrew, right-to-left (menu on the right)",
+  en: "English: left-to-right (menu on the left)",
+};
 
 interface CompanyBrandingFormProps {
   readonly module: CompanyModule;
@@ -48,8 +53,9 @@ interface BrandingFieldsProps extends CompanyBrandingFormProps {
 
 function BrandingFields({ module, settings, canEditFeatures }: BrandingFieldsProps) {
   const updateMutation = useUpdateCompanySettings();
-  const isMigrationMissing = settings !== null && settings !== undefined && !("logo_url" in settings);
-  const { register, handleSubmit, formState } = useForm<CompanyBrandingValues>({
+  const isMigrationMissing =
+    settings !== null && settings !== undefined && (!("logo_url" in settings) || !("language" in settings));
+  const { register, control, handleSubmit, formState } = useForm<CompanyBrandingValues>({
     resolver: zodResolver(companyBrandingSchema),
     defaultValues: getBrandingFormValues(settings),
   });
@@ -63,7 +69,8 @@ function BrandingFields({ module, settings, canEditFeatures }: BrandingFieldsPro
       {isMigrationMissing && (
         <Alert>
           <AlertDescription>
-            The branding columns are not in the database yet. Apply migration {BRANDING_MIGRATION} before saving.
+            Some settings columns are not in the database yet. Apply the pending migrations in
+            supabase/migrations before saving.
           </AlertDescription>
         </Alert>
       )}
@@ -79,6 +86,26 @@ function BrandingFields({ module, settings, canEditFeatures }: BrandingFieldsPro
         </Field>
         <Field id={`${module}-sender`} label="Sender email" error={errors.senderEmail?.message}>
           <Input id={`${module}-sender`} type="email" placeholder="quotes@client.com" dir="ltr" {...register("senderEmail")} />
+        </Field>
+        <Field id={`${module}-language`} label="Language / שפה" error={errors.language?.message}>
+          <Controller
+            control={control}
+            name="language"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id={`${module}-language`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </Field>
       </div>
       {canEditFeatures && (

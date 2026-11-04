@@ -90,7 +90,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                         e.stopPropagation();
                         onViewLead(lead);
                       }}
-                      className="text-left hover:underline focus:underline focus:outline-none"
+                      className="text-start hover:underline focus:underline focus:outline-none"
                     >
                       {lead.customer_name}
                     </button>
@@ -119,7 +119,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
               <Edit className="h-3 w-3" />
             </Button>
           </div>
-          <div className="flex items-center gap-2 mt-2 ml-6">
+          <div className="flex items-center gap-2 mt-2 ms-6">
             {assignee && (
               <div className="flex items-center gap-1.5">
                 <div className="h-6 w-6 rounded-full bg-accent-action/30 flex items-center justify-center text-[10px] font-medium text-white shrink-0">
@@ -146,7 +146,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                 onViewQuote?.(lead.id);
               }}
             >
-              <Eye className="h-3 w-3 mr-1" />
+              <Eye className="h-3 w-3 me-1" />
               View Quote
             </Button>
           ) : (
@@ -161,7 +161,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                   onCreateQuote(lead);
                 }}
               >
-                <FileText className="h-3 w-3 mr-1" />
+                <FileText className="h-3 w-3 me-1" />
                 Create Quote
               </Button>
             )
@@ -192,7 +192,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onViewLead(lead); }}
-                  className="text-left hover:underline focus:underline focus:outline-none"
+                  className="text-start hover:underline focus:underline focus:outline-none"
                 >
                   {lead.customer_name}
                 </button>
@@ -210,9 +210,9 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
             <Edit className="h-3 w-3" />
           </Button>
         </div>
-        <div className="flex flex-wrap gap-1.5 ml-6">
+        <div className="flex flex-wrap gap-1.5 ms-6">
           <Badge variant="outline" className={`w-fit text-xs ${priorityConfig.className}`}>
-            <PriorityIcon className="h-3 w-3 mr-1" />
+            <PriorityIcon className="h-3 w-3 me-1" />
             {priorityConfig.label}
           </Badge>
           <Badge variant="outline" className="w-fit text-xs">
@@ -228,13 +228,13 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
           </Badge>
           {staleness !== "fresh" && daysSinceTouch > 0 && (
             <Badge variant="outline" className="w-fit text-xs text-muted-foreground">
-              <Clock className="h-3 w-3 mr-1" />
+              <Clock className="h-3 w-3 me-1" />
               {daysSinceTouch}d
             </Badge>
           )}
         </div>
         {lead.assigned_to && (
-          <div className="flex items-center gap-1 text-meta text-muted-foreground mt-1 ml-6">
+          <div className="flex items-center gap-1 text-meta text-muted-foreground mt-1 ms-6">
             <User className="h-3 w-3" />
             <span>
               {(() => {
@@ -275,7 +275,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                   href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-green-600 hover:text-green-700 mr-1"
+                  className="text-green-600 hover:text-green-700 me-1"
                   onClick={(e) => e.stopPropagation()}
                   title="Open WhatsApp"
                 >
@@ -287,7 +287,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                 <span dir="ltr">{lead.customer_phone}</span>
                 <a
                   href={`tel:${lead.customer_phone.replace(/[^0-9]/g, "")}`}
-                  className="text-primary hover:underline mr-1"
+                  className="text-primary hover:underline me-1"
                   onClick={(e) => e.stopPropagation()}
                   title="חייג"
                 >
@@ -297,7 +297,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                   href={`https://wa.me/${lead.customer_phone.replace(/[^0-9]/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-green-600 hover:text-green-700 mr-1"
+                  className="text-green-600 hover:text-green-700 me-1"
                   onClick={(e) => e.stopPropagation()}
                   title="Open WhatsApp"
                 >
@@ -331,7 +331,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
               onViewQuote?.(lead.id);
             }}
           >
-            <Eye className="h-3 w-3 mr-1" />
+            <Eye className="h-3 w-3 me-1" />
             View Quote
           </Button>
         ) : (
@@ -345,7 +345,7 @@ export function LeadCard({ lead, membersByUserId, onEdit, onViewLead, onCreateQu
                 onCreateQuote(lead);
               }}
             >
-              <FileText className="h-3 w-3 mr-1" />
+              <FileText className="h-3 w-3 me-1" />
               Create Quote
             </Button>
           )

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { companyBrandingSchema, getBrandingFormValues, getBrandingUpdate } from "./companyBrandingSchema";
 
-const EMPTY_VALUES = { name: "", logoUrl: "", primaryColor: "", senderEmail: "", featuresJson: "" };
+const EMPTY_VALUES = { name: "", logoUrl: "", primaryColor: "", senderEmail: "", language: "en" as const, featuresJson: "" };
 
 describe("getBrandingUpdate", () => {
   it("turns empty fields into null so the defaults apply again", () => {
@@ -10,6 +10,7 @@ describe("getBrandingUpdate", () => {
       logo_url: null,
       primary_color: null,
       sender_email: null,
+      language: "en",
     });
   });
   it("sends features only when the editor may change them", () => {
@@ -26,6 +27,10 @@ describe("getBrandingFormValues", () => {
   it("returns empty fields when there is no settings row", () => {
     expect(getBrandingFormValues(null)).toEqual(EMPTY_VALUES);
   });
+  it("shows today's language for a row saved before the language column existed", () => {
+    const legacyRow = { module: "ad_agency", name: "הר סיני", features: {} } as unknown as Parameters<typeof getBrandingFormValues>[0];
+    expect(getBrandingFormValues(legacyRow).language).toBe("he");
+  });
 });
 
 describe("companyBrandingSchema", () => {
@@ -36,6 +41,7 @@ describe("companyBrandingSchema", () => {
       logoUrl: "https://cdn.acme.com/logo.png",
       primaryColor: "#1337EC",
       senderEmail: "quotes@acme.com",
+      language: "he",
       featuresJson: '{"quotes": true}',
     };
     expect(companyBrandingSchema.safeParse(valid).success).toBe(true);

@@ -14,7 +14,7 @@ export function LeadsHeaderActions({ onAddDemoLeads, isPending }: LeadsHeaderAct
       onClick={onAddDemoLeads}
       disabled={isPending}
     >
-      <Sparkles className="h-4 w-4 mr-2 shrink-0" />
+      <Sparkles className="h-4 w-4 me-2 shrink-0" />
       <span className="hidden sm:inline">{isPending ? "Adding…" : "Add 50 demo leads"}</span>
       <span className="sm:hidden">{isPending ? "…" : "Demo"}</span>
     </Button>

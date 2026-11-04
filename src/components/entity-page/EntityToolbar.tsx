@@ -1,5 +1,5 @@
 import { Fragment, ReactNode, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useDirection } from "@radix-ui/react-direction";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -105,11 +105,9 @@ export function EntityToolbar({
 }: EntityToolbarProps) {
   const [renameViewId, setRenameViewId] = useState<string | null>(null);
   const [renameViewName, setRenameViewName] = useState("");
-  const { pathname } = useLocation();
 
-  const isRtl =
-    pathname.startsWith("/ad-agency") ||
-    (typeof document !== "undefined" && document.documentElement.dir === "rtl");
+  // Follows the client's language (set by AppDirection), not the URL.
+  const isRtl = useDirection() === "rtl";
   const t = {
     views: isRtl ? "תצוגות" : "Views",
     viewsCount: (n: number) => (isRtl ? `תצוגות (${n})` : `Views (${n})`),
@@ -153,7 +151,7 @@ export function EntityToolbar({
   const desktopToolbar = (
     <div className="flex flex-nowrap items-center gap-0 min-w-max">
         {/* Group 1: Filters */}
-        <div className="flex items-center gap-2 shrink-0 pr-1">
+        <div className="flex items-center gap-2 shrink-0 pe-1">
           {children}
         </div>
 
@@ -161,7 +159,7 @@ export function EntityToolbar({
         {renderColumnVisibility && (
           <>
             <Divider />
-            <div className="shrink-0 pl-1.5">{renderColumnVisibility}</div>
+            <div className="shrink-0 ps-1.5">{renderColumnVisibility}</div>
           </>
         )}
 
@@ -194,7 +192,7 @@ export function EntityToolbar({
                         {displayName}
                       </DropdownMenuItem>
                       <DropdownMenuSub>
-                        <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
+                        <DropdownMenuSubTrigger className="ps-6 text-muted-foreground">
                           {t.manage(displayName)}
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
@@ -205,7 +203,7 @@ export function EntityToolbar({
                               setRenameViewName(displayName);
                             }}
                           >
-                            <Pencil className="h-4 w-4 mr-2" />
+                            <Pencil className="h-4 w-4 me-2" />
                             {t.rename}
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -220,7 +218,7 @@ export function EntityToolbar({
                               }
                             }}
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
+                            <Trash2 className="h-4 w-4 me-2" />
                             {t.delete}
                           </DropdownMenuItem>
                         </DropdownMenuSubContent>
@@ -257,7 +255,7 @@ export function EntityToolbar({
                   disabled={savePending}
                   className="shrink-0 h-9 rounded-md"
                 >
-                  <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
+                  <BookmarkPlus className="h-4 w-4 me-1.5 shrink-0" />
                   <span className="hidden sm:inline">{t.savePreferences}</span>
                   <span className="sm:hidden">{t.save}</span>
                 </Button>
@@ -270,7 +268,7 @@ export function EntityToolbar({
                   disabled={resetPending}
                   className="shrink-0 h-9 rounded-md"
                 >
-                  <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
+                  <RotateCcw className="h-4 w-4 me-1.5 shrink-0" />
                   <span className="hidden sm:inline">{t.resetToDefault}</span>
                   <span className="sm:hidden">{t.reset}</span>
                 </Button>
@@ -283,14 +281,14 @@ export function EntityToolbar({
         {hasFilters && onClearFilters && (
           <>
             <Divider />
-            <div className="flex items-center shrink-0 pl-1.5">
+            <div className="flex items-center shrink-0 ps-1.5">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClearFilters}
                 className="shrink-0 h-9 rounded-md text-muted-foreground hover:text-foreground"
               >
-                <X className="h-4 w-4 mr-1.5 shrink-0" />
+                <X className="h-4 w-4 me-1.5 shrink-0" />
                 {t.clearFilters}
               </Button>
             </div>
@@ -301,7 +299,7 @@ export function EntityToolbar({
         {renderExtra && (
           <>
             <Divider />
-            <div className="shrink-0 pl-1.5">{renderExtra}</div>
+            <div className="shrink-0 ps-1.5">{renderExtra}</div>
           </>
         )}
       </div>
@@ -363,7 +361,7 @@ export function EntityToolbar({
                                   {displayName}
                                 </DropdownMenuItem>
                                 <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger className="pl-6 text-muted-foreground">
+                                  <DropdownMenuSubTrigger className="ps-6 text-muted-foreground">
                                     Manage "{displayName}"
                                   </DropdownMenuSubTrigger>
                                   <DropdownMenuSubContent>
@@ -374,7 +372,7 @@ export function EntityToolbar({
                                         setRenameViewName(displayName);
                                       }}
                                     >
-                                      <Pencil className="h-4 w-4 mr-2" />
+                                      <Pencil className="h-4 w-4 me-2" />
                                       Rename
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
@@ -389,7 +387,7 @@ export function EntityToolbar({
                                         }
                                       }}
                                     >
-                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      <Trash2 className="h-4 w-4 me-2" />
                                       Delete
                                     </DropdownMenuItem>
                                   </DropdownMenuSubContent>
@@ -423,7 +421,7 @@ export function EntityToolbar({
                         disabled={savePending}
                         className="flex-1 h-9 rounded-md"
                       >
-                        <BookmarkPlus className="h-4 w-4 mr-1.5 shrink-0" />
+                        <BookmarkPlus className="h-4 w-4 me-1.5 shrink-0" />
                         {t.save}
                       </Button>
                     )}
@@ -435,7 +433,7 @@ export function EntityToolbar({
                         disabled={resetPending}
                         className="flex-1 h-9 rounded-md"
                       >
-                        <RotateCcw className="h-4 w-4 mr-1.5 shrink-0" />
+                        <RotateCcw className="h-4 w-4 me-1.5 shrink-0" />
                         {t.reset}
                       </Button>
                     )}
@@ -448,7 +446,7 @@ export function EntityToolbar({
                     onClick={onClearFilters}
                     className="w-full h-9 rounded-md text-muted-foreground hover:text-foreground"
                   >
-                    <X className="h-4 w-4 mr-1.5 shrink-0" />
+                    <X className="h-4 w-4 me-1.5 shrink-0" />
                     {t.clearFilters}
                   </Button>
                 )}

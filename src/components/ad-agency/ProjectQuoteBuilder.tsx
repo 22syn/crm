@@ -190,7 +190,7 @@ export function ProjectQuoteBuilder({ open, onOpenChange, project, onSuccess }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg" dir="rtl">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>בנה הצעת מחיר מפרויקט</DialogTitle>
         </DialogHeader>

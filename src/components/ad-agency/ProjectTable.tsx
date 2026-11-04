@@ -166,7 +166,7 @@ export function ProjectTable({
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
               <Link to={`/ad-agency/projects/${p.id}?quote=1`}>
-                <FileText className="h-4 w-4 mr-2" />
+                <FileText className="h-4 w-4 ms-2" />
                 בנה הצעת מחיר
               </Link>
             </DropdownMenuItem>
@@ -176,15 +176,15 @@ export function ProjectTable({
                 navigate(`/ad-agency/tasks?project=${p.id}`);
               }}
             >
-              <ListTodo className="h-4 w-4 mr-2" />
+              <ListTodo className="h-4 w-4 ms-2" />
               משימות
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(p)}>
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className="h-4 w-4 ms-2" />
               עריכה
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDelete(p)} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4 ms-2" />
               מחיקה
             </DropdownMenuItem>
           </DropdownMenuContent>

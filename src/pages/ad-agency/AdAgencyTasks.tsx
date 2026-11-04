@@ -292,7 +292,7 @@ export default function AdAgencyTasks() {
             <p className="text-muted-foreground">ניהול משימות מקושרות לפרויקטים</p>
           </div>
           <Button onClick={openAdd}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 ms-2" />
             משימה חדשה
           </Button>
         </div>
@@ -318,7 +318,7 @@ export default function AdAgencyTasks() {
         )}
 
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) resetForm(); }}>
-        <DialogContent dir="rtl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingTask ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
           </DialogHeader>
@@ -338,10 +338,10 @@ export default function AdAgencyTasks() {
                 onValueChange={(v) => setFormData((p) => ({ ...p, project_id: v }))}
                 disabled={!!editingTask}
               >
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue placeholder="בחר פרויקט" />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.title}
@@ -356,10 +356,10 @@ export default function AdAgencyTasks() {
                 value={formData.status}
                 onValueChange={(v) => setFormData((p) => ({ ...p, status: v as TaskStatus }))}
               >
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {TASK_STATUS_OPTIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>
                       {o.label}
@@ -374,10 +374,10 @@ export default function AdAgencyTasks() {
                 value={formData.assigned_to}
                 onValueChange={(v) => setFormData((p) => ({ ...p, assigned_to: v }))}
               >
-                <SelectTrigger dir="rtl">
+                <SelectTrigger>
                   <SelectValue placeholder="בחר" />
                 </SelectTrigger>
-                <SelectContent dir="rtl">
+                <SelectContent>
                   {profiles.map((pr) => (
                     <SelectItem key={pr.id} value={pr.user_id}>
                       {pr.full_name ?? pr.user_id}

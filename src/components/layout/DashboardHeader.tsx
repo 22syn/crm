@@ -40,17 +40,17 @@ export function DashboardHeader() {
         <button
           type="button"
           onClick={handleSearchClick}
-          className="relative block w-full text-left"
+          className="relative block w-full text-start"
         >
-          <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <span className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-muted-foreground" />
           </span>
-          <span className="block w-full pl-10 pr-3 py-2.5 border border-input rounded-lg text-sm text-muted-foreground bg-background hover:bg-accent/50 transition-colors">
+          <span className="block w-full ps-10 pe-3 py-2.5 border border-input rounded-lg text-sm text-muted-foreground bg-background hover:bg-accent/50 transition-colors">
             Search leads, contacts, deals...
           </span>
         </button>
       </div>
-      <div className="ml-4 flex items-center gap-4">
+      <div className="ms-4 flex items-center gap-4">
         <ThemeSelector />
         <button
           type="button"
@@ -78,7 +78,7 @@ export function DashboardHeader() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="z-[100] w-56">
             <DropdownMenuItem onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 me-2" />
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

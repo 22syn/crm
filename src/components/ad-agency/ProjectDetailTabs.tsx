@@ -104,7 +104,7 @@ export function ProjectDetailTabs({ project }: ProjectDetailTabsProps) {
   };
 
   return (
-    <Tabs defaultValue="budget" className="w-full" dir="rtl">
+    <Tabs defaultValue="budget" className="w-full">
       <div className="mb-4">
         <Card>
           <CardHeader>
