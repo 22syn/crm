@@ -23,7 +23,7 @@ const NotFound = () => {
         </p>
         <Button asChild variant="accent" className="mt-8 gap-2 rounded-lg">
           <Link to="/dashboard">
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             Back to Dashboard
           </Link>
         </Button>

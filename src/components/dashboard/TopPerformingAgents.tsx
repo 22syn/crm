@@ -94,7 +94,7 @@ export function TopPerformingAgents({ assignedTo }: TopPerformingAgentsProps = {
         <h3 className="font-semibold text-muted-foreground">Top Performing Agents</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        <table className="min-w-full text-start text-sm">
           <thead className="bg-muted/30 text-muted-foreground font-medium">
             <tr>
               <th className="px-6 py-3" scope="col">

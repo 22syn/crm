@@ -55,13 +55,14 @@ export async function recordSkippedMigration(client: Client, file: MigrationFile
 
 const UPSERT_COMPANY_SETTINGS = `
   INSERT INTO public.company_settings
-    (module, name, logo_url, primary_color, sender_email, address, email, phone, website, features)
-  VALUES ($1, $2, $3, $4, $5, NULL, NULL, NULL, NULL, '{}'::jsonb)
+    (module, name, logo_url, primary_color, sender_email, language, address, email, phone, website, features)
+  VALUES ($1, $2, $3, $4, $5, $6, NULL, NULL, NULL, NULL, '{}'::jsonb)
   ON CONFLICT (module) DO UPDATE SET
     name = EXCLUDED.name,
     logo_url = EXCLUDED.logo_url,
     primary_color = EXCLUDED.primary_color,
     sender_email = EXCLUDED.sender_email,
+    language = EXCLUDED.language,
     address = NULL, email = NULL, phone = NULL, website = NULL`;
 
 /**
@@ -84,6 +85,7 @@ export async function provisionCompanySettings(
         row.logo_url,
         row.primary_color,
         row.sender_email,
+        row.language,
       ]);
     }
   });

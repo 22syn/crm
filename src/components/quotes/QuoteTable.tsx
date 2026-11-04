@@ -208,12 +208,12 @@ export function QuoteTable({ quotes, onView, onEdit, onApprove, onDelete }: Quot
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onView(quote)}>
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4 me-2" />
                 View
               </DropdownMenuItem>
               {onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(quote)}>
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Edit className="h-4 w-4 me-2" />
                   Edit
                 </DropdownMenuItem>
               )}

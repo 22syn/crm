@@ -300,7 +300,7 @@ export function LeadTable({
       render: (lead) => {
         const quote = leadQuotes[lead.id];
         return quote ? (
-          <button type="button" onClick={() => onViewQuote?.(lead.id)} className="text-left hover:underline font-mono text-sm">
+          <button type="button" onClick={() => onViewQuote?.(lead.id)} className="text-start hover:underline font-mono text-sm">
             {quote.quote_number} ₪{quote.total.toLocaleString()}
           </button>
         ) : (
@@ -371,9 +371,9 @@ export function LeadTable({
                 <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(lead)}><Edit className="h-4 w-4 mr-2" />Edit</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(lead)}><Edit className="h-4 w-4 me-2" />Edit</DropdownMenuItem>
                 {onCreateQuote && canCreateQuote(lead) && (
-                  <DropdownMenuItem onClick={() => onCreateQuote(lead)}><FileText className="h-4 w-4 mr-2" />Create Quote</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onCreateQuote(lead)}><FileText className="h-4 w-4 me-2" />Create Quote</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

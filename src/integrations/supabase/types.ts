@@ -20,6 +20,7 @@ export type Database = {
           email: string | null
           features: Json
           id: string
+          language: string
           logo_url: string | null
           module: string
           name: string | null
@@ -34,6 +35,7 @@ export type Database = {
           email?: string | null
           features?: Json
           id?: string
+          language?: string
           logo_url?: string | null
           module: string
           name?: string | null
@@ -48,6 +50,7 @@ export type Database = {
           email?: string | null
           features?: Json
           id?: string
+          language?: string
           logo_url?: string | null
           module?: string
           name?: string | null
@@ -1012,6 +1015,7 @@ export type Database = {
       get_public_branding: {
         Args: { _module: string }
         Returns: {
+          language: string
           logo_url: string | null
           name: string | null
           primary_color: string | null

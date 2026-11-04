@@ -161,7 +161,7 @@ export default function AdAgencyProjectDetail() {
     <div className="p-6 space-y-6">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/ad-agency/projects">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 ms-2" />
             חזרה לפרויקטים
           </Link>
         </Button>
@@ -175,11 +175,11 @@ export default function AdAgencyProjectDetail() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleExportExcel} disabled={exporting} size="default">
-              {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {exporting ? <Loader2 className="h-4 w-4 ms-2 animate-spin" /> : <Download className="h-4 w-4 ms-2" />}
               ייצוא לאקסל
             </Button>
             <Button onClick={() => setQuoteBuilderOpen(true)} size="default">
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 ms-2" />
               בנה הצעת מחיר
             </Button>
           </div>

@@ -91,7 +91,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem asChild>
                   <Link to={`/ad-agency/projects/${project.id}?quote=1`} onClick={(e) => e.stopPropagation()}>
-                    <FileText className="h-3 w-3 mr-2" />
+                    <FileText className="h-3 w-3 ms-2" />
                     בנה הצעת מחיר
                   </Link>
                 </DropdownMenuItem>
@@ -102,15 +102,15 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ListTodo className="h-3 w-3 mr-2" />
+                  <ListTodo className="h-3 w-3 ms-2" />
                   משימות
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
-                  <Pencil className="h-3 w-3 mr-2" />
+                  <Pencil className="h-3 w-3 ms-2" />
                   עריכה
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(project); }} className="text-destructive">
-                  <Trash2 className="h-3 w-3 mr-2" />
+                  <Trash2 className="h-3 w-3 ms-2" />
                   מחיקה
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -125,7 +125,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem asChild>
                   <Link to={`/ad-agency/projects/${project.id}?quote=1`} onClick={(e) => e.stopPropagation()}>
-                    <FileText className="h-3 w-3 mr-2" />
+                    <FileText className="h-3 w-3 ms-2" />
                     בנה הצעת מחיר
                   </Link>
                 </DropdownMenuItem>
@@ -136,11 +136,11 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <ListTodo className="h-3 w-3 mr-2" />
+                  <ListTodo className="h-3 w-3 ms-2" />
                   משימות
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
-                  <Pencil className="h-3 w-3 mr-2" />
+                  <Pencil className="h-3 w-3 ms-2" />
                   עריכה
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -174,7 +174,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
               </div>
             )}
             {project.op_clients?.payment_terms && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-6">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground ms-6">
                 <span>תנאי תשלום: {project.op_clients.payment_terms}</span>
               </div>
             )}

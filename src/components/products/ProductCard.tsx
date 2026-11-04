@@ -35,7 +35,7 @@ export const ProductCard = React.memo(function ProductCard({ product }: ProductC
           </div>
         )}
         <Badge 
-          className="absolute top-2 right-2"
+          className="absolute top-2 end-2"
           variant={allAvailable ? "default" : someAvailable ? "secondary" : "destructive"}
         >
           {allAvailable ? "In Stock" : someAvailable ? "Limited" : "Out of Stock"}

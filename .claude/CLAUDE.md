@@ -15,7 +15,7 @@ bun run dev          # local dev server
 bun run build        # production build
 bun run test         # vitest
 bun run lint         # eslint
-npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads --dry-run   # new client (see scripts/README.md)
+npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads --language he --dry-run   # new client (see scripts/README.md)
 ```
 
 **Per-client model:** the live project (`fbtnhhurjwizcrmcisci`) is the Xsheva demo (Hadarya + הר סיני are both demos). Real clients get their own Supabase + Vercel project via `scripts/setup-client/` (README: `scripts/README.md`). Its end-to-end test: `bash scripts/setup-client/local-test/run.sh`.
@@ -27,7 +27,8 @@ npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules lea
 - `VITE_SHOPIFY_STORE_DOMAIN` + `VITE_SHOPIFY_STOREFRONT_TOKEN` — optional, per client; without both, Products and the quote builder show "not connected"
 - `VITE_BRAND_MODULE` — optional; which module's `company_settings` branding the login page shows; unset (shared deployment) = Xsheva defaults
 
-Branding (name, logo, color) comes from `company_settings` via `src/lib/branding.ts`, falling back to "Xsheva CRM". Feature flags: `company_settings.features` + `isFeatureEnabled()` in `src/lib/featureFlags.ts`.
+Branding (name, logo, color) comes from `company_settings` via `src/lib/branding.ts`, falling back to "Xsheva CRM".
+Language: `company_settings.language` (`he` = right-to-left, menu on the right; `en` = left-to-right), via `src/lib/locale.ts` + `AppDirection`. Use logical Tailwind classes (`ms-`/`me-`/`ps-`/`pe-`/`start-`/`end-`/`text-start`), never `ml-`/`mr-`/`left-`/`right-`, and no hardcoded `dir="rtl"`. Feature flags: `company_settings.features` + `isFeatureEnabled()` in `src/lib/featureFlags.ts`.
 
 ## Architecture
 

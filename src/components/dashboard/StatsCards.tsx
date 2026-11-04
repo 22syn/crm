@@ -27,7 +27,7 @@ function StatCard({ title, value, description, icon: Icon, href, trend }: StatCa
           <span className="text-2xl font-bold">{value}</span>
           {trend != null && !Number.isNaN(trend) && (
             <span className={`flex items-center text-xs font-medium ${trend >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {trend >= 0 ? <ArrowUp className="h-3.5 w-3.5 mr-0.5" /> : <ArrowDown className="h-3.5 w-3.5 mr-0.5" />}
+              {trend >= 0 ? <ArrowUp className="h-3.5 w-3.5 me-0.5" /> : <ArrowDown className="h-3.5 w-3.5 me-0.5" />}
               {Math.abs(trend)}%
             </span>
           )}

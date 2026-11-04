@@ -48,7 +48,7 @@ export function EntityKanbanColumn<T>({
         </h3>
         <Badge
           variant="secondary"
-          className={`ml-auto shrink-0 ${isDark ? "bg-white/15 text-white/90 border-0" : ""}`}
+          className={`ms-auto shrink-0 ${isDark ? "bg-white/15 text-white/90 border-0" : ""}`}
         >
           {items.length}
         </Badge>

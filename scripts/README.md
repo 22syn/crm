@@ -9,7 +9,7 @@ This script prepares a new, empty Supabase project for one client:
    so `supabase db push` later sees the project as up to date.
    Two demo-data migrations are **recorded but not run** (see `SEED_ONLY_MIGRATIONS` in `setup-client/plan.ts`):
    the demo deals and the demo admin + 100 sample leads.
-2. Replaces the demo company rows (Hadarya / הר סיני) with the client's name, logo, color and sender email.
+2. Replaces the demo company rows (Hadarya / הר סיני) with the client's name, logo, color, sender email and language.
 3. Sends an invite email to the client's first admin (admin of each chosen module + team settings).
 4. Optionally invites Xsheva's support account as super admin. That is the only role allowed to change feature flags.
 5. Prints the env vars for the client's Vercel project.
@@ -23,17 +23,18 @@ Infisical project: `DATABASE_URL` (Project Settings → Database → connection 
 
 ```bash
 # See the plan first; touches nothing
-npm run client:setup -- --name "Acme Furniture" --admin-email owner@acme.com --modules leads --dry-run
+npm run client:setup -- --name "Acme Furniture" --admin-email owner@acme.com --modules leads --language he --dry-run
 
 # Run it (secrets injected by Infisical, never typed or printed)
 infisical run -- npm run client:setup -- \
-  --name "Acme Furniture" --admin-email owner@acme.com --modules leads \
+  --name "Acme Furniture" --admin-email owner@acme.com --modules leads --language he \
   --primary-color "#0F766E" --logo-url https://acme.com/logo.png \
   --sender-email quotes@acme.com --super-admin-email kobi@leadslords.com \
   --site-url https://crm.acme.com
 ```
 
-`--modules` takes `leads`, `ad_agency` or both (comma-separated).
+`--modules` takes `leads`, `ad_agency` or both (comma-separated). `--language` is `he` (Hebrew, right-to-left:
+menu on the right) or `en` (English, left-to-right); it can be changed later in Settings.
 
 **After, by hand** (the script prints these): create the Vercel project with the printed env vars, set the
 Supabase Auth **Site URL** to the client's address, and deploy the edge functions

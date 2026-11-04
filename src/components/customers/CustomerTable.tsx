@@ -43,7 +43,7 @@ function getStatusBadge(customerStatus: CustomerStatus) {
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${variantClasses[customerStatus] || variantClasses.new}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${option?.color} mr-1.5`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${option?.color} me-1.5`} />
       {option?.label || customerStatus}
     </span>
   );
@@ -178,14 +178,14 @@ export function CustomerTable({ customers, onEdit, onDelete, renderFooter, visib
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(customer)}>
-              <Edit className="h-4 w-4 mr-2" />
+              <Edit className="h-4 w-4 me-2" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => onDelete(customer)}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4 me-2" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

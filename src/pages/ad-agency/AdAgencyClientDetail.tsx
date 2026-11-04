@@ -68,7 +68,7 @@ export default function AdAgencyClientDetail() {
     <div className="p-6 space-y-6">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/ad-agency/clients">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 ms-2" />
             חזרה ללקוחות
           </Link>
         </Button>
@@ -122,7 +122,7 @@ export default function AdAgencyClientDetail() {
               <Button
                 onClick={() => navigate("/ad-agency/projects", { state: { clientId: id, clientName: client.name } })}
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 ms-2" />
                 פרויקט חדש
               </Button>
             </div>

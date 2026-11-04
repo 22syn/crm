@@ -65,11 +65,11 @@ export interface DataTableProps<T> {
 }
 
 function getSortIcon(sortField: string, sortKey: string, sortDirection: SortDirection) {
-  if (sortField !== sortKey) return <ArrowUpDown className="h-4 w-4 ml-1" />;
+  if (sortField !== sortKey) return <ArrowUpDown className="h-4 w-4 ms-1" />;
   return sortDirection === "asc" ? (
-    <ArrowUp className="h-4 w-4 ml-1" />
+    <ArrowUp className="h-4 w-4 ms-1" />
   ) : (
-    <ArrowDown className="h-4 w-4 ml-1" />
+    <ArrowDown className="h-4 w-4 ms-1" />
   );
 }
 
@@ -171,7 +171,7 @@ export function DataTable<T>({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="-ml-3 h-8 hover:bg-transparent"
+                      className="-ms-3 h-8 hover:bg-transparent"
                       onClick={() => onHeaderSort(col.sortKey ?? col.id)}
                     >
                       {col.header}

@@ -29,15 +29,15 @@ export function ClientFilters({
   const showFilters = variant === "default" || variant === "filtersOnly";
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0" dir="rtl">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full min-w-0">
       {showSearch && (
         <div className="relative flex-1 min-w-0 sm:max-w-[200px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="חיפוש לקוחות..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pr-9 h-9 rounded-md text-sm"
+            className="ps-9 h-9 rounded-md text-sm"
           />
         </div>
       )}

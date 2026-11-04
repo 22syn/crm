@@ -57,13 +57,13 @@ describe("repository migrations", () => {
 
 describe("client rows", () => {
   const config = parseClientArgs([
-    "--name", "Acme", "--admin-email", "owner@acme.com", "--modules", "ad_agency,leads", "--primary-color", "#0F766E",
+    "--name", "Acme", "--admin-email", "owner@acme.com", "--modules", "ad_agency,leads", "--primary-color", "#0F766E", "--language", "he",
   ]);
 
   it("builds one branding row per module with no demo contact details", () => {
     expect(buildCompanySettingsRows(config)).toEqual([
-      { module: "ad_agency", name: "Acme", logo_url: null, primary_color: "#0F766E", sender_email: null },
-      { module: "leads", name: "Acme", logo_url: null, primary_color: "#0F766E", sender_email: null },
+      { module: "ad_agency", name: "Acme", logo_url: null, primary_color: "#0F766E", sender_email: null, language: "he" },
+      { module: "leads", name: "Acme", logo_url: null, primary_color: "#0F766E", sender_email: null, language: "he" },
     ]);
   });
   it("makes the first admin an admin of each module plus system", () => {

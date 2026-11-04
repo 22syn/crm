@@ -34,7 +34,7 @@ sleep 1
 
 run_setup() {
   (cd "$ROOT" && DATABASE_URL="$DB_URL" SUPABASE_URL="http://localhost:$STUB_PORT" SUPABASE_SERVICE_ROLE_KEY=local-test \
-    npx tsx scripts/setup-client/index.ts --name "$1" --admin-email owner@acme.test --modules leads \
+    npx tsx scripts/setup-client/index.ts --name "$1" --admin-email owner@acme.test --modules leads --language he \
     --primary-color "#0F766E" --super-admin-email support@xsheva.test) >"$WORK/setup.log" 2>&1
 }
 
@@ -50,6 +50,7 @@ check "every public table has RLS" "$(q "SELECT count(*) FROM pg_tables WHERE sc
 check "no demo data" "$(q "SELECT (SELECT count(*) FROM leads) + (SELECT count(*) FROM deals) + (SELECT count(*) FROM op_clients)")" "0"
 check "only the client's company row" "$(q "SELECT string_agg(module || '=' || name, ',') FROM company_settings")" "leads=Acme Furniture Ltd"
 check "demo contact details cleared" "$(q "SELECT count(*) FROM company_settings WHERE coalesce(address, email, phone, website) IS NOT NULL")" "0"
+check "client language stored" "$(q "SELECT language FROM company_settings")" "he"
 check "re-run keeps feature flags" "$(q "SELECT features->>'quotes' FROM company_settings")" "true"
 check "two users, no duplicates" "$(q "SELECT count(*) FROM auth.users")" "2"
 check "first admin roles" "$(q "SELECT string_agg(module || '/' || role, ',' ORDER BY module) FROM user_module_roles r JOIN profiles p USING (user_id) WHERE p.email = 'owner@acme.test'")" "leads/admin,system/admin"

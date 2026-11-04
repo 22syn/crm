@@ -253,13 +253,13 @@ export function DesignRequestTable({
             <DropdownMenuContent align="end">
               {request.status === "pending" && (
                 <DropdownMenuItem onClick={() => onStartWork(request)}>
-                  <Play className="h-4 w-4 mr-2" />
+                  <Play className="h-4 w-4 me-2" />
                   Start Work
                 </DropdownMenuItem>
               )}
               {request.status === "in_progress" && (
                 <DropdownMenuItem onClick={() => onUploadDesign(request)}>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 me-2" />
                   Upload Design
                 </DropdownMenuItem>
               )}
@@ -270,7 +270,7 @@ export function DesignRequestTable({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Eye className="h-4 w-4 mr-2" />
+                    <Eye className="h-4 w-4 me-2" />
                     View Design
                   </a>
                 </DropdownMenuItem>

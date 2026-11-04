@@ -304,7 +304,6 @@ export default function AdAgencyProjects() {
   return (
     <div className="min-w-0">
     <EntityPageShell
-      dir="rtl"
       kanbanTabLabel="צינור"
       tableTabLabel="טבלה"
       title="פרויקטים"

@@ -53,7 +53,7 @@ export function ColumnVisibilityDropdown({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="shrink-0 h-9 rounded-md font-normal">
-          <Columns className="h-4 w-4 mr-1.5 shrink-0" />
+          <Columns className="h-4 w-4 me-1.5 shrink-0" />
           {columnsLabel}
         </Button>
       </DropdownMenuTrigger>

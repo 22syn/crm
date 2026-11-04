@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { DEMO_PROJECT_REF, getProjectRef, parseClientArgs, readTargetEnv } from "./config";
 
-const BASE_ARGS = ["--name", "Acme Furniture", "--admin-email", "Owner@Acme.com", "--modules", "leads"];
+const BASE_ARGS = ["--name", "Acme Furniture", "--admin-email", "Owner@Acme.com", "--modules", "leads", "--language", "he"];
 
 describe("parseClientArgs", () => {
   it("parses a minimal valid command", () => {
@@ -9,6 +9,7 @@ describe("parseClientArgs", () => {
       name: "Acme Furniture",
       adminEmail: "owner@acme.com",
       modules: ["leads"],
+      language: "he",
       logoUrl: undefined,
       primaryColor: undefined,
       senderEmail: undefined,
@@ -21,6 +22,7 @@ describe("parseClientArgs", () => {
     const config = parseClientArgs([
       ...BASE_ARGS.slice(0, 4),
       "--modules", "leads, ad_agency,leads",
+      "--language", "EN",
       "--logo-url", "https://cdn.acme.com/logo.png",
       "--primary-color", "#0F766E",
       "--sender-email", "quotes@acme.com",
@@ -29,6 +31,7 @@ describe("parseClientArgs", () => {
       "--dry-run",
     ]);
     expect(config.modules).toEqual(["leads", "ad_agency"]);
+    expect(config.language).toBe("en");
     expect(config.superAdminEmail).toBe("kobi@xsheva.com");
     expect(config.dryRun).toBe(true);
   });
@@ -39,6 +42,11 @@ describe("parseClientArgs", () => {
     expect(() => parseClientArgs([...BASE_ARGS, "--logo-url", "javascript:alert(1)"])).toThrow("--logo-url");
     expect(() => parseClientArgs([...BASE_ARGS, "--primary-color", "teal"])).toThrow("--primary-color");
     expect(() => parseClientArgs([...BASE_ARGS, "--site-url", "http://crm.acme.com"])).toThrow("--site-url");
+  });
+  it("requires a supported language", () => {
+    const withoutLanguage = BASE_ARGS.slice(0, 6);
+    expect(() => parseClientArgs(withoutLanguage)).toThrow("--language must be one of: he, en");
+    expect(() => parseClientArgs([...withoutLanguage, "--language", "fr"])).toThrow("--language");
   });
   it("rejects unknown flags", () => {
     expect(() => parseClientArgs([...BASE_ARGS, "--password", "x"])).toThrow();

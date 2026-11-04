@@ -97,14 +97,14 @@ export function MonthlyRevenueChart({ assignedTo }: MonthlyRevenueChartProps = {
     <div className="bg-card border border-border p-6 rounded-xl shadow-sm flex flex-col overflow-hidden">
       <h3 className="text-base font-medium text-foreground mb-5">Monthly Revenue (Last 6 Months)</h3>
       <div className="flex-1 relative w-full min-h-[220px]">
-        <div className="absolute left-0 top-0 bottom-10 w-10 flex flex-col justify-between text-xs text-muted-foreground/80 tabular-nums text-right pr-3">
+        <div className="absolute start-0 top-0 bottom-10 w-10 flex flex-col justify-between text-xs text-muted-foreground/80 tabular-nums text-end pe-3">
           <span>{formatY(maxRevenue)}</span>
           <span>{formatY(maxRevenue * 0.75)}</span>
           <span>{formatY(maxRevenue * 0.5)}</span>
           <span>{formatY(maxRevenue * 0.25)}</span>
           <span>0</span>
         </div>
-        <div className="absolute left-12 right-0 top-1 bottom-10">
+        <div className="absolute start-12 end-0 top-1 bottom-10">
           {/* Subtle dashed grid */}
           <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 50">
             <defs>
@@ -164,7 +164,7 @@ export function MonthlyRevenueChart({ assignedTo }: MonthlyRevenueChartProps = {
             ))}
           </svg>
         </div>
-        <div className="absolute left-12 right-0 bottom-0 flex justify-between text-xs text-muted-foreground/90 px-0.5">
+        <div className="absolute start-12 end-0 bottom-0 flex justify-between text-xs text-muted-foreground/90 px-0.5">
           {chartData.map((d) => (
             <span key={d.month} className="flex-1 text-center">
               {d.month}

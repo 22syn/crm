@@ -17,7 +17,7 @@ export interface CompanySettings extends Omit<CompanySettingsRow, "features"> {
 
 export type CompanySettingsUpdate = Pick<
   TablesUpdate<"company_settings">,
-  "name" | "logo_url" | "primary_color" | "sender_email" | "features"
+  "name" | "logo_url" | "primary_color" | "sender_email" | "features" | "language"
 >;
 
 async function fetchCompanySettings(module: CompanyModule): Promise<CompanySettings | null> {

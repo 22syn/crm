@@ -295,7 +295,7 @@ export default function Leads() {
                     size="sm"
                     onClick={() => setSelectedLeadIds(new Set())}
                   >
-                    <X className="h-4 w-4 mr-1" />
+                    <X className="h-4 w-4 me-1" />
                     Clear selection
                   </Button>
                 </div>
@@ -336,7 +336,7 @@ export default function Leads() {
                           onClick={() => setPage((p) => Math.max(0, p - 1))}
                           disabled={page === 0 || isLoading}
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-4 w-4 rtl:-scale-x-100" />
                         </Button>
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNum =
@@ -381,7 +381,7 @@ export default function Leads() {
                           onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                           disabled={page >= totalPages - 1 || isLoading}
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-4 w-4 rtl:-scale-x-100" />
                         </Button>
                       </div>
                       <div className="text-xs text-muted-foreground">Rows per page: {PAGE_SIZE}</div>

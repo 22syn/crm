@@ -377,7 +377,7 @@ export default function Quotes() {
             <p className="font-medium text-foreground">Add your first contract</p>
             <p className="text-sm text-muted-foreground mt-1">Create a contract from a lead or quote.</p>
             <Button variant="accent" className="mt-4" onClick={() => setBuilderOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               New Contract
             </Button>
           </div>

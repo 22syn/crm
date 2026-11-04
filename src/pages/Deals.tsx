@@ -288,11 +288,11 @@ export default function Deals() {
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-4">
               <Button variant="outline" size="sm" onClick={handleClearFilters}>
-                <FilterX className="h-4 w-4 mr-1" />
+                <FilterX className="h-4 w-4 me-1" />
                 Clear filters
               </Button>
               <Button variant="outline" size="sm" onClick={handleResetPreferences} disabled={resetPending}>
-                <RotateCcw className="h-4 w-4 mr-1" />
+                <RotateCcw className="h-4 w-4 me-1" />
                 Reset to default
               </Button>
             </div>
@@ -305,7 +305,7 @@ export default function Deals() {
               Get started by creating a deal from your pipeline.
             </p>
             <Button variant="accent" className="mt-4" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               New Deal
             </Button>
           </div>

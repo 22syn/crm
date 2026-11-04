@@ -143,23 +143,23 @@ export function GlobalCommandPalette() {
         {!searchInput.trim() && hasLeads && (
           <CommandGroup heading="Hadarya">
             <CommandItem onSelect={() => runCommand(() => navigate("/dashboard"))}>
-              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <LayoutDashboard className="me-2 h-4 w-4" />
               Dashboard
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/leads", { state: { openNewLead: true } }))}>
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="me-2 h-4 w-4" />
               New Lead
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/leads"))}>
-              <Users className="mr-2 h-4 w-4" />
+              <Users className="me-2 h-4 w-4" />
               Leads
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/deals"))}>
-              <Handshake className="mr-2 h-4 w-4" />
+              <Handshake className="me-2 h-4 w-4" />
               Deals
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/contracts"))}>
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="me-2 h-4 w-4" />
               Contracts
             </CommandItem>
           </CommandGroup>
@@ -167,27 +167,27 @@ export function GlobalCommandPalette() {
         {!searchInput.trim() && hasAdAgency && (
           <CommandGroup heading="משרד פרסום">
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency"))}>
-              <LayoutGrid className="mr-2 h-4 w-4" />
+              <LayoutGrid className="me-2 h-4 w-4" />
               דשבורד משרד פרסום
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/projects"))}>
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="me-2 h-4 w-4" />
               פרויקטים
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/price-quotes"))}>
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="me-2 h-4 w-4" />
               הצעות מחיר
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/clients"))}>
-              <Users className="mr-2 h-4 w-4" />
+              <Users className="me-2 h-4 w-4" />
               לקוחות
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/tasks"))}>
-              <ListTodo className="mr-2 h-4 w-4" />
+              <ListTodo className="me-2 h-4 w-4" />
               משימות
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => navigate("/ad-agency/items"))}>
-              <Package className="mr-2 h-4 w-4" />
+              <Package className="me-2 h-4 w-4" />
               פריטים
             </CommandItem>
           </CommandGroup>
@@ -197,7 +197,7 @@ export function GlobalCommandPalette() {
             {recentLeads.map((lead) => (
               <CommandItem key={lead.id} onSelect={() => handleSelectLead(lead)}>
                 <span className="truncate">{lead.customer_name}</span>
-                <span className="ml-2 text-meta text-muted-foreground truncate">
+                <span className="ms-2 text-meta text-muted-foreground truncate">
                   — {lead.status}
                 </span>
               </CommandItem>
@@ -209,7 +209,7 @@ export function GlobalCommandPalette() {
             {searchResults.map((lead) => (
               <CommandItem key={lead.id} onSelect={() => handleSelectLead(lead)}>
                 <span className="truncate">{lead.customer_name}</span>
-                <span className="ml-2 text-meta text-muted-foreground truncate">
+                <span className="ms-2 text-meta text-muted-foreground truncate">
                   — {lead.status}
                 </span>
               </CommandItem>

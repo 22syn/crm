@@ -84,7 +84,7 @@ export function DesignRequestKanbanCard({
               onStartWork(request);
             }}
           >
-            <Play className="h-3 w-3 mr-1" />
+            <Play className="h-3 w-3 me-1" />
             Start Work
           </Button>
         )}
@@ -98,14 +98,14 @@ export function DesignRequestKanbanCard({
               onUploadDesign(request);
             }}
           >
-            <Upload className="h-3 w-3 mr-1" />
+            <Upload className="h-3 w-3 me-1" />
             Upload Design
           </Button>
         )}
         {request.status === "completed" && request.design_file_url && (
           <Button size="sm" variant="outline" className="h-7 w-full text-xs" asChild>
             <a href={request.design_file_url} target="_blank" rel="noopener noreferrer">
-              <Eye className="h-3 w-3 mr-1" />
+              <Eye className="h-3 w-3 me-1" />
               View Design
             </a>
           </Button>
