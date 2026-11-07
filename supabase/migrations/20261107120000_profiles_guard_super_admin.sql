@@ -25,6 +25,8 @@ BEGIN
 END;
 $$;
 
+-- Safe to run twice (e.g. pasted in the SQL editor first, then applied as a migration).
+DROP TRIGGER IF EXISTS profiles_guard_super_admin ON public.profiles;
 CREATE TRIGGER profiles_guard_super_admin
   BEFORE INSERT OR UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.profiles_guard_super_admin();
