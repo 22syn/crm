@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import Auth from "./pages/Auth";
 import { GlobalCommandPalette } from "./components/GlobalCommandPalette";
 import { ProtectedLayout } from "./components/layout/ProtectedLayout";
+import { getHomePath } from "@/lib/homePath";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Leads = lazy(() => import("./pages/Leads"));
@@ -66,10 +67,9 @@ function ScrollToTop() {
 /** Redirect to default home based on user's module access */
 function RedirectToDefault() {
   const { canAccessModule, isModuleAdmin } = useAuth();
-  if (canAccessModule("leads")) return <Navigate to="/dashboard" replace />;
-  if (canAccessModule("ad_agency")) return <Navigate to="/ad-agency" replace />;
-  if (isModuleAdmin("system")) return <Navigate to="/settings" replace />;
-  return <Navigate to="/dashboard" replace />;
+  const homePath = getHomePath({ canAccessModule, isModuleAdmin });
+  // ProtectedLayout already shows Access Pending when there is no home page.
+  return homePath ? <Navigate to={homePath} replace /> : null;
 }
 
 const App = () => (

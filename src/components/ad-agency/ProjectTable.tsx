@@ -35,7 +35,8 @@ interface ProjectWithClient {
 interface ProjectTableProps {
   projects: ProjectWithClient[];
   onEdit: (project: ProjectWithClient) => void;
-  onDelete: (project: ProjectWithClient) => void;
+  /** Omitted for users who may not delete projects (only ad-agency admins may). */
+  onDelete?: (project: ProjectWithClient) => void;
   /** When provided, sort is controlled from parent (toolbar) */
   sortField?: string;
   sortDirection?: "asc" | "desc";
@@ -183,10 +184,12 @@ export function ProjectTable({
               <Pencil className="h-4 w-4 ms-2" />
               עריכה
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(p)} className="text-destructive">
-              <Trash2 className="h-4 w-4 ms-2" />
-              מחיקה
-            </DropdownMenuItem>
+            {onDelete && (
+              <DropdownMenuItem onClick={() => onDelete(p)} className="text-destructive">
+                <Trash2 className="h-4 w-4 ms-2" />
+                מחיקה
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )}

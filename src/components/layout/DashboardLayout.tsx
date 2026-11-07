@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAreaLanguage } from "@/hooks/useAppLanguage";
 import { getDirection } from "@/lib/locale";
 import { AppDirection } from "./AppDirection";
+import { AccessPending } from "./AccessPending";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardBreadcrumb, ROUTE_MAP } from "./DashboardBreadcrumb";
@@ -64,17 +65,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   if (!role) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="text-center space-y-4 max-w-md">
-          <h1 className="text-display font-semibold">Access Pending</h1>
-          <p className="text-muted-foreground">
-            Your account has been created but you don't have CRM access yet.
-            Please contact an administrator to get your role assigned.
-          </p>
-        </div>
-      </div>
-    );
+    return <AccessPending />;
   }
 
   return (
