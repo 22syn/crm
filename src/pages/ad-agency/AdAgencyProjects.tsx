@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { ProjectKanban } from "@/components/ad-agency/ProjectKanban";
 import { ProjectTable } from "@/components/ad-agency/ProjectTable";
@@ -26,6 +27,9 @@ interface ProjectWithClient extends OpProject {
 export default function AdAgencyProjects() {
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { isModuleAdmin } = useAuth();
+  // The database only lets ad-agency admins delete projects, so only they see the option.
+  const canDeleteProjects = isModuleAdmin("ad_agency");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectWithClient | null>(null);
   const [viewMode, setViewMode] = useState<EntityViewMode>("kanban");
@@ -320,7 +324,7 @@ export default function AdAgencyProjects() {
           projects={filteredProjects}
           isLoading={isLoading}
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onDelete={canDeleteProjects ? handleDelete : undefined}
           onStageChange={handleStageChange}
         />
       }
@@ -333,7 +337,7 @@ export default function AdAgencyProjects() {
           <ProjectTable
             projects={filteredProjects}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={canDeleteProjects ? handleDelete : undefined}
             visibleColumnIds={visibleColumnIds}
           />
         )

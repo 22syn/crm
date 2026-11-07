@@ -26,7 +26,8 @@ interface ProjectKanbanProps {
   projects: ProjectWithClient[];
   isLoading: boolean;
   onEdit: (project: ProjectWithClient) => void;
-  onDelete: (project: ProjectWithClient) => void;
+  /** Omitted for users who may not delete projects (only ad-agency admins may). */
+  onDelete?: (project: ProjectWithClient) => void;
   onStageChange: (projectId: string, stage: string) => void;
 }
 
