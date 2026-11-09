@@ -61,7 +61,7 @@ Helpers: `has_module_access()`, `has_module_admin()`, `has_crm_access()`, `is_su
 /leads, /leads/:id   → Leads, LeadDetail
 /deals               → Deals
 /contracts           → Quotes (renamed; /quotes redirects here)
-/contracts/approve/:id → QuoteApproval (public token-based)
+/contracts/approve/:id → QuoteApproval (signed-in only: inside ProtectedLayout; anon has no RLS access to quotes)
 /products            → Products (Shopify-backed)
 /suppliers           → Suppliers
 /customers           → Customers
