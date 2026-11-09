@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoginBranding } from "@/hooks/useAppBranding";
+import { getLogoFitClass } from "@/lib/branding";
 import { AppDirection } from "@/components/layout/AppDirection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ export default function Auth() {
                 <img
                   src={branding.logoUrl}
                   alt={`${branding.name} logo`}
-                  className="size-10 rounded-lg object-cover shrink-0"
+                  className={`size-10 rounded-lg shrink-0 ${getLogoFitClass(branding.logoUrl)}`}
                 />
                 <h2 className="text-2xl font-bold tracking-tight">{branding.name}</h2>
               </div>
@@ -149,7 +150,7 @@ export default function Auth() {
               <img
                 src={branding.logoUrl}
                 alt={`${branding.name} logo`}
-                className="w-16 h-16 rounded-xl object-cover"
+                className={`w-16 h-16 rounded-xl ${getLogoFitClass(branding.logoUrl)}`}
               />
             </div>
             <h1 className="text-white text-5xl font-extrabold mb-6 tracking-tight">

@@ -46,6 +46,14 @@ export function getBranding(source: BrandingSource | null | undefined): Branding
 }
 
 /**
+ * Client logos are often dark marks on a transparent background, which vanish on the dark UI,
+ * and rarely square. Show them whole on a white tile; the default logo carries its own background.
+ */
+export function getLogoFitClass(logoUrl: string): string {
+  return logoUrl === DEFAULT_LOGO_URL ? "object-cover" : "bg-white object-contain p-1";
+}
+
+/**
  * Module whose branding the public login page shows. Unset means a deployment shared by
  * several clients: the login page can't know who is signing in, so it stays on the defaults.
  */

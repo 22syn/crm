@@ -4,8 +4,21 @@ import {
   DEFAULT_LOGO_URL,
   getBranding,
   getLoginBrandModule,
+  getLogoFitClass,
   getUserBrandModule,
 } from "../branding";
+
+describe("getLogoFitClass", () => {
+  it("keeps the default logo filling its frame", () => {
+    expect(getLogoFitClass(DEFAULT_LOGO_URL)).toBe("object-cover");
+  });
+  it("shows a client logo whole on a white tile", () => {
+    const fit = getLogoFitClass("https://example.com/logo.png");
+    expect(fit).toContain("bg-white");
+    expect(fit).toContain("object-contain");
+    expect(fit).not.toContain("object-cover");
+  });
+});
 
 describe("getBranding", () => {
   it("falls back to Xsheva defaults when there is no settings row", () => {
