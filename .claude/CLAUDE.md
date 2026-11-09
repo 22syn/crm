@@ -15,6 +15,7 @@ bun run dev          # local dev server
 bun run build        # production build
 bun run test         # vitest
 bun run lint         # eslint
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:56543/postgres supabase/tests/rls/run.sh   # RLS tests on a throwaway Postgres (CI job `rls`)
 npm run client:setup -- --name "Acme" --admin-email owner@acme.com --modules leads --language he --dry-run   # new client (see scripts/README.md)
 ```
 
@@ -111,6 +112,7 @@ Mutations must call `queryClient.invalidateQueries()` after success.
 - **Vercel** project: `democrm` (ID: `prj_lFTyxmM8gO9H0nF8DHm71fOlGSUV`, org: `team_0TjG4YuI36Nck2PCBHYyUIvb`)
 - **Supabase** project: `fbtnhhurjwizcrmcisci`
 - Migrations: `supabase/migrations/` — apply via Supabase CLI or dashboard
+- RLS tests: CI job `rls` applies every migration to a throwaway Postgres and checks the access matrix (`supabase/tests/rls/30_rls_matrix.sql`). A permission change must update that matrix in the same PR.
 - Error monitoring: Sentry (initialized in `src/sentry.ts`, `VITE_SENTRY_DSN` env var)
 
 ## Active work
@@ -148,6 +150,7 @@ CRM/
 │   └── utils/                 ← leadScore, leadSort, leadStages, sourceIcons
 ├── supabase/
 │   ├── migrations/            ← SQL migrations (chronological)
+│   ├── tests/rls/             ← RLS tests: Supabase stand-ins, seed, access matrix, run.sh
 │   └── functions/             ← Edge functions (website-lead, send-quote)
 └── .worktrees/visual-redesign/ ← active redesign branch
 ```
