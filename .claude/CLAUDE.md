@@ -47,7 +47,8 @@ DB: `user_module_roles(user_id, module, role)` + `profiles.super_admin`.
 Helpers: `has_module_access()`, `has_module_admin()`, `has_crm_access()`, `is_super_admin()`.
 
 **Users:**
-- `kobi@leadslords.com` — super admin (all modules)
+- `kobihazout2@gmail.com` — super admin (all modules)
+- `kobi@xsheva.com` — Kobi's second account (renamed from kobi@leadslords.com on 2026-11-03); no module roles
 - `ori@harsinai.co.il` — ad_agency user only (locked via migration)
 
 ### Routing
