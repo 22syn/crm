@@ -21,6 +21,7 @@ import { Plus, Minus, Trash2, Save, Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 type OpItem = Tables<"op_items">;
 type OpProjectItem = Tables<"op_project_items">;
@@ -44,6 +45,9 @@ interface ProjectItemsSectionProps {
 
 export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
   const queryClient = useQueryClient();
+  const { isModuleAdmin } = useAuth();
+  // The database only lets ad-agency admins remove saved items, so only they see the option.
+  const canRemoveSavedItems = isModuleAdmin("ad_agency");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
@@ -237,9 +241,16 @@ export function ProjectItemsSection({ projectId }: ProjectItemsSectionProps) {
                   <TableCell>₪{pricePerDay.toLocaleString("he-IL")}</TableCell>
                   <TableCell>₪{total.toLocaleString("he-IL")}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => removeMutation.mutate(pi.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {canRemoveSavedItems && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="הסר פריט"
+                        onClick={() => removeMutation.mutate(pi.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               );
