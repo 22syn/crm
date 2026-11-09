@@ -62,7 +62,9 @@ serve(async (req) => {
       .eq("user_id", user.id);
 
     const isSuperAdmin = profile?.super_admin === true;
-    const isSystemAdmin = (moduleRoles ?? []).some((r) => r.module === "system");
+    // Only a system *admin* may invite; a system "user" must not be able to grant roles
+    // (it could otherwise give itself admin of every module).
+    const isSystemAdmin = (moduleRoles ?? []).some((r) => r.module === "system" && r.role === "admin");
     const hasLegacyAdmin = await (async () => {
       const { data } = await adminClient
         .from("user_roles")
@@ -111,18 +113,23 @@ serve(async (req) => {
 
     if (inviteError) {
       if (inviteError.message?.includes("already been registered") || inviteError.message?.includes("already exists")) {
-        const { data: existing } = await adminClient
-          .from("profiles")
-          .select("user_id")
-          .eq("email", email)
-          .limit(1)
-          .single();
+        // Match on the account's sign-in email (auth.users), never on profiles.email:
+        // profile emails are not unique and used to be editable by their owner.
+        const { data: existingUserId, error: lookupError } = await adminClient.rpc("user_id_by_email", {
+          _email: email,
+        });
+        if (lookupError) {
+          return new Response(
+            JSON.stringify({ error: `Failed to look up existing user: ${lookupError.message}` }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
 
-        if (existing?.user_id) {
-          await adminClient.from("user_module_roles").delete().eq("user_id", existing.user_id);
+        if (typeof existingUserId === "string") {
+          await adminClient.from("user_module_roles").delete().eq("user_id", existingUserId);
           for (const { module, role } of toInsert) {
             await adminClient.from("user_module_roles").upsert(
-              { user_id: existing.user_id, module, role },
+              { user_id: existingUserId, module, role },
               { onConflict: "user_id,module" }
             );
           }
