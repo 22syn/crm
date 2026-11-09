@@ -12,6 +12,7 @@ Project-specific decisions and context across sessions. Entries are dated and ne
 | 2026-03-11 | Added company_settings per module | Needed separate branding (name, address, logo) for each org's quote PDFs |
 | 2026-XX-XX | Renamed /quotes → /contracts in routing | Business rebranding; /quotes still redirects to /contracts |
 | 2026-07-06 | Put project ON HOLD — turned off Vercel hosting + Supabase | Project paused indefinitely. Vercel: git disconnected + prod alias `hadaryacrm.vercel.app` removed (site 404), project/deployment kept. Supabase paused >90d → unrestorable; DB row data abandoned (schema in git). All reversible, nothing deleted. |
+| 2026-11-03 | Project active again — Supabase restored, Vercel deploying | Needed for client demos. Supabase restore worked (data intact: 152 leads, 15 deals, 4 quotes). Vercel auto-deploys `main` to `hadaryacrm.vercel.app`. |
 
 ## Resolved Issues
 
@@ -23,13 +24,13 @@ Project-specific decisions and context across sessions. Entries are dated and ne
 
 ## User Preferences
 
-- Kobi is the super admin (kobi@leadslords.com)
+- Super admin account is `kobihazout2@gmail.com`; Kobi's other account `kobi@xsheva.com` (was kobi@leadslords.com until 2026-11-03) has no module roles
 - Project is in active development — visual-redesign worktree is ongoing work
 - Obsidian (Maestro vault) was the previous source of truth for rules/standards; now migrated to .claude/
 
 ## Active Context
 
-- **⏸️ ON HOLD since 2026-07-06** — hosting + deployment off (see Decisions row). To revive: `vercel git connect` + `vercel alias set <deployment> hadaryacrm.vercel.app`; Supabase needs Pro/support to restore (data may be gone).
+- **Active since 2026-11-03** (was on hold 2026-07-06 → 2026-11-03, see Decisions). Production: `hadaryacrm.vercel.app`, auto-deployed from `main`. Supabase is on the free tier and pauses when idle — before a demo, check the project status and restore it if `INACTIVE`.
 - **visual-redesign** branch is active in `.worktrees/visual-redesign/` — designs exist as `.pen` files
 - Knowledge layer migrated from Obsidian to Cowork on 2026-04-29
 - Obsidian files at `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Maestro/` are still the source for: security audit details, UI/UX improvement plan details, and cursor MCP setup — consider copying key findings into knowledge/ files
