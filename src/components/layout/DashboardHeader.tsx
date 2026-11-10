@@ -2,6 +2,8 @@ import { Search, Bell, ChevronDown, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAreaLanguage } from "@/hooks/useAppLanguage";
+import { getShellCopy } from "@/lib/shellCopy";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -14,6 +16,8 @@ import { ThemeSelector } from "./ThemeSelector";
 
 export function DashboardHeader() {
   const { user, signOut } = useAuth();
+  const { language } = useAreaLanguage();
+  const copy = getShellCopy(language);
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
@@ -46,7 +50,7 @@ export function DashboardHeader() {
             <Search className="h-4 w-4 text-muted-foreground" />
           </span>
           <span className="block w-full ps-10 pe-3 py-2.5 border border-input rounded-lg text-sm text-muted-foreground bg-background hover:bg-accent/50 transition-colors">
-            Search leads, contacts, deals...
+            {copy.searchPlaceholder}
           </span>
         </button>
       </div>
@@ -55,7 +59,7 @@ export function DashboardHeader() {
         <button
           type="button"
           className="relative p-1 rounded-full text-muted-foreground hover:text-foreground focus:outline-none"
-          aria-label="Notifications"
+          aria-label={copy.notifications}
         >
           <Bell className="h-5 w-5" />
         </button>
@@ -79,7 +83,7 @@ export function DashboardHeader() {
           <DropdownMenuContent align="end" className="z-[100] w-56">
             <DropdownMenuItem onClick={signOut}>
               <LogOut className="h-4 w-4 me-2" />
-              Logout
+              {copy.logout}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
