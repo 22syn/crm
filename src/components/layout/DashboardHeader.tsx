@@ -32,7 +32,7 @@ export function DashboardHeader() {
     enabled: !!user?.id,
   });
   const displayName =
-    profile?.full_name?.trim() || user?.email?.split("@")[0] || "User";
+    profile?.full_name?.trim() || user?.email?.split("@")[0] || copy.userFallback;
 
   const handleSearchClick = () => {
     window.dispatchEvent(new CustomEvent("open-command-palette"));

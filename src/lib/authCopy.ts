@@ -63,3 +63,23 @@ const AuthCopyByLanguage: Readonly<Record<AppLanguage, AuthCopy>> = {
 export function getAuthCopy(language: AppLanguage): AuthCopy {
   return AuthCopyByLanguage[language];
 }
+
+export interface SignInErrorLike {
+  readonly code?: string;
+  readonly message: string;
+}
+
+// Supabase Auth error codes a sign-in form can hit.
+const HebrewSignInErrors: Readonly<Record<string, string>> = {
+  invalid_credentials: "האימייל או הסיסמה שגויים.",
+  email_not_confirmed: "כתובת האימייל עוד לא אומתה. בדקו את תיבת הדואר.",
+  over_request_rate_limit: "יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.",
+  user_banned: "החשבון הזה חסום. פנו למנהל המערכת.",
+};
+const HEBREW_SIGN_IN_FALLBACK = "הכניסה נכשלה. נסו שוב.";
+
+/** English keeps Supabase's own message; Hebrew maps known codes and never shows raw English. */
+export function getSignInErrorMessage(language: AppLanguage, error: SignInErrorLike): string {
+  if (language === "en") return error.message;
+  return (error.code && HebrewSignInErrors[error.code]) || HEBREW_SIGN_IN_FALLBACK;
+}

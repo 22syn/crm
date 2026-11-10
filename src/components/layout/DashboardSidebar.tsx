@@ -4,7 +4,8 @@ import { useDirection } from "@radix-ui/react-direction";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppBranding } from "@/hooks/useAppBranding";
 import { getLogoFitClass } from "@/lib/branding";
-import { useModuleDirection } from "@/hooks/useAppLanguage";
+import { useAreaLanguage, useModuleDirection } from "@/hooks/useAppLanguage";
+import { getShellCopy } from "@/lib/shellCopy";
 import {
   Sidebar,
   SidebarContent,
@@ -61,11 +62,11 @@ const catalogSubItems = [
   { title: "Suppliers", url: "/suppliers", icon: Truck, module: "system" as const },
 ];
 
-/** Admin section: Automations, Settings */
+/** Admin section: Automations, Settings. Shown to admins of any module, so labels follow the area's language. */
 const adminItems = [
-  { title: "Automations", url: "/automations", icon: Zap, module: "system" as const },
-  { title: "Settings", url: "/settings", icon: Settings, module: "system" as const },
-];
+  { labelKey: "automations", url: "/automations", icon: Zap, module: "system" as const },
+  { labelKey: "settings", url: "/settings", icon: Settings, module: "system" as const },
+] as const;
 
 type NavItem = {
   title: string;
@@ -109,6 +110,7 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { canAccessModule, isModuleAdmin } = useAuth();
   const { branding, isLoading: brandingLoading } = useAppBranding();
+  const copy = getShellCopy(useAreaLanguage().language);
   // Menu sits on the reading-start side: right for Hebrew clients, left for English ones.
   const side = useDirection() === "rtl" ? "right" : "left";
   // In the shared demo the two modules differ in language, so each group keeps its own direction.
@@ -118,7 +120,7 @@ export function DashboardSidebar() {
   const canShowCatalogItem = (item: (typeof catalogSubItems)[0]) =>
     item.module === "leads" ? canAccessModule("leads") : isModuleAdmin("system");
   // Module admins reach Settings to edit their own company branding.
-  const canShowAdminItem = (item: (typeof adminItems)[0]) =>
+  const canShowAdminItem = (item: (typeof adminItems)[number]) =>
     isModuleAdmin("system") ||
     (item.url === "/settings" && (isModuleAdmin("leads") || isModuleAdmin("ad_agency")));
 
@@ -133,7 +135,7 @@ export function DashboardSidebar() {
         >
           <img
             src={branding.logoUrl}
-            alt={`${branding.name} logo`}
+            alt={copy.logoAlt(branding.name)}
             className={`w-8 h-8 shrink-0 rounded-lg ${getLogoFitClass(branding.logoUrl)}`}
           />
           <div className="flex min-w-0 flex-1 flex-col items-start group-data-[collapsible=icon]:hidden">
@@ -184,20 +186,20 @@ export function DashboardSidebar() {
 
         {adminItemsVisible.length > 0 && (
           <SidebarGroup className="mt-2 p-1.5">
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>{copy.adminGroup}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItemsVisible.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
                       isActive={location.pathname === item.url}
-                      tooltip={item.title}
+                      tooltip={copy[item.labelKey]}
                       className="group px-3 py-2 rounded-lg hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary/20 data-[active=true]:text-sidebar-primary-foreground"
                     >
                       <Link to={item.url} className="flex items-center gap-3">
                         <item.icon className="h-5 w-5 shrink-0 text-sidebar-foreground/70 group-data-[active=true]:text-sidebar-primary" />
-                        <span>{item.title}</span>
+                        <span>{copy[item.labelKey]}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

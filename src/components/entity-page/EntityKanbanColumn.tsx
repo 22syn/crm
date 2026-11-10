@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { ReactNode } from "react";
+import { useDirection } from "@radix-ui/react-direction";
 
 export interface EntityKanbanColumnProps<T> {
   /** Column id (status/stage value) - used as droppable id */
@@ -31,11 +32,13 @@ export function EntityKanbanColumn<T>({
   items,
   getItemId,
   renderCard,
-  emptyLabel = "No items",
+  emptyLabel,
   variant = "stitch-dark",
 }: EntityKanbanColumnProps<T>) {
   const { setNodeRef, isOver } = useDroppable({ id });
   const isDark = variant === "stitch-dark";
+  // Follows the client's language (set by AppDirection), like EntityToolbar.
+  const isRtl = useDirection() === "rtl";
 
   return (
     <div className="min-w-[220px] md:min-w-[280px] shrink-0 overflow-hidden">
@@ -65,10 +68,10 @@ export function EntityKanbanColumn<T>({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-card border-border">
               <DropdownMenuItem className="text-white/90 focus:bg-white/10">
-                Collapse column
+                {isRtl ? "כיווץ עמודה" : "Collapse column"}
               </DropdownMenuItem>
               <DropdownMenuItem className="text-white/90 focus:bg-white/10">
-                Add card
+                {isRtl ? "הוספת כרטיס" : "Add card"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -93,7 +96,7 @@ export function EntityKanbanColumn<T>({
               isDark ? "text-white/50 border-white/20" : "text-muted-foreground"
             }`}
           >
-            {emptyLabel}
+            {emptyLabel ?? (isRtl ? "אין פריטים" : "No items")}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
