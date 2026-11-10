@@ -34,6 +34,31 @@ jobs:
         run: npm run typecheck
         continue-on-error: true
 
+  # Database permission (RLS) tests: applies every migration to a throwaway Postgres and
+  # checks who can read / change what. See supabase/tests/rls/run.sh.
+  rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: RLS access matrix
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+        run: supabase/tests/rls/run.sh
+
   secrets-scan:
     uses: 22syn/ci-templates/.github/workflows/node-ci.yml@main
     with:
