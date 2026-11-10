@@ -33,7 +33,7 @@ export default function AdAgencyProjectDetail() {
         .eq("id", id)
         .single();
       if (error) throw error;
-      return data as OpProject & { op_clients?: { name: string; payment_terms?: string } | null };
+      return data as OpProject & { op_clients?: { name: string; payment_terms: string | null } | null };
     },
     enabled: !!id,
   });

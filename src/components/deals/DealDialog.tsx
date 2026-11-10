@@ -45,7 +45,7 @@ const dealSchema = z.object({
   notes: z.string().nullable(),
 });
 
-type DealFormData = z.infer<typeof dealSchema>;
+export type DealFormData = z.infer<typeof dealSchema>;
 
 interface Deal {
   id: string;

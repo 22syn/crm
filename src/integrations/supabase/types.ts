@@ -842,7 +842,7 @@ export type Database = {
           lead_id?: string | null
           notes?: string | null
           project_id?: string | null
-          quote_number: string
+          quote_number?: string
           status?: string
           subtotal?: number
           tax?: number | null

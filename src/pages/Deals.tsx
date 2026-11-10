@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EntityPageShell, EntityToolbar } from "@/components/entity-page";
 import { DealKanban } from "@/components/deals/DealKanban";
-import { DealDialog } from "@/components/deals/DealDialog";
+import { DealDialog, type DealFormData } from "@/components/deals/DealDialog";
 import { DealTable } from "@/components/deals/DealTable";
 import { DealFilters } from "@/components/deals/DealFilters";
 import { Button } from "@/components/ui/button";
@@ -141,14 +141,15 @@ export default function Deals() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<Deal, "id" | "quote_id" | "leads">) => {
+    mutationFn: async (data: DealFormData) => {
       const { data: result, error } = await supabase
         .from("deals")
         .insert({
           title: data.title,
           stage: data.stage as DealStage,
           amount: data.amount,
-          expected_close_date: data.expected_close_date,
+          // Date -> ISO string, same as the JSON serialisation the client applied before
+          expected_close_date: data.expected_close_date?.toISOString() ?? null,
           probability: data.probability,
           lead_id: data.lead_id,
           notes: data.notes,
@@ -170,14 +171,15 @@ export default function Deals() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Deal> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: DealFormData & { id: string }) => {
       const { error } = await supabase
         .from("deals")
         .update({
           title: data.title,
           stage: data.stage as DealStage,
           amount: data.amount,
-          expected_close_date: data.expected_close_date,
+          // Date -> ISO string, same as the JSON serialisation the client applied before
+          expected_close_date: data.expected_close_date?.toISOString() ?? null,
           probability: data.probability,
           lead_id: data.lead_id,
           notes: data.notes,
@@ -212,7 +214,7 @@ export default function Deals() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (data: Omit<Deal, "id" | "quote_id" | "leads">) => {
+  const handleSubmit = (data: DealFormData) => {
     if (selectedDeal) {
       updateMutation.mutate({ id: selectedDeal.id, ...data });
     } else {
