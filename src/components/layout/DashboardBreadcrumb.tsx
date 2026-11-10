@@ -1,4 +1,7 @@
+import { Fragment } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { useAreaLanguage } from "@/hooks/useAppLanguage";
+import { getShellCopy } from "@/lib/shellCopy";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -32,6 +35,8 @@ export const ROUTE_MAP: Record<string, string> = {
 export function DashboardBreadcrumb() {
   const location = useLocation();
   const pathname = location.pathname;
+  const { language } = useAreaLanguage();
+  const dashboardLabel = getShellCopy(language).dashboard;
 
   // Build breadcrumb segments from path — Stitch spec: "Dashboard > Section > Page"
   const segments = pathname.split("/").filter(Boolean);
@@ -46,16 +51,19 @@ export function DashboardBreadcrumb() {
     items.push({ path: acc, label });
   }
 
-  // Prepend Dashboard when not at root — Stitch: "Dashboard > Section > Page"
+  // The ad agency area has its own dashboard at /ad-agency; /dashboard belongs to the leads module.
+  const isAgencyArea = segments[0] === "ad-agency";
   if (items.length === 0) {
-    items.push({ path: "/dashboard", label: "Dashboard" });
-  } else if (items[0]?.path !== "/dashboard") {
-    items.unshift({ path: "/dashboard", label: "Dashboard" });
+    items.push({ path: "/dashboard", label: dashboardLabel });
+  } else if (items[0]?.path === "/dashboard") {
+    items[0] = { path: "/dashboard", label: dashboardLabel };
+  } else if (!isAgencyArea) {
+    items.unshift({ path: "/dashboard", label: dashboardLabel });
   }
 
   if (items.length <= 1) {
     const path = items[0]?.path ?? "/dashboard";
-    const label = items[0]?.label ?? "Dashboard";
+    const label = items[0]?.label ?? dashboardLabel;
     return (
       <Breadcrumb>
         <BreadcrumbList>
@@ -72,20 +80,23 @@ export function DashboardBreadcrumb() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {items.map((item, i) => (
-          <BreadcrumbItem key={item.path}>
-            {i < items.length - 1 ? (
-              <>
-                <BreadcrumbLink asChild>
-                  <Link to={item.path}>{item.label}</Link>
-                </BreadcrumbLink>
-                <BreadcrumbSeparator />
-              </>
-            ) : (
-              <BreadcrumbPage>{item.label}</BreadcrumbPage>
-            )}
-          </BreadcrumbItem>
-        ))}
+        {items.map((item, i) => {
+          const isLast = i === items.length - 1;
+          return (
+            <Fragment key={item.path}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={item.path}>{item.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {isLast ? null : <BreadcrumbSeparator />}
+            </Fragment>
+          );
+        })}
       </BreadcrumbList>
     </Breadcrumb>
   );
