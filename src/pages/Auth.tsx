@@ -3,6 +3,8 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoginBranding } from "@/hooks/useAppBranding";
+import { getLogoFitClass } from "@/lib/branding";
+import { getAuthCopy } from "@/lib/authCopy";
 import { AppDirection } from "@/components/layout/AppDirection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,8 @@ export default function Auth() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const copy = getAuthCopy(language);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -42,7 +46,7 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Welcome back!");
+      toast.success(copy.signedIn);
     }
 
     setIsLoading(false);
@@ -58,25 +62,23 @@ export default function Auth() {
               <div className="flex items-center gap-3 mb-6">
                 <img
                   src={branding.logoUrl}
-                  alt={`${branding.name} logo`}
-                  className="size-10 rounded-lg object-cover shrink-0"
+                  alt={copy.logoAlt(branding.name)}
+                  className={`size-10 rounded-lg shrink-0 ${getLogoFitClass(branding.logoUrl)}`}
                 />
                 <h2 className="text-2xl font-bold tracking-tight">{branding.name}</h2>
               </div>
-              <h3 className="text-3xl font-bold tracking-tight">Welcome back</h3>
-              <p className="text-muted-foreground">
-                Please enter your details to sign in to your {branding.name} account.
-              </p>
+              <h3 className="text-3xl font-bold tracking-tight">{copy.welcomeTitle}</h3>
+              <p className="text-muted-foreground">{copy.intro(branding.name)}</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">{copy.emailLabel}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder={copy.emailPlaceholder}
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
@@ -84,12 +86,12 @@ export default function Auth() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{copy.passwordLabel}</Label>
                   <div className="relative flex w-full items-stretch">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={copy.passwordPlaceholder}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
@@ -97,6 +99,7 @@ export default function Auth() {
                     />
                     <button
                       type="button"
+                      aria-label={showPassword ? copy.hidePassword : copy.showPassword}
                       onClick={() => setShowPassword((p) => !p)}
                       className="absolute end-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
@@ -113,19 +116,19 @@ export default function Auth() {
                 disabled={isLoading}
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : null}
-                Sign In
+                {copy.signIn}
               </Button>
             </form>
 
             <div className="pt-8 text-center border-t">
               <p className="text-muted-foreground text-sm">
-                Don&apos;t have an account?{" "}
+                {copy.noAccount}{" "}
                 <a
                   href="#"
                   className="font-bold text-[hsl(var(--accent-action))] hover:underline"
                   onClick={(e) => e.preventDefault()}
                 >
-                  Contact Sales
+                  {copy.contactSales}
                 </a>
               </p>
             </div>
@@ -148,20 +151,15 @@ export default function Auth() {
             <div className="mb-8 inline-flex items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
               <img
                 src={branding.logoUrl}
-                alt={`${branding.name} logo`}
-                className="w-16 h-16 rounded-xl object-cover"
+                alt={copy.logoAlt(branding.name)}
+                className={`w-16 h-16 rounded-xl ${getLogoFitClass(branding.logoUrl)}`}
               />
             </div>
-            <h1 className="text-white text-5xl font-extrabold mb-6 tracking-tight">
-              The future of CRM is here.
-            </h1>
-            <p className="text-white/80 text-lg font-medium leading-relaxed">
-              Streamline your sales process, manage customer relationships, and scale your business
-              with {branding.name}&apos;s intelligent platform.
-            </p>
+            <h1 className="text-white text-5xl font-extrabold mb-6 tracking-tight">{copy.heroTitle}</h1>
+            <p className="text-white/80 text-lg font-medium leading-relaxed">{copy.heroBody(branding.name)}</p>
           </div>
           <div className="absolute bottom-12 start-12 flex items-center gap-2 text-white/60 text-sm">
-            <span>© {new Date().getFullYear()} {branding.name}. All rights reserved.</span>
+            <span>{copy.rights(new Date().getFullYear(), branding.name)}</span>
           </div>
         </div>
       </div>

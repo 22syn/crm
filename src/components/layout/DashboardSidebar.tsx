@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useDirection } from "@radix-ui/react-direction";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppBranding } from "@/hooks/useAppBranding";
+import { getLogoFitClass } from "@/lib/branding";
 import { useModuleDirection } from "@/hooks/useAppLanguage";
 import {
   Sidebar,
@@ -133,7 +134,7 @@ export function DashboardSidebar() {
           <img
             src={branding.logoUrl}
             alt={`${branding.name} logo`}
-            className="w-8 h-8 shrink-0 rounded-lg object-cover"
+            className={`w-8 h-8 shrink-0 rounded-lg ${getLogoFitClass(branding.logoUrl)}`}
           />
           <div className="flex min-w-0 flex-1 flex-col items-start group-data-[collapsible=icon]:hidden">
             <span className="text-white font-semibold text-xl tracking-tight truncate">{branding.name}</span>
