@@ -24,7 +24,7 @@ Project-specific decisions and context across sessions. Entries are dated and ne
 
 ## User Preferences
 
-- Super admin account is `kobihazout2@gmail.com`; Kobi's other account `kobi@xsheva.com` (was kobi@leadslords.com until 2026-11-03) has no module roles
+- Super admin account is `kobihazout2@gmail.com`; Kobi's other account `kobi@xsheva.com` (was kobi@leadslords.com until 2026-11-03) is ad_agency admin only since 2026-11-09, for demoing הר סיני's view (their logo, Hebrew, no Hadarya data)
 - Project is in active development — visual-redesign worktree is ongoing work
 - Obsidian (Maestro vault) was the previous source of truth for rules/standards; now migrated to .claude/
 
