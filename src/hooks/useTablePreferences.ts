@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type TableFilters = Record<string, string | string[]>;
@@ -54,7 +55,7 @@ export function useTablePreferences(pageKey: string) {
         user_id: user.id,
         page_key: pageKey,
         view_name: view_name.trim() || "Untitled view",
-        filters: f as unknown as Record<string, unknown>,
+        filters: f,
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
@@ -73,11 +74,11 @@ export function useTablePreferences(pageKey: string) {
       filters?: TableFilters;
     }) => {
       if (!user?.id) throw new Error("Not authenticated");
-      const payload: { view_name?: string; filters?: Record<string, unknown>; updated_at: string } = {
+      const payload: { view_name?: string; filters?: Json; updated_at: string } = {
         updated_at: new Date().toISOString(),
       };
       if (view_name !== undefined) payload.view_name = view_name.trim() || "Untitled view";
-      if (f !== undefined) payload.filters = f as Record<string, unknown>;
+      if (f !== undefined) payload.filters = f;
       const { error } = await supabase
         .from("user_table_preferences")
         .update(payload)

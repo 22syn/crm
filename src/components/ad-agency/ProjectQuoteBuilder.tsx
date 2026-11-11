@@ -20,7 +20,8 @@ import type { Tables } from "@/integrations/supabase/types";
 type OpProject = Tables<"op_projects">;
 type OpClient = Tables<"op_clients">;
 
-type ProjectWithClient = OpProject & { op_clients?: OpClient | null };
+// Only the columns the project detail query selects (op_clients(name, payment_terms))
+type ProjectWithClient = OpProject & { op_clients?: Pick<OpClient, "name" | "payment_terms"> | null };
 
 interface ProjectItemWithPrice {
   id: string;

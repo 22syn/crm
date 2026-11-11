@@ -301,7 +301,12 @@ export default function Quotes() {
     );
   };
 
-  const getTableHandlers = () => {
+  const getTableHandlers = (): {
+    onView: (quote: QuoteRow) => void;
+    onDelete: (quote: QuoteRow) => void;
+    onEdit?: (quote: QuoteRow) => void;
+    onApprove?: (quote: QuoteRow) => void;
+  } => {
     const base = { onView: handleViewQuote, onDelete: handleDeleteQuote };
     if (statusFilter === "all") return { ...base, onEdit: handleEditQuote, onApprove: handleApproveQuote };
     if (statusFilter === "sent") return { ...base, onEdit: handleEditQuote, onApprove: handleApproveQuote };

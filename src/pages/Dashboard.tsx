@@ -31,9 +31,8 @@ function DashboardContent() {
         <Select
           value={timeRange}
           onValueChange={(v: TimeRange) => setTimeRange(v)}
-          className="md:ms-auto"
         >
-          <SelectTrigger className="w-[160px] rounded-lg">
+          <SelectTrigger className="w-[160px] rounded-lg md:ms-auto">
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
           <SelectContent>
