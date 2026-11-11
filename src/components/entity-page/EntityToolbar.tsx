@@ -373,7 +373,7 @@ export function EntityToolbar({
                                       }}
                                     >
                                       <Pencil className="h-4 w-4 me-2" />
-                                      Rename
+                                      {t.rename}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       className="text-destructive focus:text-destructive"
@@ -381,14 +381,14 @@ export function EntityToolbar({
                                         e.preventDefault();
                                         try {
                                           await onDeleteView!(v.id);
-                                          toast.success("View deleted");
+                                          toast.success(t.viewDeleted);
                                         } catch {
-                                          toast.error("Failed to delete view");
+                                          toast.error(t.deleteFailed);
                                         }
                                       }}
                                     >
                                       <Trash2 className="h-4 w-4 me-2" />
-                                      Delete
+                                      {t.delete}
                                     </DropdownMenuItem>
                                   </DropdownMenuSubContent>
                                 </DropdownMenuSub>

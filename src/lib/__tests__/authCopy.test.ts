@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getAuthCopy } from "../authCopy";
+import { getAuthCopy, getSignInErrorMessage } from "../authCopy";
 import { APP_LANGUAGES } from "../locale";
 
 const HEBREW_LETTER = /[א-ת]/;
@@ -30,5 +30,28 @@ describe("getAuthCopy", () => {
     }
     expect(he.intro("הר סיני הפקות")).toContain("הר סיני הפקות");
     expect(he.rights(2026, "הר סיני הפקות")).toBe("© 2026 הר סיני הפקות. כל הזכויות שמורות.");
+  });
+});
+
+describe("getSignInErrorMessage", () => {
+  const wrongPassword = { code: "invalid_credentials", message: "Invalid login credentials" };
+
+  it("keeps Supabase's own message in English", () => {
+    expect(getSignInErrorMessage("en", wrongPassword)).toBe("Invalid login credentials");
+  });
+
+  it("maps known sign-in errors to Hebrew", () => {
+    expect(getSignInErrorMessage("he", wrongPassword)).toBe("האימייל או הסיסמה שגויים.");
+    expect(getSignInErrorMessage("he", { code: "email_not_confirmed", message: "Email not confirmed" })).toMatch(
+      /אומתה/
+    );
+  });
+
+  it("never shows raw English to a Hebrew user, even for unknown or missing codes", () => {
+    for (const error of [{ code: "something_new", message: "Something new" }, { message: "No code at all" }]) {
+      const text = getSignInErrorMessage("he", error);
+      expect(text).toMatch(/[א-ת]/);
+      expect(text).not.toMatch(/[A-Za-z]/);
+    }
   });
 });

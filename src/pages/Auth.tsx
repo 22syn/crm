@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLoginBranding } from "@/hooks/useAppBranding";
 import { getLogoFitClass } from "@/lib/branding";
-import { getAuthCopy } from "@/lib/authCopy";
+import { getAuthCopy, getSignInErrorMessage } from "@/lib/authCopy";
 import { AppDirection } from "@/components/layout/AppDirection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ export default function Auth() {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getSignInErrorMessage(language, error));
     } else {
       toast.success(copy.signedIn);
     }

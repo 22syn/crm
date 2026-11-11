@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAreaLanguage } from "@/hooks/useAppLanguage";
+import { getShellCopy } from "@/lib/shellCopy";
 import {
   CommandDialog,
   CommandEmpty,
@@ -44,6 +46,8 @@ export function GlobalCommandPalette() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { canAccessModule } = useAuth();
+  // Generic palette text follows the area's language; the leads-specific lines stay in the leads module's English.
+  const copy = getShellCopy(useAreaLanguage().language);
 
   // Debounce search (300ms) to reduce request churn while typing
   useEffect(() => {
@@ -126,7 +130,7 @@ export function GlobalCommandPalette() {
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder={hasLeads ? "Search leads by name, email, phone..." : hasAdAgency ? "Navigate..." : "Search..."}
+        placeholder={hasLeads ? "Search leads by name, email, phone..." : hasAdAgency ? copy.paletteNavigate : copy.paletteSearch}
         value={searchInput}
         onValueChange={setSearchInput}
       />
@@ -134,11 +138,11 @@ export function GlobalCommandPalette() {
         <CommandEmpty>
           {searchInput.trim().length >= 2
             ? searchLoading
-              ? "Searching..."
-              : "No results."
+              ? copy.paletteSearching
+              : copy.paletteNoResults
             : hasLeads
               ? "Type to search leads."
-              : "Navigate using the menu above."}
+              : copy.paletteNavigateHint}
         </CommandEmpty>
         {!searchInput.trim() && hasLeads && (
           <CommandGroup heading="Hadarya">

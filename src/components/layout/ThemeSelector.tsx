@@ -1,6 +1,8 @@
 import { Sun, Moon, Monitor, Check } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { useAreaLanguage } from "@/hooks/useAppLanguage";
+import { getShellCopy } from "@/lib/shellCopy";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +13,8 @@ import {
 
 export function ThemeSelector() {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { language } = useAreaLanguage();
+  const copy = getShellCopy(language);
 
   return (
     <DropdownMenu>
@@ -18,7 +22,7 @@ export function ThemeSelector() {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Theme"
+          aria-label={copy.theme}
           className="text-muted-foreground hover:text-foreground shrink-0"
         >
           {resolvedTheme === "dark" ? (
@@ -32,14 +36,14 @@ export function ThemeSelector() {
         <DropdownMenuItem onClick={() => setTheme("light")} className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Sun className="h-4 w-4" />
-            Light
+            {copy.themeLight}
           </span>
           {theme === "light" && <Check className="h-4 w-4" />}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")} className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Moon className="h-4 w-4" />
-            Dark
+            {copy.themeDark}
           </span>
           {theme === "dark" && <Check className="h-4 w-4" />}
         </DropdownMenuItem>
@@ -47,7 +51,7 @@ export function ThemeSelector() {
         <DropdownMenuItem onClick={() => setTheme("system")} className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Monitor className="h-4 w-4" />
-            System
+            {copy.themeSystem}
           </span>
           {theme === "system" && <Check className="h-4 w-4" />}
         </DropdownMenuItem>
