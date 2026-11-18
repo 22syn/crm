@@ -46,3 +46,15 @@ npm run user:add         # add a user (uses .env.local)
 - Environment config in `.env.local` (see `.env.example`); Supabase keys required.
 - Supabase is the backend — schema changes go through `supabase/migrations/`.
 - Package name in `package.json` is `vite_react_shadcn_ts` (scaffold origin); the project is the Xsheva CRM.
+
+## Tools for UI and web work
+
+Registry of installed tools: `~/cabinet/knowledge/reference/capabilities.md`. shadcn/ui + Radix stays the default; UI text is Hebrew / RTL.
+
+| Task | Use |
+|---|---|
+| HTML, CSS or client-side JS (forms, dialogs, scroll, layout) | skill `modern-web-guidance` first. `npx modern-web-guidance@latest legacy-scan src` reports old patterns (first run 2026-11-17: 16 minor items) |
+| Product UI: data tables, forms, dashboards | `ui-ux-pro-max`. Not `design-taste-frontend`, that one is for marketing pages |
+| Keyboard, focus or popover behaviour Radix does not cover | `ui-sdk` (beta 0.1.0-beta.1, installed 2026-11-17, untried): use on one new component first |
+| Prove a UI change works | Playwright, with a screenshot |
+| Any library or SDK question | Context7 |
